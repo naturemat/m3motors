@@ -14,22 +14,18 @@ export class Intervencion {
     private readonly manoDeObra: number,
     private readonly mecanicoId: MecanicoId
   ) {
-    if (manoDeObra < 0) throw new Error('La mano de obra no puede ser negativa');
+    this.validarManoDeObra();
     this.estado = 'PENDIENTE';
     this.componentesSustituidos = [];
   }
 
   registrarSustitucionComponente(componente: ComponenteCritico): void {
-    if (this.estado === 'FINALIZADO') {
-      throw new Error('No se pueden agregar componentes a una intervención finalizada');
-    }
+    this.validarNoFinalizada();
     this.componentesSustituidos.push(componente);
   }
 
   finalizarIntervencion(): void {
-    if (this.estado === 'FINALIZADO') {
-      throw new Error('La intervención ya está finalizada');
-    }
+    this.validarNoFinalizada();
     this.estado = 'FINALIZADO';
   }
 
@@ -40,4 +36,16 @@ export class Intervencion {
   getMecanicoId(): MecanicoId { return this.mecanicoId; }
   getEstado(): string { return this.estado; }
   getComponentesSustituidos(): ReadonlyArray<ComponenteCritico> { return Object.freeze([...this.componentesSustituidos]); }
+
+  private validarManoDeObra(): void {
+    if (this.manoDeObra < 0) {
+      throw new Error('La mano de obra no puede ser negativa');
+    }
+  }
+
+  private validarNoFinalizada(): void {
+    if (this.estado === 'FINALIZADO') {
+      throw new Error('La operación no está permitida en una intervención finalizada');
+    }
+  }
 }

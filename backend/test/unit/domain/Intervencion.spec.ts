@@ -32,11 +32,11 @@ describe('Intervencion Entity', () => {
   it('no debe permitir registrar componentes si está FINALIZADO', () => {
     intervencion.finalizarIntervencion();
     const componente = new ComponenteCritico('Filtro de Aceite', 12);
-    expect(() => intervencion.registrarSustitucionComponente(componente)).toThrow('No se pueden agregar componentes a una intervención finalizada');
+    expect(() => intervencion.registrarSustitucionComponente(componente)).toThrow('La operación no está permitida en una intervención finalizada');
   });
 
   it('no debe permitir finalizar si ya está FINALIZADA', () => {
     intervencion.finalizarIntervencion();
-    expect(() => intervencion.finalizarIntervencion()).toThrow('La intervención ya está finalizada');
+    expect(() => intervencion.finalizarIntervencion()).toThrow('La operación no está permitida en una intervención finalizada');
   });
 });

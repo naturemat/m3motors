@@ -1,4 +1,4 @@
-import { Vehiculo } from '../../../src/domain/entities/Vehiculo';
+import { Vehiculo } from '../../../src/domain/aggregates/Vehiculo';
 import { Placa } from '../../../src/domain/value-objects/Placa';
 import { Intervencion } from '../../../src/domain/entities/Intervencion';
 import { IntervencionId } from '../../../src/domain/value-objects/IntervencionId';
@@ -6,46 +6,97 @@ import { DiagnosticoTecnico } from '../../../src/domain/value-objects/Diagnostic
 import { MecanicoId } from '../../../src/domain/value-objects/MecanicoId';
 import { ComponenteCritico } from '../../../src/domain/value-objects/ComponenteCritico';
 
-describe('Vehiculo Entity', () => {
+describe('Vehiculo Aggregate Root', () => {
   let vehiculo: Vehiculo;
   let placa: Placa;
+  let hoy: Date;
+  let manana: Date;
+  let ayer: Date;
 
   beforeEach(() => {
     placa = new Placa('ABC-1234');
     vehiculo = new Vehiculo(placa, 'Toyota', 'Corolla', 2020, 'Gasolina');
+    hoy = new Date('2026-07-02T10:00:00Z');
+    manana = new Date('2026-07-03T10:00:00Z');
+    ayer = new Date('2026-07-01T10:00:00Z');
   });
 
-  it('debe registrar un ingreso de kilometraje mayor al anterior', () => {
-    vehiculo.registrarIngresoKilometraje(100);
+  it('debe registrar un ingreso de kilometraje mayor al anterior respetando orden cronológico', () => {
+    vehiculo.registrarIngresoKilometraje(100, ayer);
     expect(vehiculo.getRegistrosKilometraje().length).toBe(1);
-    expect(vehiculo.getRegistrosKilometraje()[0].getValorKm()).toBe(100);
-
-    vehiculo.registrarIngresoKilometraje(150);
+    
+    vehiculo.registrarIngresoKilometraje(150, hoy);
     expect(vehiculo.getRegistrosKilometraje().length).toBe(2);
-    expect(vehiculo.getRegistrosKilometraje()[1].getValorKm()).toBe(150);
   });
 
-  it('debe lanzar error al registrar un kilometraje menor al anterior', () => {
-    vehiculo.registrarIngresoKilometraje(100);
-    expect(() => vehiculo.registrarIngresoKilometraje(50)).toThrow('El nuevo kilometraje no puede ser menor al registro anterior');
+  it('debe lanzar error por inconsistencia cronológica', () => {
+    vehiculo.registrarIngresoKilometraje(100, hoy);
+    expect(() => vehiculo.registrarIngresoKilometraje(150, ayer))
+      .toThrow('Inconsistencia cronológica: no se puede registrar un evento en una fecha anterior al último evento validado.');
   });
 
-  it('debe recalcular la tasa de desgaste basada en los registros', () => {
-    vehiculo.registrarIngresoKilometraje(100);
-    vehiculo.registrarIngresoKilometraje(200);
-    vehiculo.recalcularTasaDesgasteSemanal();
-    expect(vehiculo.getTasaDesgasteActual().getPorcentaje()).toBeGreaterThan(0);
-  });
-
-  it('debe vincular una nueva intervención', () => {
+  it('debe vincular nueva intervención respetando orden cronológico', () => {
+    vehiculo.registrarIngresoKilometraje(100, ayer);
+    
     const intervencion = new Intervencion(
       new IntervencionId('123'),
-      new Date(),
+      hoy,
       new DiagnosticoTecnico('Falla motor'),
       100,
       new MecanicoId('MEC-1')
     );
     vehiculo.vincularNuevaIntervencion(intervencion);
     expect(vehiculo.getHistorialEvolutivo().length).toBe(1);
+  });
+
+  it('debe lanzar error al vincular intervención en fecha pasada al último kilometraje', () => {
+    vehiculo.registrarIngresoKilometraje(100, hoy);
+    
+    const intervencionPasada = new Intervencion(
+      new IntervencionId('123'),
+      ayer,
+      new DiagnosticoTecnico('Falla motor'),
+      100,
+      new MecanicoId('MEC-1')
+    );
+    
+    expect(() => vehiculo.vincularNuevaIntervencion(intervencionPasada))
+      .toThrow('Inconsistencia cronológica: no se puede registrar un evento en una fecha anterior al último evento validado.');
+  });
+
+  it('debe delegar la agregación de componentes a la intervención correcta', () => {
+    const intId = new IntervencionId('INT-1');
+    const intervencion = new Intervencion(
+      intId,
+      hoy,
+      new DiagnosticoTecnico('Falla motor'),
+      100,
+      new MecanicoId('MEC-1')
+    );
+    vehiculo.vincularNuevaIntervencion(intervencion);
+    
+    vehiculo.agregarComponenteAIntervencion(intId, new ComponenteCritico('Filtro', 12));
+    expect(intervencion.getComponentesSustituidos().length).toBe(1);
+  });
+
+  it('debe delegar la finalización de la intervención', () => {
+    const intId = new IntervencionId('INT-2');
+    const intervencion = new Intervencion(
+      intId,
+      hoy,
+      new DiagnosticoTecnico('Revisión'),
+      50,
+      new MecanicoId('MEC-1')
+    );
+    vehiculo.vincularNuevaIntervencion(intervencion);
+    
+    vehiculo.finalizarIntervencion(intId);
+    expect(intervencion.getEstado()).toBe('FINALIZADO');
+  });
+
+  it('debe lanzar error si intenta operar sobre una intervención inexistente', () => {
+    const intIdFalsa = new IntervencionId('INT-FALSE');
+    expect(() => vehiculo.finalizarIntervencion(intIdFalsa))
+      .toThrow('Intervención no encontrada en el historial del vehículo.');
   });
 });

@@ -1,0 +1,8 @@
+export class IntervencionId {
+  private readonly value: string;
+  constructor(value: string) {
+    if (!value || value.trim().length === 0) throw new Error('IntervencionId no puede estar vacío');
+    this.value = value;
+  }
+  getValue(): string { return this.value; }
+}

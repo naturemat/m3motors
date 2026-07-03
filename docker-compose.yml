@@ -1,0 +1,111 @@
+# =============================================================================
+# M3Motors — Docker Compose: Entorno de Desarrollo
+# =============================================================================
+# Uso:
+#   docker-compose up -d            # Levantar todos los servicios
+#   docker-compose up -d postgres   # Levantar solo la base de datos
+#   docker-compose logs -f backend  # Ver logs del backend
+#   docker-compose down             # Detener todos los servicios
+#   docker-compose down -v          # Detener y eliminar volúmenes (pierde datos)
+#
+# Requisitos:
+#   - Docker Engine 24+
+#   - Docker Compose 2.20+
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — Base de Datos
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16
+    container_name: m3motors-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: m3motors
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d m3motors"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - m3motors-network
+
+  # ---------------------------------------------------------------------------
+  # Backend — NestJS (Api Rest)
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: m3motors-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      APP_PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/m3motors?schema=public
+      JWT_SECRET: dev_jwt_secret_change_in_production
+      JWT_EXPIRES_IN: 7d
+      LLM_API_KEY: ${LLM_API_KEY:-sk-placeholder}
+      LLM_MODEL: gpt-4
+      LOG_LEVEL: debug
+      CORS_ORIGIN: http://localhost:5173
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/package.json:/app/package.json
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - m3motors-network
+
+  # ---------------------------------------------------------------------------
+  # Frontend — React + Vite
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: m3motors-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      NODE_ENV: development
+      VITE_API_URL: http://localhost:3000
+      VITE_NODE_ENV: development
+      VITE_TELEGRAM_BOT_USERNAME: m3motors_bot
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/package.json:/app/package.json
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+    depends_on:
+      - backend
+    networks:
+      - m3motors-network
+
+# ---------------------------------------------------------------------------
+# Volúmenes
+# ---------------------------------------------------------------------------
+volumes:
+  postgres_data:
+    name: m3motors_postgres_data
+    driver: local
+
+# ---------------------------------------------------------------------------
+# Redes
+# ---------------------------------------------------------------------------
+networks:
+  m3motors-network:
+    name: m3motors-network
+    driver: bridge

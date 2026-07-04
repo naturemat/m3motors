@@ -9,7 +9,7 @@ export class Cliente {
     private nombre: string,
     private telefono: string,
     private email: string,
-    private telegramChatId: string
+    private telegramChatId: string,
   ) {
     this.validarNombre();
     this.vehiculosAsociados = [];
@@ -20,19 +20,35 @@ export class Cliente {
     this.vehiculosAsociados.push(placa);
   }
 
-  actualizarCanalesContacto(telefono: string, email: string, telegramChatId: string): void {
+  actualizarCanalesContacto(
+    telefono: string,
+    email: string,
+    telegramChatId: string,
+  ): void {
     this.validarFormatoEmail(email);
     this.telefono = telefono;
     this.email = email;
     this.telegramChatId = telegramChatId;
   }
 
-  getId(): ClienteId { return this.id; }
-  getNombre(): string { return this.nombre; }
-  getTelefono(): string { return this.telefono; }
-  getEmail(): string { return this.email; }
-  getTelegramChatId(): string { return this.telegramChatId; }
-  getVehiculosAsociados(): ReadonlyArray<Placa> { return Object.freeze([...this.vehiculosAsociados]); }
+  getId(): ClienteId {
+    return this.id;
+  }
+  getNombre(): string {
+    return this.nombre;
+  }
+  getTelefono(): string {
+    return this.telefono;
+  }
+  getEmail(): string {
+    return this.email;
+  }
+  getTelegramChatId(): string {
+    return this.telegramChatId;
+  }
+  getVehiculosAsociados(): ReadonlyArray<Placa> {
+    return Object.freeze([...this.vehiculosAsociados]);
+  }
 
   private validarNombre(): void {
     if (!this.nombre) {
@@ -41,7 +57,9 @@ export class Cliente {
   }
 
   private validarPlacaNoDuplicada(placa: Placa): void {
-    const yaExiste = this.vehiculosAsociados.some(p => p.getValue() === placa.getValue());
+    const yaExiste = this.vehiculosAsociados.some(
+      (p) => p.getValue() === placa.getValue(),
+    );
     if (yaExiste) {
       throw new Error('El vehículo ya está asociado a este cliente');
     }

@@ -13,7 +13,7 @@ describe('Intervencion Entity', () => {
       new Date(),
       new DiagnosticoTecnico('Revisión general'),
       50.0,
-      new MecanicoId('mec-1')
+      new MecanicoId('mec-1'),
     );
   });
 
@@ -21,7 +21,9 @@ describe('Intervencion Entity', () => {
     const componente = new ComponenteCritico('Filtro de Aceite', 12);
     intervencion.registrarSustitucionComponente(componente);
     expect(intervencion.getComponentesSustituidos().length).toBe(1);
-    expect(intervencion.getComponentesSustituidos()[0].getNombre()).toBe('Filtro de Aceite');
+    expect(intervencion.getComponentesSustituidos()[0].getNombre()).toBe(
+      'Filtro de Aceite',
+    );
   });
 
   it('debe cambiar el estado a FINALIZADO', () => {
@@ -32,11 +34,15 @@ describe('Intervencion Entity', () => {
   it('no debe permitir registrar componentes si está FINALIZADO', () => {
     intervencion.finalizarIntervencion();
     const componente = new ComponenteCritico('Filtro de Aceite', 12);
-    expect(() => intervencion.registrarSustitucionComponente(componente)).toThrow('La operación no está permitida en una intervención finalizada');
+    expect(() =>
+      intervencion.registrarSustitucionComponente(componente),
+    ).toThrow('La operación no está permitida en una intervención finalizada');
   });
 
   it('no debe permitir finalizar si ya está FINALIZADA', () => {
     intervencion.finalizarIntervencion();
-    expect(() => intervencion.finalizarIntervencion()).toThrow('La operación no está permitida en una intervención finalizada');
+    expect(() => intervencion.finalizarIntervencion()).toThrow(
+      'La operación no está permitida en una intervención finalizada',
+    );
   });
 });

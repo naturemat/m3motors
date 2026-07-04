@@ -47,7 +47,10 @@ export class RegistrarIntervencion {
     );
   }
 
-  private agregarComponentes(intervencion: Intervencion, dto: RegistrarIntervencionDTO): void {
+  private agregarComponentes(
+    intervencion: Intervencion,
+    dto: RegistrarIntervencionDTO,
+  ): void {
     for (const comp of dto.componentes) {
       intervencion.registrarSustitucionComponente(
         new ComponenteCritico(comp.nombre, comp.tiempoVidaUtilMeses),
@@ -55,15 +58,15 @@ export class RegistrarIntervencion {
     }
   }
 
-  private async publicarEvento(intervencion: Intervencion, dto: RegistrarIntervencionDTO): Promise<void> {
-    await this.eventPublisher.publish(
-      IntervencionRegistradaEvent.EVENT_NAME,
-      {
-        intervencionId: intervencion.getId().getValue(),
-        placa: dto.placa,
-        fecha: dto.fecha,
-        diagnostico: dto.diagnostico,
-      },
-    );
+  private async publicarEvento(
+    intervencion: Intervencion,
+    dto: RegistrarIntervencionDTO,
+  ): Promise<void> {
+    await this.eventPublisher.publish(IntervencionRegistradaEvent.EVENT_NAME, {
+      intervencionId: intervencion.getId().getValue(),
+      placa: dto.placa,
+      fecha: dto.fecha,
+      diagnostico: dto.diagnostico,
+    });
   }
 }

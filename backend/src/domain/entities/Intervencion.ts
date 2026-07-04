@@ -12,7 +12,7 @@ export class Intervencion {
     private readonly fecha: Date,
     private readonly diagnostico: DiagnosticoTecnico,
     private readonly manoDeObra: number,
-    private readonly mecanicoId: MecanicoId
+    private readonly mecanicoId: MecanicoId,
   ) {
     this.validarManoDeObra();
     this.estado = 'PENDIENTE';
@@ -29,13 +29,27 @@ export class Intervencion {
     this.estado = 'FINALIZADO';
   }
 
-  getId(): IntervencionId { return this.id; }
-  getFecha(): Date { return this.fecha; }
-  getDiagnostico(): DiagnosticoTecnico { return this.diagnostico; }
-  getManoDeObra(): number { return this.manoDeObra; }
-  getMecanicoId(): MecanicoId { return this.mecanicoId; }
-  getEstado(): string { return this.estado; }
-  getComponentesSustituidos(): ReadonlyArray<ComponenteCritico> { return Object.freeze([...this.componentesSustituidos]); }
+  getId(): IntervencionId {
+    return this.id;
+  }
+  getFecha(): Date {
+    return this.fecha;
+  }
+  getDiagnostico(): DiagnosticoTecnico {
+    return this.diagnostico;
+  }
+  getManoDeObra(): number {
+    return this.manoDeObra;
+  }
+  getMecanicoId(): MecanicoId {
+    return this.mecanicoId;
+  }
+  getEstado(): 'PENDIENTE' | 'FINALIZADO' {
+    return this.estado;
+  }
+  getComponentesSustituidos(): ReadonlyArray<ComponenteCritico> {
+    return Object.freeze([...this.componentesSustituidos]);
+  }
 
   private validarManoDeObra(): void {
     if (this.manoDeObra < 0) {
@@ -45,7 +59,9 @@ export class Intervencion {
 
   private validarNoFinalizada(): void {
     if (this.estado === 'FINALIZADO') {
-      throw new Error('La operación no está permitida en una intervención finalizada');
+      throw new Error(
+        'La operación no está permitida en una intervención finalizada',
+      );
     }
   }
 }

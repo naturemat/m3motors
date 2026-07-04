@@ -6,5 +6,7 @@ export class Placa {
     }
     this.value = value;
   }
-  getValue(): string { return this.value; }
+  getValue(): string {
+    return this.value;
+  }
 }

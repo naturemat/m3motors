@@ -24,7 +24,13 @@ describe('RegistrarIntervencion (Use Case)', () => {
     };
     useCase = new RegistrarIntervencion(mockRepo, mockPublisher);
 
-    vehiculoExistente = new Vehiculo(new Placa('ABC-123'), 'Toyota', 'Corolla', 2020, 'Gasolina');
+    vehiculoExistente = new Vehiculo(
+      new Placa('ABC-123'),
+      'Toyota',
+      'Corolla',
+      2020,
+      'Gasolina',
+    );
     vehiculoExistente.registrarIngresoKilometraje(5000, fechaBase);
   });
 
@@ -44,7 +50,7 @@ describe('RegistrarIntervencion (Use Case)', () => {
     });
 
     expect(mockRepo.save).toHaveBeenCalledTimes(1);
-    const vehiculoGuardado = mockRepo.save.mock.calls[0][0] as Vehiculo;
+    const vehiculoGuardado = mockRepo.save.mock.calls[0][0];
     expect(vehiculoGuardado.getHistorialEvolutivo().length).toBe(1);
     expect(vehiculoGuardado.getRegistrosKilometraje().length).toBe(2);
   });
@@ -67,7 +73,7 @@ describe('RegistrarIntervencion (Use Case)', () => {
       manoDeObra: 200,
     });
 
-    const vehiculoGuardado = mockRepo.save.mock.calls[0][0] as Vehiculo;
+    const vehiculoGuardado = mockRepo.save.mock.calls[0][0];
     const intervencion = vehiculoGuardado.getHistorialEvolutivo()[0];
     expect(intervencion.getComponentesSustituidos().length).toBe(2);
   });
@@ -89,7 +95,10 @@ describe('RegistrarIntervencion (Use Case)', () => {
 
     expect(mockPublisher.publish).toHaveBeenCalledWith(
       IntervencionRegistradaEvent.EVENT_NAME,
-      expect.objectContaining({ placa: 'ABC-123', diagnostico: 'Revisión general' }),
+      expect.objectContaining({
+        placa: 'ABC-123',
+        diagnostico: 'Revisión general',
+      }),
     );
   });
 

@@ -37,14 +37,22 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
 
     expect(mockRepo.findByPlaca).toHaveBeenCalledTimes(1);
     expect(mockRepo.save).toHaveBeenCalledTimes(1);
-    const vehiculoGuardado = mockRepo.save.mock.calls[0][0] as Vehiculo;
+    const vehiculoGuardado = mockRepo.save.mock.calls[0][0];
     expect(vehiculoGuardado.getRegistrosKilometraje().length).toBe(1);
-    expect(vehiculoGuardado.getRegistrosKilometraje()[0].getValorKm()).toBe(5000);
+    expect(vehiculoGuardado.getRegistrosKilometraje()[0].getValorKm()).toBe(
+      5000,
+    );
   });
 
   it('debe actualizar el kilometraje de un vehículo existente', async () => {
     const placaExistente = new Placa('XYZ-123');
-    const vehiculoExistente = new Vehiculo(placaExistente, 'Toyota', 'Corolla', 2022, 'Gasolina');
+    const vehiculoExistente = new Vehiculo(
+      placaExistente,
+      'Toyota',
+      'Corolla',
+      2022,
+      'Gasolina',
+    );
     vehiculoExistente.registrarIngresoKilometraje(3000, new Date('2026-01-01'));
     mockRepo.findByPlaca.mockResolvedValue(vehiculoExistente);
     mockRepo.save.mockResolvedValue(undefined);
@@ -61,7 +69,7 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
     });
 
     expect(mockRepo.save).toHaveBeenCalledTimes(1);
-    const vehiculoGuardado = mockRepo.save.mock.calls[0][0] as Vehiculo;
+    const vehiculoGuardado = mockRepo.save.mock.calls[0][0];
     expect(vehiculoGuardado.getRegistrosKilometraje().length).toBe(2);
   });
 

@@ -31,13 +31,10 @@ export class RegistrarIngresoVehicular {
 
     await this.vehiculoRepository.save(vehiculo);
 
-    await this.eventPublisher.publish(
-      KilometrajeActualizadoEvent.EVENT_NAME,
-      {
-        placa: dto.placa,
-        nuevoKilometraje: dto.kilometrajeInicial,
-        fecha,
-      },
-    );
+    await this.eventPublisher.publish(KilometrajeActualizadoEvent.EVENT_NAME, {
+      placa: dto.placa,
+      nuevoKilometraje: dto.kilometrajeInicial,
+      fecha,
+    });
   }
 }

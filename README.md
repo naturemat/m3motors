@@ -14,8 +14,8 @@ M3Motors es un ecosistema digital diseñado para modernizar la operación de tal
 
 La arquitectura del sistema está proyectada bajo los principios de *Clean Architecture* y *Domain-Driven Design (DDD)* utilizando el siguiente stack tecnológico:
 
-*   **Backend:** Python (FastAPI) / Node.js
-*   **Frontend:** React / TypeScript
+*   **Backend:** Node.js (NestJS) + Prisma
+*   **Frontend:** React / TypeScript (Vite + Tailwind CSS)
 *   **Base de Datos:** PostgreSQL (Persistencia relacional y almacenamiento del historial clínico vehicular)
 *   **Integraciones:** Telegram Bot API (Interfaz conversacional para clientes finales)
 *   **Infraestructura:** Docker / AWS (EC2 para despliegue de instancias y servicios controlados)

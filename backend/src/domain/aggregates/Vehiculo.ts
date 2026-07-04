@@ -15,7 +15,7 @@ export class Vehiculo {
     private readonly marca: string,
     private readonly modelo: string,
     private readonly anio: number,
-    private readonly tipoMotor: string
+    private readonly tipoMotor: string,
   ) {
     this.validarDatosBasicos();
     this.historialEvolutivo = [];
@@ -34,7 +34,10 @@ export class Vehiculo {
     this.historialEvolutivo.push(intervencion);
   }
 
-  agregarComponenteAIntervencion(intervencionId: IntervencionId, componente: ComponenteCritico): void {
+  agregarComponenteAIntervencion(
+    intervencionId: IntervencionId,
+    componente: ComponenteCritico,
+  ): void {
     const intervencion = this.buscarIntervencionPorId(intervencionId);
     intervencion.registrarSustitucionComponente(componente);
   }
@@ -51,14 +54,30 @@ export class Vehiculo {
     this.tasaDesgasteActual = new TasaDesgaste(nuevaTasa);
   }
 
-  getPlaca(): Placa { return this.placa; }
-  getMarca(): string { return this.marca; }
-  getModelo(): string { return this.modelo; }
-  getAnio(): number { return this.anio; }
-  getTipoMotor(): string { return this.tipoMotor; }
-  getTasaDesgasteActual(): TasaDesgaste { return this.tasaDesgasteActual; }
-  getHistorialEvolutivo(): ReadonlyArray<Intervencion> { return Object.freeze([...this.historialEvolutivo]); }
-  getRegistrosKilometraje(): ReadonlyArray<RegistroKilometraje> { return Object.freeze([...this.registrosKilometraje]); }
+  getPlaca(): Placa {
+    return this.placa;
+  }
+  getMarca(): string {
+    return this.marca;
+  }
+  getModelo(): string {
+    return this.modelo;
+  }
+  getAnio(): number {
+    return this.anio;
+  }
+  getTipoMotor(): string {
+    return this.tipoMotor;
+  }
+  getTasaDesgasteActual(): TasaDesgaste {
+    return this.tasaDesgasteActual;
+  }
+  getHistorialEvolutivo(): ReadonlyArray<Intervencion> {
+    return Object.freeze([...this.historialEvolutivo]);
+  }
+  getRegistrosKilometraje(): ReadonlyArray<RegistroKilometraje> {
+    return Object.freeze([...this.registrosKilometraje]);
+  }
 
   private validarDatosBasicos(): void {
     if (!this.marca || !this.modelo || !this.tipoMotor) {
@@ -71,34 +90,54 @@ export class Vehiculo {
   }
 
   private validarKilometrajeNoRetrocede(valorKm: number): void {
-    const ultimoRegistro = this.registrosKilometraje.length > 0
-      ? this.registrosKilometraje[this.registrosKilometraje.length - 1].getValorKm()
-      : 0;
+    const ultimoRegistro =
+      this.registrosKilometraje.length > 0
+        ? this.registrosKilometraje[
+            this.registrosKilometraje.length - 1
+          ].getValorKm()
+        : 0;
     if (valorKm < ultimoRegistro) {
-      throw new Error('El nuevo kilometraje no puede ser menor al registro anterior');
+      throw new Error(
+        'El nuevo kilometraje no puede ser menor al registro anterior',
+      );
     }
   }
 
   private validarConsistenciaCronologica(nuevaFecha: Date): void {
-    const ultimoRegistroKm = this.registrosKilometraje.length > 0
-      ? this.registrosKilometraje[this.registrosKilometraje.length - 1].getFecha()
-      : new Date(0);
+    const ultimoRegistroKm =
+      this.registrosKilometraje.length > 0
+        ? this.registrosKilometraje[
+            this.registrosKilometraje.length - 1
+          ].getFecha()
+        : new Date(0);
 
-    const ultimaIntervencion = this.historialEvolutivo.length > 0
-      ? this.historialEvolutivo[this.historialEvolutivo.length - 1].getFecha()
-      : new Date(0);
+    const ultimaIntervencion =
+      this.historialEvolutivo.length > 0
+        ? this.historialEvolutivo[this.historialEvolutivo.length - 1].getFecha()
+        : new Date(0);
 
-    const ultimaFechaMecanica = ultimoRegistroKm > ultimaIntervencion ? ultimoRegistroKm : ultimaIntervencion;
+    const ultimaFechaMecanica =
+      ultimoRegistroKm > ultimaIntervencion
+        ? ultimoRegistroKm
+        : ultimaIntervencion;
 
     if (nuevaFecha < ultimaFechaMecanica) {
-      throw new Error('Inconsistencia cronológica: no se puede registrar un evento en una fecha anterior al último evento validado.');
+      throw new Error(
+        'Inconsistencia cronológica: no se puede registrar un evento en una fecha anterior al último evento validado.',
+      );
     }
   }
 
-  private buscarIntervencionPorId(intervencionId: IntervencionId): Intervencion {
-    const intervencion = this.historialEvolutivo.find(i => i.getId().getValue() === intervencionId.getValue());
+  private buscarIntervencionPorId(
+    intervencionId: IntervencionId,
+  ): Intervencion {
+    const intervencion = this.historialEvolutivo.find(
+      (i) => i.getId().getValue() === intervencionId.getValue(),
+    );
     if (!intervencion) {
-      throw new Error('Intervención no encontrada en el historial del vehículo.');
+      throw new Error(
+        'Intervención no encontrada en el historial del vehículo.',
+      );
     }
     return intervencion;
   }

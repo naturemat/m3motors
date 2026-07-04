@@ -7,8 +7,7 @@ Esta guía está diseñada para que cualquier desarrollador nuevo que se integre
 ## 1. Prerrequisitos del Sistema
 Antes de comenzar, asegúrate de tener instaladas las siguientes herramientas en tu máquina local:
 * **Git:** Para el control de versiones.
-* **Node.js (v18 o superior):** Entorno de ejecución para el Frontend.
-* **Python (v3.11 o superior):** Para los servicios del Backend.
+* **Node.js (v18 o superior):** Entorno de ejecución para Backend y Frontend.
 * **Docker y Docker Compose:** Para la contenerización de la base de datos y servicios aislados.
 
 ---

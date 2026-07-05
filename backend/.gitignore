@@ -1,0 +1,21 @@
+﻿# compiled output
+dist
+node_modules
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Coverage directory used by tools like istanbul
+coverage
+
+# NestJS
+.nest
+
+# Prisma
+.env
+/generated/prisma
+
+# OS files
+.DS_Store

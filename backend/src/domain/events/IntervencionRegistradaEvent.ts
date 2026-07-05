@@ -6,5 +6,7 @@ export class IntervencionRegistradaEvent {
     public readonly placa: string,
     public readonly fecha: Date,
     public readonly diagnostico: string,
-  ) {}
+  ) {
+    Object.freeze(this);
+  }
 }

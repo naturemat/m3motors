@@ -7,15 +7,16 @@ import { ClienteId } from '../../../domain/value-objects/ClienteId';
 export class InMemoryClienteRepository implements IClienteRepository {
   private readonly clientes: Map<string, Cliente> = new Map();
 
-  async findById(id: ClienteId): Promise<Cliente | null> {
-    return this.clientes.get(id.getValue()) ?? null;
+  findById(id: ClienteId): Promise<Cliente | null> {
+    return Promise.resolve(this.clientes.get(id.getValue()) ?? null);
   }
 
-  async findAll(): Promise<Cliente[]> {
-    return Array.from(this.clientes.values());
+  findAll(): Promise<Cliente[]> {
+    return Promise.resolve(Array.from(this.clientes.values()));
   }
 
-  async save(cliente: Cliente): Promise<void> {
+  save(cliente: Cliente): Promise<void> {
     this.clientes.set(cliente.getId().getValue(), cliente);
+    return Promise.resolve();
   }
 }

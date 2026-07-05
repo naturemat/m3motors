@@ -7,24 +7,25 @@ import { Placa } from '../../../domain/value-objects/Placa';
 export class InMemoryVehiculoRepository implements IVehiculoRepository {
   private readonly vehiculos: Map<string, Vehiculo> = new Map();
 
-  async findById(id: string): Promise<Vehiculo | null> {
-    return this.vehiculos.get(id) ?? null;
+  findById(id: string): Promise<Vehiculo | null> {
+    return Promise.resolve(this.vehiculos.get(id) ?? null);
   }
 
-  async findByPlaca(placa: Placa): Promise<Vehiculo | null> {
+  findByPlaca(placa: Placa): Promise<Vehiculo | null> {
     for (const vehiculo of this.vehiculos.values()) {
       if (vehiculo.getPlaca().getValue() === placa.getValue()) {
-        return vehiculo;
+        return Promise.resolve(vehiculo);
       }
     }
-    return null;
+    return Promise.resolve(null);
   }
 
-  async findAll(): Promise<Vehiculo[]> {
-    return Array.from(this.vehiculos.values());
+  findAll(): Promise<Vehiculo[]> {
+    return Promise.resolve(Array.from(this.vehiculos.values()));
   }
 
-  async save(vehiculo: Vehiculo): Promise<void> {
+  save(vehiculo: Vehiculo): Promise<void> {
     this.vehiculos.set(vehiculo.getPlaca().getValue(), vehiculo);
+    return Promise.resolve();
   }
 }

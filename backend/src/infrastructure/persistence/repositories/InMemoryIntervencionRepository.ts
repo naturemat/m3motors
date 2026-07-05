@@ -7,15 +7,16 @@ import { IntervencionId } from '../../../domain/value-objects/IntervencionId';
 export class InMemoryIntervencionRepository implements IIntervencionRepository {
   private readonly intervenciones: Map<string, Intervencion> = new Map();
 
-  async findById(id: IntervencionId): Promise<Intervencion | null> {
-    return this.intervenciones.get(id.getValue()) ?? null;
+  findById(id: IntervencionId): Promise<Intervencion | null> {
+    return Promise.resolve(this.intervenciones.get(id.getValue()) ?? null);
   }
 
-  async findAll(): Promise<Intervencion[]> {
-    return Array.from(this.intervenciones.values());
+  findAll(): Promise<Intervencion[]> {
+    return Promise.resolve(Array.from(this.intervenciones.values()));
   }
 
-  async save(intervencion: Intervencion): Promise<void> {
+  save(intervencion: Intervencion): Promise<void> {
     this.intervenciones.set(intervencion.getId().getValue(), intervencion);
+    return Promise.resolve();
   }
 }

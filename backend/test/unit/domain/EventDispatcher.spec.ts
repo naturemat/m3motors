@@ -33,7 +33,7 @@ describe('EventDispatcher', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
       order.push(1);
     });
-    const asyncHandler2 = jest.fn(async () => {
+    const asyncHandler2 = jest.fn(() => {
       order.push(2);
     });
 

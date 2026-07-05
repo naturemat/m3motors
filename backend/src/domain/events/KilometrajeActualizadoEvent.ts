@@ -5,5 +5,7 @@ export class KilometrajeActualizadoEvent {
     public readonly placa: string,
     public readonly nuevoKilometraje: number,
     public readonly fecha: Date,
-  ) {}
+  ) {
+    Object.freeze(this);
+  }
 }

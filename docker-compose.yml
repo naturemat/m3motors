@@ -1,22 +1,4 @@
-# =============================================================================
-# M3Motors — Docker Compose: Entorno de Desarrollo
-# =============================================================================
-# Uso:
-#   docker-compose up -d            # Levantar todos los servicios
-#   docker-compose up -d postgres   # Levantar solo la base de datos
-#   docker-compose logs -f backend  # Ver logs del backend
-#   docker-compose down             # Detener todos los servicios
-#   docker-compose down -v          # Detener y eliminar volúmenes (pierde datos)
-#
-# Requisitos:
-#   - Docker Engine 24+
-#   - Docker Compose 2.20+
-# =============================================================================
-
 services:
-  # ---------------------------------------------------------------------------
-  # PostgreSQL — Base de Datos
-  # ---------------------------------------------------------------------------
   postgres:
     image: postgres:16
     container_name: m3motors-postgres
@@ -39,9 +21,6 @@ services:
     networks:
       - m3motors-network
 
-  # ---------------------------------------------------------------------------
-  # Backend — NestJS (Api Rest)
-  # ---------------------------------------------------------------------------
   backend:
     build:
       context: ./backend
@@ -69,9 +48,6 @@ services:
     networks:
       - m3motors-network
 
-  # ---------------------------------------------------------------------------
-  # Frontend — React + Vite
-  # ---------------------------------------------------------------------------
   frontend:
     build:
       context: ./frontend
@@ -95,17 +71,11 @@ services:
     networks:
       - m3motors-network
 
-# ---------------------------------------------------------------------------
-# Volúmenes
-# ---------------------------------------------------------------------------
 volumes:
   postgres_data:
     name: m3motors_postgres_data
     driver: local
 
-# ---------------------------------------------------------------------------
-# Redes
-# ---------------------------------------------------------------------------
 networks:
   m3motors-network:
     name: m3motors-network

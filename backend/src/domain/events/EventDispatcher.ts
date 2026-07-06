@@ -1,4 +1,6 @@
-export type EventHandler = (payload: Record<string, unknown>) => void | Promise<void>;
+export type EventHandler = (
+  payload: Record<string, unknown>,
+) => void | Promise<void>;
 
 export class EventDispatcher {
   private handlers = new Map<string, EventHandler[]>();

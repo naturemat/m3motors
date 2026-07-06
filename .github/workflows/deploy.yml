@@ -6,8 +6,8 @@ on:
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-  DROPLET_IP: ${{ secrets.DROPLET_IP }}
-  DROPLET_USER: ${{ secrets.DROPLET_USER }}
+  DO_HOST: ${{ secrets.DO_HOST }}
+  DO_USERNAME: ${{ secrets.DO_USERNAME }}
   DEPLOY_PATH: /opt/m3motors
 
 jobs:
@@ -87,9 +87,9 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ env.DROPLET_IP }}
-          username: ${{ env.DROPLET_USER }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
+          host: ${{ env.DO_HOST }}
+          username: ${{ env.DO_USERNAME }}
+          key: ${{ secrets.DO_SSH_KEY }}
           script_stop: true
           script: |
             set -e
@@ -114,6 +114,7 @@ jobs:
 
             echo "=== [6/6] Crear archivo .env ==="
             cat > .env << EOF
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
@@ -121,6 +122,7 @@ jobs:
             LLM_MODEL=${{ secrets.LLM_MODEL }}
             LOG_LEVEL=${{ secrets.LOG_LEVEL }}
             CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
+            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
             DOCKERHUB_USERNAME=${{ env.DOCKERHUB_USERNAME }}
             EOF
 

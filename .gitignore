@@ -1,0 +1,33 @@
+# =============================================================================
+# M3Motors — .gitignore
+# =============================================================================
+
+# Contexto de proyecto (generado por IA, no commitear)
+.context/
+.mimocode/
+
+# Documentación fuente (PDFs y docs viven fuera del repo)
+docs/
+
+# Dependencias
+node_modules/
+
+# Entorno
+.env
+.env.local
+
+# Build
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

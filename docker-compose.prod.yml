@@ -7,41 +7,37 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: m3motors
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infrastructure/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d m3motors"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 15s
+      retries: 5
+      start_period: 30s
     networks:
       - m3motors-network
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+    image: ${DOCKERHUB_USERNAME}/m3motors-backend:latest
     container_name: m3motors-backend
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       APP_PORT: 3000
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/m3motors?schema=public
-      JWT_SECRET: dev_jwt_secret_change_in_production
-      JWT_EXPIRES_IN: 7d
-      LLM_API_KEY: ${LLM_API_KEY:-sk-placeholder}
-      LLM_MODEL: gpt-4
-      LOG_LEVEL: debug
-      CORS_ORIGIN: http://localhost:5173
-    volumes:
-      - ./backend/src:/app/src
-      - ./backend/package.json:/app/package.json
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
     depends_on:
       postgres:
         condition: service_healthy
@@ -49,23 +45,11 @@ services:
       - m3motors-network
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
+    image: ${DOCKERHUB_USERNAME}/m3motors-frontend:latest
     container_name: m3motors-frontend
     restart: unless-stopped
     ports:
-      - "5173:5173"
-    environment:
-      NODE_ENV: development
-      VITE_API_URL: http://localhost:3000
-      VITE_NODE_ENV: development
-      VITE_TELEGRAM_BOT_USERNAME: m3motors_bot
-    volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/package.json:/app/package.json
-      - ./frontend/index.html:/app/index.html
-      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - "80:80"
     depends_on:
       - backend
     networks:

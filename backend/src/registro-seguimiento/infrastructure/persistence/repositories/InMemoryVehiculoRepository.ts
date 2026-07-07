@@ -7,10 +7,6 @@ import { Placa } from '../../../../shared/domain/value-objects/Placa';
 export class InMemoryVehiculoRepository implements IVehiculoRepository {
   private readonly vehiculos: Map<string, Vehiculo> = new Map();
 
-  findById(id: string): Promise<Vehiculo | null> {
-    return Promise.resolve(this.vehiculos.get(id) ?? null);
-  }
-
   findByPlaca(placa: Placa): Promise<Vehiculo | null> {
     for (const vehiculo of this.vehiculos.values()) {
       if (vehiculo.getPlaca().getValue() === placa.getValue()) {

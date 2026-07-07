@@ -1,4 +1,5 @@
 import { EcuadorVehicleDataProvider } from '../../../../src/registro-seguimiento/infrastructure/external-services/EcuadorVehicleDataProvider';
+import { chromium } from 'playwright';
 
 jest.mock('playwright', () => {
   const mockPage = {
@@ -64,7 +65,6 @@ describe('EcuadorVehicleDataProvider', () => {
   });
 
   it('debe retornar N/A para campos no encontrados', async () => {
-    const { chromium } = require('playwright');
     const mockPage = {
       goto: jest.fn(),
       waitForSelector: jest.fn(),
@@ -80,7 +80,7 @@ describe('EcuadorVehicleDataProvider', () => {
         }),
       }),
     };
-    chromium.launch.mockResolvedValue({
+    (chromium.launch as jest.Mock).mockResolvedValue({
       newPage: jest.fn().mockResolvedValue(mockPage),
       close: jest.fn(),
     });

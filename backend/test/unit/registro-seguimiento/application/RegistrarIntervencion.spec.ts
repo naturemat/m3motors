@@ -48,7 +48,13 @@ describe('RegistrarIntervencion (Use Case)', () => {
       diagnostico: 'Cambio de aceite',
       observacionesMecanico: 'Se realizó cambio completo',
       nivelSeveridad: 'BAJA',
-      componentes: [{ nombre: 'Filtro de aceite', kilometrajeInstalacion: 0, limiteKilometrajeFabricante: 50000 }],
+      componentes: [
+        {
+          nombre: 'Filtro de aceite',
+          kilometrajeInstalacion: 0,
+          limiteKilometrajeFabricante: 50000,
+        },
+      ],
       mecanicoId: 'MEC-001',
       manoDeObra: 80,
     });
@@ -72,8 +78,16 @@ describe('RegistrarIntervencion (Use Case)', () => {
       observacionesMecanico: 'Revisión completa del motor',
       nivelSeveridad: 'MEDIA',
       componentes: [
-        { nombre: 'Filtro de aceite', kilometrajeInstalacion: 0, limiteKilometrajeFabricante: 50000 },
-        { nombre: 'Pastillas de freno', kilometrajeInstalacion: 0, limiteKilometrajeFabricante: 80000 },
+        {
+          nombre: 'Filtro de aceite',
+          kilometrajeInstalacion: 0,
+          limiteKilometrajeFabricante: 50000,
+        },
+        {
+          nombre: 'Pastillas de freno',
+          kilometrajeInstalacion: 0,
+          limiteKilometrajeFabricante: 80000,
+        },
       ],
       mecanicoId: 'MEC-001',
       manoDeObra: 200,

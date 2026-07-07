@@ -22,9 +22,16 @@ import { RegistrarVehiculoDesdeFoto } from './registro-seguimiento/application/u
     GroqEngineInfoService,
     {
       provide: RegistrarVehiculoDesdeFoto,
-      useFactory: (ocr, dataProvider, engineInfo) =>
-        new RegistrarVehiculoDesdeFoto(ocr, dataProvider, engineInfo),
-      inject: [GeminiOCRService, EcuadorVehicleDataProvider, GroqEngineInfoService],
+      useFactory: (
+        ocr: GeminiOCRService,
+        dataProvider: EcuadorVehicleDataProvider,
+        engineInfo: GroqEngineInfoService,
+      ) => new RegistrarVehiculoDesdeFoto(ocr, dataProvider, engineInfo),
+      inject: [
+        GeminiOCRService,
+        EcuadorVehicleDataProvider,
+        GroqEngineInfoService,
+      ],
     },
   ],
   exports: [

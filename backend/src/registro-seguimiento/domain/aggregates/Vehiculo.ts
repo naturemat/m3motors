@@ -35,11 +35,19 @@ export class Vehiculo {
     this.estadoActivacion = 'PENDING';
   }
 
-  activarVehiculo(mechanicId: string, qr: VehicleQR, fotos: VehiclePhoto[]): void {
-    if (this.estadoActivacion === 'ACTIVATED') throw new Error('El vehículo ya está activado');
+  activarVehiculo(
+    mechanicId: string,
+    qr: VehicleQR,
+    fotos: VehiclePhoto[],
+  ): void {
+    if (this.estadoActivacion === 'ACTIVATED')
+      throw new Error('El vehículo ya está activado');
 
     const tieneFotoPlaca = fotos.some((f) => f.getTipo() === 'PLACA');
-    if (!tieneFotoPlaca) throw new Error('Se requiere al menos una foto de tipo PLACA para activar');
+    if (!tieneFotoPlaca)
+      throw new Error(
+        'Se requiere al menos una foto de tipo PLACA para activar',
+      );
 
     this.qrCode = qr;
     this.photos = fotos;
@@ -47,7 +55,8 @@ export class Vehiculo {
   }
 
   generarQR(qr: VehicleQR): void {
-    if (this.qrCode) throw new Error('El QR ya fue generado para este vehículo');
+    if (this.qrCode)
+      throw new Error('El QR ya fue generado para este vehículo');
     this.qrCode = qr;
   }
 
@@ -97,7 +106,9 @@ export class Vehiculo {
 
   obtenerUltimoKilometraje(): number | null {
     if (this.registrosKilometraje.length === 0) return null;
-    return this.registrosKilometraje[this.registrosKilometraje.length - 1].getValorKm();
+    return this.registrosKilometraje[
+      this.registrosKilometraje.length - 1
+    ].getValorKm();
   }
 
   getId(): string {

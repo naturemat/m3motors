@@ -9,7 +9,8 @@ export class VehiclePhoto {
     private readonly descripcion?: string,
   ) {
     if (!url) throw new Error('La URL de la foto es requerida');
-    if (!this.esTipoValido(tipo)) throw new Error(`Tipo de foto inválido: ${tipo}`);
+    if (!this.esTipoValido(tipo))
+      throw new Error(`Tipo de foto inválido: ${tipo as string}`);
   }
 
   private esTipoValido(tipo: string): tipo is TipoFoto {

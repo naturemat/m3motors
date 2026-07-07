@@ -1,4 +1,5 @@
 import { GeminiOCRService } from '../../../../src/registro-seguimiento/infrastructure/external-services/GeminiOCRService';
+import { GoogleGenAI } from '@google/genai';
 
 jest.mock('@google/genai', () => {
   return {
@@ -34,12 +35,13 @@ describe('GeminiOCRService', () => {
   it('debe lanzar error si no hay API key configurada', () => {
     delete process.env.GEMINI_API_KEY;
 
-    expect(() => new GeminiOCRService()).toThrow('GEMINI_API_KEY no está configurada');
+    expect(() => new GeminiOCRService()).toThrow(
+      'GEMINI_API_KEY no está configurada',
+    );
   });
 
   it('debe lanzar error si Gemini devuelve respuesta vacía', async () => {
-    const { GoogleGenAI } = require('@google/genai');
-    GoogleGenAI.mockImplementation(() => ({
+    (GoogleGenAI as unknown as jest.Mock).mockImplementation(() => ({
       models: {
         generateContent: jest.fn().mockResolvedValue({ text: '' }),
       },

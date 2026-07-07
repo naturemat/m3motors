@@ -22,7 +22,8 @@ export class Workshop {
 
   agregarMecanico(mecanico: Mechanic): void {
     const yaExiste = this.mecanicos.some((m) => m.getId() === mecanico.getId());
-    if (yaExiste) throw new Error('El mecánico ya está registrado en este taller');
+    if (yaExiste)
+      throw new Error('El mecánico ya está registrado en este taller');
     this.mecanicos.push(mecanico);
   }
 

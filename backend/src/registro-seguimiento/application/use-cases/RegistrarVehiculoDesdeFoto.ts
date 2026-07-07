@@ -24,11 +24,18 @@ export class RegistrarVehiculoDesdeFoto {
     private readonly engineInfoService: IEngineInfoService,
   ) {}
 
-  async execute(dto: RegistrarVehiculoDesdeFotoDTO): Promise<VehiculoRegistrado> {
-    const placaTexto = await this.ocrService.reconocerPlaca(dto.fotoBuffer, dto.mimeType);
+  async execute(
+    dto: RegistrarVehiculoDesdeFotoDTO,
+  ): Promise<VehiculoRegistrado> {
+    const placaTexto = await this.ocrService.reconocerPlaca(
+      dto.fotoBuffer,
+      dto.mimeType,
+    );
     const placa = new Placa(placaTexto);
 
-    const datos = await this.vehicleDataProvider.obtenerDatosVehiculo(placa.getValueSinGuion());
+    const datos = await this.vehicleDataProvider.obtenerDatosVehiculo(
+      placa.getValueSinGuion(),
+    );
 
     const specs = await this.engineInfoService.obtenerSpecsMotor(
       datos.marca,

@@ -4,6 +4,14 @@ import {
   EngineSpecs,
 } from '../../domain/ports/services/IEngineInfoService';
 
+interface GroqChoice {
+  message?: { content?: string };
+}
+
+interface GroqResponse {
+  choices: GroqChoice[];
+}
+
 @Injectable()
 export class GroqEngineInfoService implements IEngineInfoService {
   private readonly apiKey: string;
@@ -12,10 +20,15 @@ export class GroqEngineInfoService implements IEngineInfoService {
 
   constructor() {
     this.apiKey = process.env.GROQ_API_KEY ?? '';
-    if (!this.apiKey) throw new Error('GROQ_API_KEY no está configurada en el entorno');
+    if (!this.apiKey)
+      throw new Error('GROQ_API_KEY no está configurada en el entorno');
   }
 
-  async obtenerSpecsMotor(marca: string, modelo: string, anio: number): Promise<EngineSpecs> {
+  async obtenerSpecsMotor(
+    marca: string,
+    modelo: string,
+    anio: number,
+  ): Promise<EngineSpecs> {
     const prompt = `Dame las especificaciones del motor de este vehículo. Responde SOLO con un JSON válido, sin texto adicional:
 {
   "cilindrada": "ej: 1.6L",
@@ -28,7 +41,7 @@ Vehículo: ${marca} ${modelo} ${anio}`;
     const response = await fetch(this.url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -43,7 +56,7 @@ Vehículo: ${marca} ${modelo} ${anio}`;
       throw new Error(`Error en Groq API: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as GroqResponse;
     const contenido = data.choices?.[0]?.message?.content ?? '';
 
     const jsonMatch = contenido.match(/\{[\s\S]*\}/);

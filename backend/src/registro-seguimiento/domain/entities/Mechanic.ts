@@ -14,11 +14,11 @@ export class Mechanic {
     if (!workshopId) throw new Error('El workshopId es requerido');
   }
 
-  activarCliente(preRegisteredCustomerId: string): void {
+  activarCliente(_preRegisteredCustomerId: string): void {
     if (!this.activo) throw new Error('El mecánico no está activo');
   }
 
-  registrarServicio(intervencionId: string): void {
+  registrarServicio(_intervencionId: string): void {
     if (!this.activo) throw new Error('El mecánico no está activo');
   }
 

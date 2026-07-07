@@ -25,7 +25,8 @@ export class Cliente {
   }
 
   activarCliente(mecanicoId: string): void {
-    if (this.estado === 'ACTIVATED') throw new Error('El cliente ya está activado');
+    if (this.estado === 'ACTIVATED')
+      throw new Error('El cliente ya está activado');
     this.estado = 'ACTIVATED';
     this.fechaActivacion = new Date();
     this.activadoPor = mecanicoId;

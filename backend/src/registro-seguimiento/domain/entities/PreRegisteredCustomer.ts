@@ -24,7 +24,8 @@ export class PreRegisteredCustomer {
   }
 
   activar(mecanicoId: string, vehicleId: string): void {
-    if (this.status === 'ACTIVATED') throw new Error('El cliente ya está activado');
+    if (this.status === 'ACTIVATED')
+      throw new Error('El cliente ya está activado');
     this.status = 'ACTIVATED';
     this.fechaActivacion = new Date();
     this.activadoPor = mecanicoId;

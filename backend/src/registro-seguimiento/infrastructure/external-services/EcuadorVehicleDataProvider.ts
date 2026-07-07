@@ -5,9 +5,25 @@ import {
   DatosVehiculoExterno,
 } from '../../domain/ports/services/IVehicleDataProvider';
 
+interface CampoLista {
+  etiqueta: string;
+  valor: string;
+}
+
+interface ApiResponse {
+  campos: string;
+}
+
+interface CamposParsed {
+  lsDatosIdentificacion: CampoLista[];
+  lsDatosModelo: CampoLista[];
+  lsOtrasCaracteristicas: CampoLista[];
+}
+
 @Injectable()
 export class EcuadorVehicleDataProvider implements IVehicleDataProvider {
-  private readonly urlBase = 'https://servicios.axiscloud.ec/CRV/?ps_empresa=02';
+  private readonly urlBase =
+    'https://servicios.axiscloud.ec/CRV/?ps_empresa=02';
   private readonly selectorInput = '#valorBusqueda';
   private readonly endpointDatos = '/paginas/datosVehiculo.jsp';
 
@@ -27,8 +43,8 @@ export class EcuadorVehicleDataProvider implements IVehicleDataProvider {
       await page.press(this.selectorInput, 'Enter');
 
       const respuesta = await respuestaNetwork;
-      const json = await respuesta.json();
-      const campos = JSON.parse(json.campos);
+      const json = (await respuesta.json()) as ApiResponse;
+      const campos = JSON.parse(json.campos) as CamposParsed;
 
       return {
         placa,
@@ -36,20 +52,32 @@ export class EcuadorVehicleDataProvider implements IVehicleDataProvider {
         codigoMotor: this.extraerCampo(campos.lsDatosIdentificacion, 'Motor:'),
         marca: this.extraerCampo(campos.lsDatosModelo, 'Marca:'),
         modelo: this.extraerCampo(campos.lsDatosModelo, 'Modelo:'),
-        anio: parseInt(this.extraerCampo(campos.lsDatosModelo, 'Año Fabricación:')) || 0,
-        paisFabricacion: this.extraerCampo(campos.lsDatosModelo, 'País Fabricación:'),
+        anio:
+          parseInt(
+            this.extraerCampo(campos.lsDatosModelo, 'Año Fabricación:'),
+          ) || 0,
+        paisFabricacion: this.extraerCampo(
+          campos.lsDatosModelo,
+          'País Fabricación:',
+        ),
         color: this.extraerCampo(campos.lsOtrasCaracteristicas, 'Color 1:'),
-        claseVehiculo: this.extraerCampo(campos.lsOtrasCaracteristicas, 'Clase Vehículo:'),
-        tipoVehiculo: this.extraerCampo(campos.lsOtrasCaracteristicas, 'Tipo Vehículo:'),
+        claseVehiculo: this.extraerCampo(
+          campos.lsOtrasCaracteristicas,
+          'Clase Vehículo:',
+        ),
+        tipoVehiculo: this.extraerCampo(
+          campos.lsOtrasCaracteristicas,
+          'Tipo Vehículo:',
+        ),
       };
     } finally {
       await browser.close();
     }
   }
 
-  private extraerCampo(lista: any[], etiqueta: string): string {
+  private extraerCampo(lista: CampoLista[], etiqueta: string): string {
     if (!lista) return 'N/A';
-    const registro = lista.find((item: any) => item.etiqueta === etiqueta);
+    const registro = lista.find((item) => item.etiqueta === etiqueta);
     return registro?.valor?.trim() ?? 'N/A';
   }
 }

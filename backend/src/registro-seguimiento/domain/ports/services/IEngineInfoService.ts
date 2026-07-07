@@ -5,5 +5,9 @@ export interface EngineSpecs {
 }
 
 export interface IEngineInfoService {
-  obtenerSpecsMotor(marca: string, modelo: string, anio: number): Promise<EngineSpecs>;
+  obtenerSpecsMotor(
+    marca: string,
+    modelo: string,
+    anio: number,
+  ): Promise<EngineSpecs>;
 }

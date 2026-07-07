@@ -35,7 +35,11 @@ export class RegistrarIntervencion {
 
   private construirIntervencion(dto: RegistrarIntervencionDTO): Intervencion {
     const intervencionId = new IntervencionId(crypto.randomUUID());
-    const diagnostico = new DiagnosticoTecnico(dto.diagnostico, dto.observacionesMecanico, dto.nivelSeveridad);
+    const diagnostico = new DiagnosticoTecnico(
+      dto.diagnostico,
+      dto.observacionesMecanico,
+      dto.nivelSeveridad,
+    );
     const mecanicoId = new MecanicoId(dto.mecanicoId);
 
     return new Intervencion(
@@ -53,7 +57,12 @@ export class RegistrarIntervencion {
   ): void {
     for (const comp of dto.componentes) {
       intervencion.registrarSustitucionComponente(
-        new ComponenteCritico(crypto.randomUUID(), comp.nombre, 0, comp.limiteKilometrajeFabricante),
+        new ComponenteCritico(
+          crypto.randomUUID(),
+          comp.nombre,
+          0,
+          comp.limiteKilometrajeFabricante,
+        ),
       );
     }
   }

@@ -14,7 +14,15 @@ describe('Vehiculo Aggregate Root', () => {
 
   beforeEach(() => {
     placa = new Placa('ABC-1234');
-    vehiculo = new Vehiculo('veh-1', placa, 'Toyota', 'Corolla', 2020, 'Gasolina', 'cli-1');
+    vehiculo = new Vehiculo(
+      'veh-1',
+      placa,
+      'Toyota',
+      'Corolla',
+      2020,
+      'Gasolina',
+      'cli-1',
+    );
     hoy = new Date('2026-07-02T10:00:00Z');
     ayer = new Date('2026-07-01T10:00:00Z');
   });
@@ -40,7 +48,11 @@ describe('Vehiculo Aggregate Root', () => {
     const intervencion = new Intervencion(
       new IntervencionId('123'),
       hoy,
-      new DiagnosticoTecnico('Falla motor', 'Observaciones del mecánico', 'MEDIA'),
+      new DiagnosticoTecnico(
+        'Falla motor',
+        'Observaciones del mecánico',
+        'MEDIA',
+      ),
       100,
       new MecanicoId('MEC-1'),
     );
@@ -54,7 +66,11 @@ describe('Vehiculo Aggregate Root', () => {
     const intervencionPasada = new Intervencion(
       new IntervencionId('123'),
       ayer,
-      new DiagnosticoTecnico('Falla motor', 'Observaciones del mecánico', 'MEDIA'),
+      new DiagnosticoTecnico(
+        'Falla motor',
+        'Observaciones del mecánico',
+        'MEDIA',
+      ),
       100,
       new MecanicoId('MEC-1'),
     );
@@ -71,7 +87,11 @@ describe('Vehiculo Aggregate Root', () => {
     const intervencion = new Intervencion(
       intId,
       hoy,
-      new DiagnosticoTecnico('Falla motor', 'Observaciones del mecánico', 'MEDIA'),
+      new DiagnosticoTecnico(
+        'Falla motor',
+        'Observaciones del mecánico',
+        'MEDIA',
+      ),
       100,
       new MecanicoId('MEC-1'),
     );
@@ -89,7 +109,11 @@ describe('Vehiculo Aggregate Root', () => {
     const intervencion = new Intervencion(
       intId,
       hoy,
-      new DiagnosticoTecnico('Revisión', 'Revisión completa del sistema', 'BAJA'),
+      new DiagnosticoTecnico(
+        'Revisión',
+        'Revisión completa del sistema',
+        'BAJA',
+      ),
       50,
       new MecanicoId('MEC-1'),
     );

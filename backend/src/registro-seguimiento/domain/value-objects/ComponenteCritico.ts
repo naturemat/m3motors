@@ -12,13 +12,20 @@ export class ComponenteCritico {
   ) {
     if (!id) throw new Error('El ID del componente es requerido');
     if (!nombre) throw new Error('Nombre del componente es requerido');
-    if (kilometrajeInstalacion < 0) throw new Error('El kilometraje de instalación no puede ser negativo');
-    if (limiteKilometrajeFabricante <= 0) throw new Error('El límite de kilometraje del fabricante debe ser mayor a 0');
+    if (kilometrajeInstalacion < 0)
+      throw new Error('El kilometraje de instalación no puede ser negativo');
+    if (limiteKilometrajeFabricante <= 0)
+      throw new Error(
+        'El límite de kilometraje del fabricante debe ser mayor a 0',
+      );
     this.estadoActual = estadoInicial;
   }
 
   evaluarDesgaste(kilometrajeActual: number): void {
-    const porcentaje = ((kilometrajeActual - this.kilometrajeInstalacion) / this.limiteKilometrajeFabricante) * 100;
+    const porcentaje =
+      ((kilometrajeActual - this.kilometrajeInstalacion) /
+        this.limiteKilometrajeFabricante) *
+      100;
 
     if (porcentaje >= 90) {
       this.estadoActual = 'CRITICO';

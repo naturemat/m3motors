@@ -9,11 +9,15 @@ export class GeminiOCRService implements IOCRService {
 
   constructor() {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error('GEMINI_API_KEY no está configurada en el entorno');
+    if (!apiKey)
+      throw new Error('GEMINI_API_KEY no está configurada en el entorno');
     this.ai = new GoogleGenAI({ apiKey });
   }
 
-  async reconocerPlaca(imagenBuffer: Buffer, mimeType: string): Promise<string> {
+  async reconocerPlaca(
+    imagenBuffer: Buffer,
+    mimeType: string,
+  ): Promise<string> {
     const imagenBase64 = imagenBuffer.toString('base64');
 
     const response = await this.ai.models.generateContent({
@@ -29,7 +33,8 @@ export class GeminiOCRService implements IOCRService {
     });
 
     const placa = response.text?.trim() ?? '';
-    if (!placa) throw new Error('No se pudo extraer ningún texto de placa de la imagen');
+    if (!placa)
+      throw new Error('No se pudo extraer ningún texto de placa de la imagen');
 
     return placa;
   }

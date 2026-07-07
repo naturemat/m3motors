@@ -13,7 +13,11 @@ describe('RegistrarVehiculoDesdeFoto', () => {
     mockOCR = { reconocerPlaca: jest.fn() };
     mockDataProvider = { obtenerDatosVehiculo: jest.fn() };
     mockEngineInfo = { obtenerSpecsMotor: jest.fn() };
-    useCase = new RegistrarVehiculoDesdeFoto(mockOCR, mockDataProvider, mockEngineInfo);
+    useCase = new RegistrarVehiculoDesdeFoto(
+      mockOCR,
+      mockDataProvider,
+      mockEngineInfo,
+    );
   });
 
   it('debe registrar un vehículo completo desde una foto', async () => {
@@ -100,9 +104,16 @@ describe('RegistrarVehiculoDesdeFoto', () => {
   it('debe lanzar error si Groq no responde', async () => {
     mockOCR.reconocerPlaca.mockResolvedValue('PBA1234');
     mockDataProvider.obtenerDatosVehiculo.mockResolvedValue({
-      placa: 'PBA1234', vin: 'N/A', codigoMotor: 'N/A', marca: 'TOYOTA',
-      modelo: 'COROLLA', anio: 2020, paisFabricacion: 'N/A', color: 'N/A',
-      claseVehiculo: 'N/A', tipoVehiculo: 'N/A',
+      placa: 'PBA1234',
+      vin: 'N/A',
+      codigoMotor: 'N/A',
+      marca: 'TOYOTA',
+      modelo: 'COROLLA',
+      anio: 2020,
+      paisFabricacion: 'N/A',
+      color: 'N/A',
+      claseVehiculo: 'N/A',
+      tipoVehiculo: 'N/A',
     });
     mockEngineInfo.obtenerSpecsMotor.mockRejectedValue(
       new Error('Error en Groq API: 500'),
@@ -120,12 +131,21 @@ describe('RegistrarVehiculoDesdeFoto', () => {
   it('debe llamar a Groq con marca, modelo y año correctos', async () => {
     mockOCR.reconocerPlaca.mockResolvedValue('PBA1234');
     mockDataProvider.obtenerDatosVehiculo.mockResolvedValue({
-      placa: 'PBA1234', vin: 'N/A', codigoMotor: 'N/A', marca: 'CHEVROLET',
-      modelo: 'AVEO', anio: 2014, paisFabricacion: 'N/A', color: 'N/A',
-      claseVehiculo: 'N/A', tipoVehiculo: 'N/A',
+      placa: 'PBA1234',
+      vin: 'N/A',
+      codigoMotor: 'N/A',
+      marca: 'CHEVROLET',
+      modelo: 'AVEO',
+      anio: 2014,
+      paisFabricacion: 'N/A',
+      color: 'N/A',
+      claseVehiculo: 'N/A',
+      tipoVehiculo: 'N/A',
     });
     mockEngineInfo.obtenerSpecsMotor.mockResolvedValue({
-      cilindrada: '1.6L', cilindros: '4 cilindros', distribucion: 'DOHC',
+      cilindrada: '1.6L',
+      cilindros: '4 cilindros',
+      distribucion: 'DOHC',
     });
 
     await useCase.execute({
@@ -134,6 +154,10 @@ describe('RegistrarVehiculoDesdeFoto', () => {
       mecanicoId: 'MEC-001',
     });
 
-    expect(mockEngineInfo.obtenerSpecsMotor).toHaveBeenCalledWith('CHEVROLET', 'AVEO', 2014);
+    expect(mockEngineInfo.obtenerSpecsMotor).toHaveBeenCalledWith(
+      'CHEVROLET',
+      'AVEO',
+      2014,
+    );
   });
 });

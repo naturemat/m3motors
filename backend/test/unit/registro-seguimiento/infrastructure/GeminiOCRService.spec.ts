@@ -32,10 +32,12 @@ describe('GeminiOCRService', () => {
     expect(resultado).toBe('PBA1234');
   });
 
-  it('debe lanzar error si no hay API key configurada', () => {
+  it('debe lanzar error si no hay API key configurada', async () => {
     delete process.env.GEMINI_API_KEY;
+    const svc = new GeminiOCRService();
+    const buffer = Buffer.from('fake-image-data');
 
-    expect(() => new GeminiOCRService()).toThrow(
+    await expect(svc.reconocerPlaca(buffer, 'image/jpeg')).rejects.toThrow(
       'GEMINI_API_KEY no está configurada',
     );
   });

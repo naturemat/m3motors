@@ -27,6 +27,10 @@ out/
 .env.test.local
 .env.production.local
 
+# Firebase / Google services (contains API keys)
+google-services.json
+GoogleService-Info.plist
+
 # Logs / Debug
 *.log
 npm-debug.log*

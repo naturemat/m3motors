@@ -14,21 +14,19 @@ interface GroqResponse {
 
 @Injectable()
 export class GroqEngineInfoService implements IEngineInfoService {
-  private readonly apiKey: string;
   private readonly model = 'llama-3.3-70b-versatile';
   private readonly url = 'https://api.groq.com/openai/v1/chat/completions';
-
-  constructor() {
-    this.apiKey = process.env.GROQ_API_KEY ?? '';
-    if (!this.apiKey)
-      throw new Error('GROQ_API_KEY no está configurada en el entorno');
-  }
 
   async obtenerSpecsMotor(
     marca: string,
     modelo: string,
     anio: number,
   ): Promise<EngineSpecs> {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      throw new Error('GROQ_API_KEY no está configurada en el entorno');
+    }
+
     const prompt = `Dame las especificaciones del motor de este vehículo. Responde SOLO con un JSON válido, sin texto adicional:
 {
   "cilindrada": "ej: 1.6L",
@@ -41,7 +39,7 @@ Vehículo: ${marca} ${modelo} ${anio}`;
     const response = await fetch(this.url, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

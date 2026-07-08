@@ -1,26 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { GoogleGenAI } from '@google/genai';
 import { IOCRService } from '../../domain/ports/services/IOCRService';
 
 @Injectable()
 export class GeminiOCRService implements IOCRService {
-  private readonly ai: GoogleGenAI;
   private readonly model = 'gemini-2.5-flash';
-
-  constructor() {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey)
-      throw new Error('GEMINI_API_KEY no está configurada en el entorno');
-    this.ai = new GoogleGenAI({ apiKey });
-  }
 
   async reconocerPlaca(
     imagenBuffer: Buffer,
     mimeType: string,
   ): Promise<string> {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error('GEMINI_API_KEY no está configurada en el entorno');
+    }
+
+    const { GoogleGenAI } = await import('@google/genai');
+    const ai = new GoogleGenAI({ apiKey });
     const imagenBase64 = imagenBuffer.toString('base64');
 
-    const response = await this.ai.models.generateContent({
+    const response = await ai.models.generateContent({
       model: this.model,
       contents: [
         {

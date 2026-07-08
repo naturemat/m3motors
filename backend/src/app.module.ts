@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ClerkModule } from './shared/infrastructure/clerk/clerk.module';
+import { AuthController } from './shared/infrastructure/clerk/controllers/auth.controller';
 import { InMemoryVehiculoRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryVehiculoRepository';
 import { InMemoryClienteRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryClienteRepository';
 import { InMemoryIntervencionRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryIntervencionRepository';
@@ -10,8 +12,8 @@ import { GroqEngineInfoService } from './registro-seguimiento/infrastructure/ext
 import { RegistrarVehiculoDesdeFoto } from './registro-seguimiento/application/use-cases/RegistrarVehiculoDesdeFoto';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
+  imports: [ClerkModule],
+  controllers: [AppController, AuthController],
   providers: [
     AppService,
     InMemoryVehiculoRepository,

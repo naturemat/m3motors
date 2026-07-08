@@ -1,7 +1,7 @@
 import { ClienteId } from '../value-objects/ClienteId';
 import { Placa } from '../../../shared/domain/value-objects/Placa';
 
-export type EstadoCliente = 'PENDING' | 'ACTIVATED';
+export type EstadoCliente = 'PENDING' | 'ACTIVATED' | 'ACTIVE';
 
 export class Cliente {
   private vehiculosAsociados: Placa[];
@@ -18,6 +18,7 @@ export class Cliente {
     private readonly fechaPreRegistro: Date = new Date(),
   ) {
     this.validarNombre();
+    this.validarTelefono(telefono);
     this.vehiculosAsociados = [];
     this.estado = 'PENDING';
     this.fechaActivacion = null;
@@ -25,14 +26,25 @@ export class Cliente {
   }
 
   activarCliente(mecanicoId: string): void {
-    if (this.estado === 'ACTIVATED')
-      throw new Error('El cliente ya está activado');
+    if (this.estado !== 'PENDING')
+      throw new Error('Solo se pueden activar clientes en estado PENDING');
     this.estado = 'ACTIVATED';
     this.fechaActivacion = new Date();
     this.activadoPor = mecanicoId;
   }
 
+  completarRegistro(): void {
+    if (this.estado !== 'ACTIVATED')
+      throw new Error(
+        'Solo se pueden completar registros de clientes ACTIVATED',
+      );
+    this.estado = 'ACTIVE';
+  }
+
   asociarNuevoVehiculo(placa: Placa): void {
+    if (this.estado !== 'ACTIVE' && this.estado !== 'ACTIVATED') {
+      throw new Error('El cliente debe estar activo para asociar vehículos');
+    }
     this.validarPlacaNoDuplicada(placa);
     this.vehiculosAsociados.push(placa);
   }
@@ -42,10 +54,15 @@ export class Cliente {
     email: string,
     telegramChatId: string,
   ): void {
+    this.validarTelefono(telefono);
     this.validarFormatoEmail(email);
     this.telefono = telefono;
     this.email = email;
     this.telegramChatId = telegramChatId;
+  }
+
+  estaActivo(): boolean {
+    return this.estado === 'ACTIVE';
   }
 
   getId(): ClienteId {
@@ -91,6 +108,15 @@ export class Cliente {
   private validarNombre(): void {
     if (!this.nombre) {
       throw new Error('El nombre es requerido');
+    }
+  }
+
+  private validarTelefono(telefono: string): void {
+    if (!telefono || telefono.trim() === '') {
+      throw new Error('El teléfono es requerido');
+    }
+    if (!/^\+?\d{10,13}$/.test(telefono.replace(/\s/g, ''))) {
+      throw new Error('Formato de teléfono inválido');
     }
   }
 

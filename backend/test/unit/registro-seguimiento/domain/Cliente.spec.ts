@@ -16,6 +16,7 @@ describe('Cliente Entity', () => {
   });
 
   it('debe asociar un nuevo vehículo', () => {
+    cliente.activarCliente('MEC-001');
     const placa = new Placa('XYZ-987');
     cliente.asociarNuevoVehiculo(placa);
     expect(cliente.getVehiculosAsociados().length).toBe(1);
@@ -23,6 +24,7 @@ describe('Cliente Entity', () => {
   });
 
   it('debe lanzar error al asociar un vehículo que ya existe', () => {
+    cliente.activarCliente('MEC-001');
     const placa = new Placa('XYZ-987');
     cliente.asociarNuevoVehiculo(placa);
     expect(() => cliente.asociarNuevoVehiculo(placa)).toThrow(
@@ -43,7 +45,7 @@ describe('Cliente Entity', () => {
 
   it('debe lanzar error si el email de contacto es inválido', () => {
     expect(() =>
-      cliente.actualizarCanalesContacto('0888', 'email-invalido', '123'),
+      cliente.actualizarCanalesContacto('0991234567', 'email-invalido', '123'),
     ).toThrow('Formato de email inválido');
   });
 });

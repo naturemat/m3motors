@@ -20,7 +20,7 @@ describe('Vehiculo Aggregate Root', () => {
       'Toyota',
       'Corolla',
       2020,
-      'Gasolina',
+      'GASOLINA',
       'cli-1',
     );
     hoy = new Date('2026-07-02T10:00:00Z');

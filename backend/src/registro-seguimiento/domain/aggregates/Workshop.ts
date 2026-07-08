@@ -30,6 +30,10 @@ export class Workshop {
   removerMecanico(mecanicoId: string): void {
     const index = this.mecanicos.findIndex((m) => m.getId() === mecanicoId);
     if (index === -1) throw new Error('Mecánico no encontrado en este taller');
+    const mecanico = this.mecanicos[index];
+    if (!mecanico.isActivo()) {
+      throw new Error('No se puede remover un mecánico inactivo');
+    }
     this.mecanicos.splice(index, 1);
   }
 

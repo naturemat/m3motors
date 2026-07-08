@@ -21,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json --testPathPattern='.*e2e.*'"
   },
   "dependencies": {
+    "@clerk/backend": "^3.11.1",
     "@clerk/clerk-sdk-node": "^4.13.23",
     "@google/genai": "^2.10.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
@@ -35,6 +36,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "dotenv": "^16.4.7",
+    "jose": "^6.2.3",
     "nest-winston": "^1.10.2",
     "pg": "^8.22.0",
     "playwright": "^1.61.1",

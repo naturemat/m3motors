@@ -49,38 +49,46 @@ export class AuthController {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const user = await this.clerkService.getUser(userId);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const memberships =
-      await this.clerkService.getOrganizationMemberships(userId);
 
+    // Obtener membresías de forma segura
     const orgs: { id: string; name: string; role: string }[] = [];
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    for (const membership of memberships.data) {
+    try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const org = await this.clerkService.getOrganization(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-        membership.organization,
-      );
-      orgs.push({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        id: org.id as string,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        name: org.name as string,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        role: membership.role as string,
-      });
+      const memberships =
+        await this.clerkService.getOrganizationMemberships(userId);
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      const memberList = memberships?.data ?? [];
+
+      for (const membership of memberList) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const orgId = membership?.organization;
+        if (!orgId) continue;
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
+        const org = await this.clerkService.getOrganization(orgId);
+        orgs.push({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          id: org?.id ?? '',
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          name: org?.name ?? '',
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          role: membership?.role ?? '',
+        });
+      }
+    } catch {
+      // Si falla la obtención de membresías, retornamos sin orgs
     }
 
     return {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      id: user.id as string,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      email: (user.emailAddresses as { emailAddress: string }[])?.[0]
-        ?.emailAddress,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      firstName: user.firstName as string,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      lastName: user.lastName as string,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      id: user?.id ?? '',
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      email: user?.emailAddresses?.[0]?.emailAddress ?? '',
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      firstName: user?.firstName ?? '',
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      lastName: user?.lastName ?? '',
       organizations: orgs,
     };
   }

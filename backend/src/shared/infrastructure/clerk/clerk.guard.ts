@@ -29,16 +29,23 @@ export class ClerkAuthGuard implements CanActivate {
     const token = authHeader.split(' ')[1];
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      console.log('[ClerkGuard] Verifying token...');
+      console.log(
+        '[ClerkGuard] CLERK_SECRET_KEY:',
+        process.env.CLERK_SECRET_KEY ? 'SET' : 'NOT SET',
+      );
+
       const payload = await this.clerkService.verifyToken(token);
+      console.log('[ClerkGuard] Token verified, payload.sub:', payload.sub);
       request.auth = {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         userId: payload.sub as string,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         sessionId: payload.sid as string,
       };
       return true;
-    } catch {
+    } catch (error: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      console.error('[ClerkGuard] Token verification failed:', error.message);
       throw new UnauthorizedException('Token inválido o expirado');
     }
   }

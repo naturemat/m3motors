@@ -1,13 +1,272 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// =============================================================================
+// WORKSHOP — Taller mecánico
+// =============================================================================
+model Workshop {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar(100)
+  ownerId     String   @map("owner_id") @db.VarChar(100)
+  clerkOrgId  String?  @unique @map("clerk_org_id") @db.VarChar(100)
+  direccion   String   @db.VarChar(255)
+  telefono    String   @db.VarChar(20)
+  email       String   @db.VarChar(100)
+  horarios    String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @map("updated_at") @updatedAt
+
+  mecanicos              Mechanic[]
+  servicios              ServiceCatalog[]
+  preRegisteredCustomers PreRegisteredCustomer[]
+
+  @@map("workshop")
+}
+
+// =============================================================================
+// MECANICO — Técnico del taller
+// =============================================================================
+model Mechanic {
+  id           Int      @id @default(autoincrement())
+  workshopId   Int      @map("id_workshop")
+  clerkId      String   @unique @map("clerk_id") @db.VarChar(100)
+  nombre       String   @db.VarChar(100)
+  especialidad String?  @db.VarChar(50)
+  activo       Boolean  @default(true)
+  creadoPor    Int      @map("creado_por")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @map("updated_at") @updatedAt
+
+  workshop              Workshop                @relation(fields: [workshopId], references: [id])
+  intervenciones        Intervention[]
+  vehiclePhotos         VehiclePhoto[]
+  activatedClients      PreRegisteredCustomer[]
+  activatedVehicles     Vehicle[]               @relation("MecanicoActivo")
+  clientesActivados     Cliente[]
+
+  @@index([workshopId])
+  @@map("mecanico")
+}
+
+// =============================================================================
+// PRE_REGISTERED_CUSTOMER — Cliente pre-registrado en landing page
+// =============================================================================
+model PreRegisteredCustomer {
+  id                 Int       @id @default(autoincrement())
+  workshopId         Int       @map("id_workshop")
+  nombre             String    @db.VarChar(100)
+  telefono           String    @db.VarChar(20)
+  email              String    @db.VarChar(100)
+  licensePlate       String?   @map("license_plate") @db.VarChar(15)
+  status             String    @default("PENDING") @db.VarChar(20)
+  fechaPreRegistro   DateTime  @default(now()) @map("fecha_pre_registro")
+  fechaActivacion    DateTime? @map("fecha_activacion")
+  idMecanicoActivo   Int?      @map("id_mecanico_activo")
+  idClienteConverted Int?      @unique @map("id_cliente_converted")
+  idVehiculoConverted Int?     @unique @map("id_vehiculo_converted")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @default(now()) @map("updated_at") @updatedAt
+
+  workshop           Workshop   @relation(fields: [workshopId], references: [id])
+  mecanicoActivo     Mechanic?  @relation(fields: [idMecanicoActivo], references: [id])
+  clienteConvertido  Cliente?   @relation(fields: [idClienteConverted], references: [id])
+  vehiculoConvertido Vehicle?   @relation(fields: [idVehiculoConverted], references: [id])
+
+  @@index([workshopId])
+  @@index([email])
+  @@index([telefono])
+  @@index([status])
+  @@map("pre_registered_customer")
+}
+
+// =============================================================================
+// CLIENTE — Propietario del vehículo (activado)
+// =============================================================================
+model Cliente {
+  id               Int      @id @default(autoincrement())
+  clerkId          String   @unique @map("clerk_id") @db.VarChar(100)
+  nombre           String   @db.VarChar(100)
+  telefono         String   @db.VarChar(20)
+  email            String   @unique @db.VarChar(100)
+  status           String   @default("ACTIVATED") @db.VarChar(20)
+  fechaActivacion  DateTime @default(now()) @map("fecha_activacion")
+  idMecanicoActivo Int      @map("id_mecanico_activo")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @map("updated_at") @updatedAt
+
+  mecanicoActivo         Mechanic                @relation(fields: [idMecanicoActivo], references: [id])
+  vehiculos              Vehicle[]
+  preRegisteredCustomers PreRegisteredCustomer[]
+
+  @@index([email])
+  @@map("cliente")
+}
+
+// =============================================================================
+// VEHICULO — Automóvil registrado
+// =============================================================================
+model Vehicle {
+  id                Int      @id @default(autoincrement())
+  clienteId         Int      @map("id_cliente")
+  placa             String   @unique @db.VarChar(15)
+  marca             String   @db.VarChar(50)
+  modelo            String   @db.VarChar(50)
+  anio              Int
+  tipoMotor         String?  @map("tipo_motor") @db.VarChar(30)
+  status            String   @default("PENDING") @db.VarChar(20)
+  fechaActivacion   DateTime? @map("fecha_activacion")
+  idMecanicoActivo  Int      @map("id_mecanico_activo")
+  ultimoKilometraje Int      @default(0) @map("ultimo_kilometraje")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @default(now()) @map("updated_at") @updatedAt
+
+  cliente        Cliente          @relation(fields: [clienteId], references: [id])
+  mecanicoActivo Mechanic         @relation("MecanicoActivo", fields: [idMecanicoActivo], references: [id])
+  qr             VehicleQR?
+  fotos          VehiclePhoto[]
+  intervenciones Intervention[]
+  alertas        AlertaPredictiva[]
+  preRegistro    PreRegisteredCustomer?
+
+  @@index([clienteId])
+  @@map("vehiculo")
+}
+
+// =============================================================================
+// VEHICLE_QR — Código QR único por vehículo
+// =============================================================================
+model VehicleQR {
+  id              Int      @id @default(autoincrement())
+  vehiculoId      Int      @unique @map("id_vehiculo")
+  codigo          String   @unique @db.VarChar(50)
+  url             String   @db.VarChar(255)
+  fechaGeneracion DateTime @default(now()) @map("fecha_generacion")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  vehiculo Vehicle @relation(fields: [vehiculoId], references: [id])
+
+  @@map("vehicle_qr")
+}
+
+// =============================================================================
+// VEHICLE_PHOTO — Fotos del vehículo
+// =============================================================================
+model VehiclePhoto {
+  id                Int      @id @default(autoincrement())
+  vehiculoId        Int      @map("id_vehiculo")
+  url               String   @db.VarChar(255)
+  tipo              String   @db.VarChar(20)
+  fechaCaptura      DateTime @default(now()) @map("fecha_captura")
+  idMecanicoCapturo Int      @map("id_mecanico_capturo")
+  descripcion       String?  @db.VarChar(255)
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  vehiculo Vehicle  @relation(fields: [vehiculoId], references: [id])
+  mecanico Mechanic @relation(fields: [idMecanicoCapturo], references: [id])
+
+  @@index([vehiculoId])
+  @@map("vehicle_photo")
+}
+
+// =============================================================================
+// SERVICE_CATALOG — Catálogo de servicios por taller
+// =============================================================================
+model ServiceCatalog {
+  id               Int      @id @default(autoincrement())
+  workshopId       Int      @map("id_workshop")
+  nombre           String   @db.VarChar(100)
+  descripcion      String?
+  categoria        String   @db.VarChar(50)
+  precioReferencia Decimal? @map("precio_referencia") @db.Decimal(10, 2)
+  activo           Boolean  @default(true)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @map("updated_at") @updatedAt
+
+  workshop       Workshop       @relation(fields: [workshopId], references: [id])
+  intervenciones Intervention[]
+
+  @@index([workshopId])
+  @@map("service_catalog")
+}
+
+// =============================================================================
+// INTERVENCION — Orden de servicio
+// =============================================================================
+model Intervention {
+  id                  Int       @id @default(autoincrement())
+  vehiculoId          Int       @map("id_vehiculo")
+  mecanicoId          Int       @map("id_mecanico")
+  serviceCatalogId    Int?      @map("id_service_catalog")
+  fecha               DateTime  @default(now())
+  kilometrajeOdometro Int       @map("kilometraje_odometro")
+  diagnostico         String?
+  observaciones       String?
+  severidad           String?   @db.VarChar(20)
+  manoDeObra          Decimal?  @map("mano_de_obra") @db.Decimal(10, 2)
+  estado              String    @default("BORRADOR") @db.VarChar(20)
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @default(now()) @map("updated_at") @updatedAt
+
+  vehiculo       Vehicle              @relation(fields: [vehiculoId], references: [id])
+  mecanico       Mechanic             @relation(fields: [mecanicoId], references: [id])
+  serviceCatalog ServiceCatalog?      @relation(fields: [serviceCatalogId], references: [id])
+  detalles       DetalleIntervencion[]
+  alertas        AlertaPredictiva[]
+
+  @@index([vehiculoId])
+  @@index([fecha])
+  @@map("intervencion")
+}
+
+// =============================================================================
+// DETALLE_INTERVENCION — Componentes sustituidos por intervención
+// =============================================================================
+model DetalleIntervencion {
+  id                    Int      @id @default(autoincrement())
+  intervencionId        Int      @map("id_intervencion")
+  componenteReemplazado String   @map("componente_reemplazado") @db.VarChar(100)
+  kilometrajeInstalacion Int     @map("kilometraje_instalacion")
+  limiteKilometraje     Int      @map("limite_kilometraje")
+  tipoServicio          String   @map("tipo_servicio") @db.VarChar(50)
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @default(now()) @map("updated_at") @updatedAt
+
+  intervencion Intervention @relation(fields: [intervencionId], references: [id])
+
+  @@index([intervencionId])
+  @@map("detalle_intervencion")
+}
+
+// =============================================================================
+// ALERTA_PREDICTIVA — Proyecciones de mantenimiento
+// =============================================================================
+model AlertaPredictiva {
+  id                    Int      @id @default(autoincrement())
+  vehiculoId            Int      @map("id_vehiculo")
+  intervencionId        Int      @map("id_intervencion")
+  componenteAfectado    String   @map("componente_afectado") @db.VarChar(100)
+  kilometrajeActual     Int      @map("kilometraje_actual")
+  kilometrajeLimite     Int      @map("kilometraje_limite")
+  semanasEstimadas      Int      @map("semanas_estimadas")
+  mesesEstimados        Int      @map("meses_estimados")
+  mensajePrediccion     String   @map("mensaje_prediccion")
+  severidad             String   @db.VarChar(20)
+  recomendacion         String?
+  estadoAlerta          String   @map("estado_alerta") @db.VarChar(20)
+  fechaEstimada         DateTime @map("fecha_estimada")
+  kilometrajeProyectado Int      @map("kilometraje_proyectado")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @default(now()) @map("updated_at") @updatedAt
+
+  vehiculo     Vehicle      @relation(fields: [vehiculoId], references: [id])
+  intervencion Intervention @relation(fields: [intervencionId], references: [id])
+
+  @@index([vehiculoId])
+  @@index([estadoAlerta])
+  @@map("alerta_predictiva")
 }

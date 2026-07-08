@@ -116,18 +116,30 @@ jobs:
             docker volume prune -f 2>/dev/null || true
 
             echo "=== [6/6] Crear archivo .env ==="
-            cat > .env << EOF
+            cat > .env <<'ENVEOF'
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
             LLM_API_KEY=${{ secrets.LLM_API_KEY }}
             LLM_MODEL=${{ secrets.LLM_MODEL }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+            RESEND_FROM_EMAIL=${{ secrets.RESEND_FROM_EMAIL }}
+            ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }}
+            ONESIGNAL_REST_API_KEY=${{ secrets.ONESIGNAL_REST_API_KEY }}
+            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+            TELEGRAM_BOT_USERNAME=${{ secrets.TELEGRAM_BOT_USERNAME }}
+            REDIS_HOST=redis
+            REDIS_PORT=6379
+            NOTIFICATION_ENABLED=true
+            NOTIFICATION_MAX_RETRIES=3
+            NOTIFICATION_RETRY_DELAY_MS=5000
             LOG_LEVEL=${{ secrets.LOG_LEVEL }}
             CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
-            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
             DOCKERHUB_USERNAME=${{ env.DOCKERHUB_USERNAME }}
-            EOF
+            ENVEOF
 
             echo "=== Descargar imagenes actualizadas ==="
             docker compose -f docker-compose.prod.yml pull

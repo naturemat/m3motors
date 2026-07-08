@@ -50,8 +50,8 @@ describe('Vehiculo Aggregate Root', () => {
       hoy,
       new DiagnosticoTecnico(
         'Falla motor',
-        'Observaciones del mecánico',
         'MEDIA',
+        'Observaciones del mecánico',
       ),
       100,
       new MecanicoId('MEC-1'),
@@ -68,8 +68,8 @@ describe('Vehiculo Aggregate Root', () => {
       ayer,
       new DiagnosticoTecnico(
         'Falla motor',
-        'Observaciones del mecánico',
         'MEDIA',
+        'Observaciones del mecánico',
       ),
       100,
       new MecanicoId('MEC-1'),
@@ -89,8 +89,8 @@ describe('Vehiculo Aggregate Root', () => {
       hoy,
       new DiagnosticoTecnico(
         'Falla motor',
-        'Observaciones del mecánico',
         'MEDIA',
+        'Observaciones del mecánico',
       ),
       100,
       new MecanicoId('MEC-1'),
@@ -111,8 +111,8 @@ describe('Vehiculo Aggregate Root', () => {
       hoy,
       new DiagnosticoTecnico(
         'Revisión',
-        'Revisión completa del sistema',
         'BAJA',
+        'Revisión completa del sistema',
       ),
       50,
       new MecanicoId('MEC-1'),

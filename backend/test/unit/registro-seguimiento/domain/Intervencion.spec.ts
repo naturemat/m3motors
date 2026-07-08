@@ -13,8 +13,8 @@ describe('Intervencion Entity', () => {
       new Date(),
       new DiagnosticoTecnico(
         'Revisión general',
-        'Revisión completa del motor',
         'MEDIA',
+        'Revisión completa del motor',
       ),
       50.0,
       new MecanicoId('mec-1'),

@@ -37,8 +37,8 @@ export class RegistrarIntervencion {
     const intervencionId = new IntervencionId(crypto.randomUUID());
     const diagnostico = new DiagnosticoTecnico(
       dto.diagnostico,
-      dto.observacionesMecanico,
       dto.nivelSeveridad,
+      dto.observacionesMecanico,
     );
     const mecanicoId = new MecanicoId(dto.mecanicoId);
 

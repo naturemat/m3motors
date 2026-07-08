@@ -29,7 +29,12 @@ export class Vehiculo {
     this.validarDatosBasicos();
     this.historialEvolutivo = [];
     this.registrosKilometraje = [];
-    this.tasaDesgasteActual = new TasaDesgaste(0);
+    this.tasaDesgasteActual = new TasaDesgaste(
+      0,
+      new Date(),
+      'PROMEDIO_MOVIL_DISCRETO',
+      0,
+    );
     this.qrCode = null;
     this.photos = [];
     this.estadoActivacion = 'PENDING';
@@ -94,10 +99,15 @@ export class Vehiculo {
   }
 
   recalcularTasaDesgasteSemanal(): void {
-    const base = this.tasaDesgasteActual.getPorcentaje();
+    const base = this.tasaDesgasteActual.getKilometrosSemanales();
     const incremento = this.registrosKilometraje.length * 0.5;
-    const nuevaTasa = Math.min(100, base + incremento);
-    this.tasaDesgasteActual = new TasaDesgaste(nuevaTasa);
+    const nuevaTasa = base + incremento;
+    this.tasaDesgasteActual = new TasaDesgaste(
+      nuevaTasa,
+      new Date(),
+      'PROMEDIO_MOVIL_DISCRETO',
+      0.8,
+    );
   }
 
   esActivo(): boolean {

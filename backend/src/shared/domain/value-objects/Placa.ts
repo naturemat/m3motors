@@ -23,4 +23,8 @@ export class Placa {
     if (this.value.includes('-')) return this.value;
     return `${this.value.slice(0, 3)}-${this.value.slice(3)}`;
   }
+
+  equals(other: Placa): boolean {
+    return this.value === other.value;
+  }
 }

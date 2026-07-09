@@ -1,0 +1,159 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DO_HOST: ${{ secrets.DO_HOST }}
+  DO_USERNAME: ${{ secrets.DO_USERNAME }}
+  DEPLOY_PATH: /opt/m3motors
+
+jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+      frontend: ${{ steps.changes.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+
+  build-backend:
+    name: Build Backend
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ env.DOCKERHUB_USERNAME }}/m3motors-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-frontend:
+    name: Build Frontend
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ env.DOCKERHUB_USERNAME }}/m3motors-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Droplet
+    needs: [detect-changes, build-backend, build-frontend]
+    if: always() && needs.build-backend.result != 'failure' && needs.build-frontend.result != 'failure' && (needs.build-backend.result == 'success' || needs.build-frontend.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ env.DO_HOST }}
+          username: ${{ env.DO_USERNAME }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -e
+
+            echo "=== [1/6] Crear directorio de deploy ==="
+            mkdir -p ${{ env.DEPLOY_PATH }}
+            cd ${{ env.DEPLOY_PATH }}
+
+            echo "=== [2/6] Limpiar contenedores viejos ==="
+            docker stop $(docker ps -aq --filter "name=m3motors-") 2>/dev/null || true
+            docker rm $(docker ps -aq --filter "name=m3motors-") 2>/dev/null || true
+
+            echo "=== [3/6] Limpiar imagenes Docker no utilizadas ==="
+            docker image prune -af --filter "until=72h" 2>/dev/null || true
+
+            echo "=== [4/6] Limpiar logs antiguos ==="
+            find /var/lib/docker/containers -name "*-json.log" -size +100M -delete 2>/dev/null || true
+            journalctl --vacuum-time=3d 2>/dev/null || true
+
+            echo "=== [5/6] Limpiar volumenes huerfanos ==="
+            docker volume prune -f 2>/dev/null || true
+
+            echo "=== [6/6] Crear archivo .env ==="
+            cat > .env <<'ENVEOF'
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
+            LLM_API_KEY=${{ secrets.LLM_API_KEY }}
+            LLM_MODEL=${{ secrets.LLM_MODEL }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+            RESEND_FROM_EMAIL=${{ secrets.RESEND_FROM_EMAIL }}
+            ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }}
+            ONESIGNAL_REST_API_KEY=${{ secrets.ONESIGNAL_REST_API_KEY }}
+            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+            TELEGRAM_BOT_USERNAME=${{ secrets.TELEGRAM_BOT_USERNAME }}
+            REDIS_HOST=redis
+            REDIS_PORT=6379
+            NOTIFICATION_ENABLED=true
+            NOTIFICATION_MAX_RETRIES=3
+            NOTIFICATION_RETRY_DELAY_MS=5000
+            LOG_LEVEL=${{ secrets.LOG_LEVEL }}
+            CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
+            DOCKERHUB_USERNAME=${{ env.DOCKERHUB_USERNAME }}
+            ENVEOF
+
+            echo "=== Descargar imagenes actualizadas ==="
+            docker compose -f docker-compose.prod.yml pull
+
+            echo "=== Detener servicios antiguos ==="
+            docker compose -f docker-compose.prod.yml down
+
+            echo "=== Iniciar servicios ==="
+            docker compose -f docker-compose.prod.yml up -d
+
+            echo "=== Esperar a que PostgreSQL este listo ==="
+            sleep 15
+
+            echo "=== Verificar estado de servicios ==="
+            docker compose -f docker-compose.prod.yml ps
+
+            echo "=== Deploy completado ==="

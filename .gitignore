@@ -1,3 +1,14 @@
+# =============================================================================
+# M3Motors — .gitignore
+# =============================================================================
+
+# Contexto de proyecto (generado por IA, no commitear)
+.context/
+.mimocode/
+
+# Documentación fuente (PDFs y docs viven fuera del repo)
+docs/
+
 # Dependencies
 node_modules/
 .pnp
@@ -16,6 +27,20 @@ out/
 .env.test.local
 .env.production.local
 
+# Firebase / Google services (contains API keys)
+google-services.json
+GoogleService-Info.plist
+
+# Logs / Debug
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
 # IDE
 .vscode/
 .idea/
@@ -27,15 +52,8 @@ out/
 .DS_Store
 Thumbs.db
 
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Testing
-coverage/
-.nyc_output/
-
 # Misc
 *.tgz
 .cache/
+
+AGENTS.md

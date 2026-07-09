@@ -12,6 +12,12 @@ export class Mechanic {
     if (!id) throw new Error('El ID del mecánico es requerido');
     if (!nombre) throw new Error('El nombre del mecánico es requerido');
     if (!workshopId) throw new Error('El workshopId es requerido');
+    if (!especialidad || especialidad.trim() === '') {
+      throw new Error('La especialidad es requerida');
+    }
+    if (fechaCreacion > new Date()) {
+      throw new Error('La fecha de creación no puede ser futura');
+    }
   }
 
   activarCliente(_preRegisteredCustomerId: string): void {

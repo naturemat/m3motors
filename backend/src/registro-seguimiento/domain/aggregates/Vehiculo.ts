@@ -181,6 +181,12 @@ export class Vehiculo {
     if (this.anio < 1886 || this.anio > anioActual + 1) {
       throw new Error('Año de vehículo inválido');
     }
+    const tiposPermitidos = ['GASOLINA', 'DIESEL', 'ELECTRICO', 'HIBRIDO'];
+    if (!tiposPermitidos.includes(this.tipoMotor)) {
+      throw new Error(
+        `Tipo de motor inválido. Valores: ${tiposPermitidos.join(', ')}`,
+      );
+    }
   }
 
   private validarKilometrajeNoRetrocede(valorKm: number): void {

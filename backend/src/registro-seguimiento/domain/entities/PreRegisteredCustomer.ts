@@ -1,7 +1,7 @@
-export type EstadoCliente = 'PENDING' | 'ACTIVATED';
+export type EstadoPreRegistro = 'PENDING' | 'EN_ESPERA' | 'ACTIVATED';
 
 export class PreRegisteredCustomer {
-  private status: EstadoCliente;
+  private status: EstadoPreRegistro;
   private fechaActivacion: Date | null;
   private activadoPor: string | null;
   private vehicleId: string | null;
@@ -17,6 +17,9 @@ export class PreRegisteredCustomer {
   ) {
     if (!id) throw new Error('El ID del cliente es requerido');
     if (!nombre) throw new Error('El nombre es requerido');
+    if (fechaPreRegistro > new Date()) {
+      throw new Error('La fecha de pre-registro no puede ser futura');
+    }
     this.status = 'PENDING';
     this.fechaActivacion = null;
     this.activadoPor = null;
@@ -24,15 +27,30 @@ export class PreRegisteredCustomer {
   }
 
   activar(mecanicoId: string, vehicleId: string): void {
-    if (this.status === 'ACTIVATED')
-      throw new Error('El cliente ya está activado');
+    if (this.status !== 'PENDING' && this.status !== 'EN_ESPERA') {
+      throw new Error(
+        'Solo se pueden activar clientes en estado PENDING o EN_ESPERA',
+      );
+    }
     this.status = 'ACTIVATED';
     this.fechaActivacion = new Date();
     this.activadoPor = mecanicoId;
     this.vehicleId = vehicleId;
   }
 
+  marcarComoEncontrado(): void {
+    if (this.status !== 'PENDING') {
+      throw new Error(
+        'Solo se puede marcar como encontrado clientes en estado PENDING',
+      );
+    }
+    this.status = 'EN_ESPERA';
+  }
+
   actualizarDatos(nombre: string, telefono: string, email: string): void {
+    if (!nombre || nombre.trim() === '') {
+      throw new Error('El nombre es requerido');
+    }
     this.nombre = nombre;
     this.telefono = telefono;
     this.email = email;
@@ -62,7 +80,7 @@ export class PreRegisteredCustomer {
     return this.licensePlate;
   }
 
-  getStatus(): EstadoCliente {
+  getStatus(): EstadoPreRegistro {
     return this.status;
   }
 

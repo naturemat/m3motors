@@ -8,6 +8,7 @@ export class ComponenteCritico {
     private readonly nombre: string,
     private readonly kilometrajeInstalacion: number,
     private readonly limiteKilometrajeFabricante: number,
+    private readonly fechaInstalacion: Date = new Date(),
     estadoInicial: EstadoComponente = 'OPTIMO',
   ) {
     if (!id) throw new Error('El ID del componente es requerido');
@@ -18,14 +19,19 @@ export class ComponenteCritico {
       throw new Error(
         'El límite de kilometraje del fabricante debe ser mayor a 0',
       );
+    if (fechaInstalacion > new Date()) {
+      throw new Error('La fecha de instalación no puede ser futura');
+    }
     this.estadoActual = estadoInicial;
   }
 
-  evaluarDesgaste(kilometrajeActual: number): void {
-    const porcentaje =
-      ((kilometrajeActual - this.kilometrajeInstalacion) /
-        this.limiteKilometrajeFabricante) *
-      100;
+  calcularDesgaste(kilometrajeActual: number): number {
+    const recorrido = kilometrajeActual - this.kilometrajeInstalacion;
+    return Math.min(100, (recorrido / this.limiteKilometrajeFabricante) * 100);
+  }
+
+  actualizarEstado(kilometrajeActual: number): void {
+    const porcentaje = this.calcularDesgaste(kilometrajeActual);
 
     if (porcentaje >= 90) {
       this.estadoActual = 'CRITICO';
@@ -50,6 +56,10 @@ export class ComponenteCritico {
 
   getLimiteKilometrajeFabricante(): number {
     return this.limiteKilometrajeFabricante;
+  }
+
+  getFechaInstalacion(): Date {
+    return this.fechaInstalacion;
   }
 
   getEstadoActual(): EstadoComponente {

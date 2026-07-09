@@ -31,7 +31,7 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
       marca: 'Toyota',
       modelo: 'Corolla',
       anio: 2022,
-      tipoMotor: 'Gasolina',
+      tipoMotor: 'GASOLINA',
       clienteId: 'cli-1',
       kilometrajeInicial: 5000,
     });
@@ -53,7 +53,7 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
       'Toyota',
       'Corolla',
       2022,
-      'Gasolina',
+      'GASOLINA',
       'cli-1',
     );
     vehiculoExistente.registrarIngresoKilometraje(3000, new Date('2026-01-01'));
@@ -66,7 +66,7 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
       marca: 'Toyota',
       modelo: 'Corolla',
       anio: 2022,
-      tipoMotor: 'Gasolina',
+      tipoMotor: 'GASOLINA',
       clienteId: 'cli-1',
       kilometrajeInicial: 6000,
       fechaIngreso: new Date('2026-06-01'),
@@ -87,7 +87,7 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
       marca: 'Honda',
       modelo: 'Civic',
       anio: 2021,
-      tipoMotor: 'Gasolina',
+      tipoMotor: 'GASOLINA',
       clienteId: 'cli-2',
       kilometrajeInicial: 1000,
     });
@@ -105,7 +105,7 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
         marca: 'Honda',
         modelo: 'Civic',
         anio: 2021,
-        tipoMotor: 'Gasolina',
+        tipoMotor: 'GASOLINA',
         clienteId: 'cli-2',
         kilometrajeInicial: 1000,
       }),

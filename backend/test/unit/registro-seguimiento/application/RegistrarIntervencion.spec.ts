@@ -30,7 +30,7 @@ describe('RegistrarIntervencion (Use Case)', () => {
       'Toyota',
       'Corolla',
       2020,
-      'Gasolina',
+      'GASOLINA',
       'cli-1',
     );
     vehiculoExistente.registrarIngresoKilometraje(5000, fechaBase);

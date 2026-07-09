@@ -1,3 +1,4 @@
+import { Inject } from '@nestjs/common';
 import { Intervencion } from '../../domain/entities/Intervencion';
 import { IntervencionId } from '../../domain/value-objects/IntervencionId';
 import { DiagnosticoTecnico } from '../../domain/value-objects/DiagnosticoTecnico';
@@ -5,13 +6,17 @@ import { ComponenteCritico } from '../../domain/value-objects/ComponenteCritico'
 import { MecanicoId } from '../../domain/value-objects/MecanicoId';
 import { Placa } from '../../../shared/domain/value-objects/Placa';
 import { IVehiculoRepository } from '../../domain/ports/repositories/IVehiculoRepository';
-import { IDomainEventPublisher } from '../../../shared/domain/ports/events/IDomainEventPublisher';
+import {
+  IDomainEventPublisher,
+  IDOMAIN_EVENT_PUBLISHER,
+} from '../../../shared/domain/ports/events/IDomainEventPublisher';
 import { IntervencionRegistradaEvent } from '../../domain/events/IntervencionRegistradaEvent';
 import { RegistrarIntervencionDTO } from '../dto/RegistrarIntervencionDTO';
 
 export class RegistrarIntervencion {
   constructor(
     private readonly vehiculoRepository: IVehiculoRepository,
+    @Inject(IDOMAIN_EVENT_PUBLISHER)
     private readonly eventPublisher: IDomainEventPublisher,
   ) {}
 
@@ -30,7 +35,7 @@ export class RegistrarIntervencion {
     vehiculo.registrarIngresoKilometraje(dto.kilometrajeActual, dto.fecha);
 
     await this.vehiculoRepository.save(vehiculo);
-    await this.publicarEvento(intervencion, dto);
+    await this.publicarEvento(intervencion, dto, vehiculo.getId());
   }
 
   private construirIntervencion(dto: RegistrarIntervencionDTO): Intervencion {
@@ -70,12 +75,31 @@ export class RegistrarIntervencion {
   private async publicarEvento(
     intervencion: Intervencion,
     dto: RegistrarIntervencionDTO,
+    vehicleId: string,
   ): Promise<void> {
-    await this.eventPublisher.publish(IntervencionRegistradaEvent.EVENT_NAME, {
+    const evento = new IntervencionRegistradaEvent({
       intervencionId: intervencion.getId().getValue(),
+      vehicleId,
       placa: dto.placa,
-      fecha: dto.fecha,
-      diagnostico: dto.diagnostico,
+      mecanicoId: dto.mecanicoId,
+      workshopId: dto.workshopId,
+      diagnostico: {
+        fallaDetectada: dto.diagnostico,
+        observacionesMecanico: dto.observacionesMecanico,
+        nivelSeveridad: dto.nivelSeveridad,
+      },
+      componentesSustituidos: dto.componentes.map((c) => ({
+        componenteId: crypto.randomUUID(),
+        nombre: c.nombre,
+        kilometrajeInstalacion: 0,
+        limiteKilometrajeFabricante: c.limiteKilometrajeFabricante,
+      })),
+      manoDeObra: dto.manoDeObra,
     });
+
+    await this.eventPublisher.publish(
+      IntervencionRegistradaEvent.EVENT_NAME,
+      evento.toPayload(),
+    );
   }
 }

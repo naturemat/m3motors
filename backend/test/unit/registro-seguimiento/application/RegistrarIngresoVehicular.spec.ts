@@ -13,6 +13,7 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
   beforeEach(() => {
     mockRepo = {
       findByPlaca: jest.fn(),
+      findAll: jest.fn(),
       save: jest.fn(),
     };
     mockPublisher = {
@@ -56,7 +57,10 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
       'GASOLINA',
       'cli-1',
     );
-    vehiculoExistente.registrarIngresoKilometraje(3000, new Date('2026-01-01'));
+    vehiculoExistente.registrarIngresoKilometraje(
+      3000,
+      new Date('2026-01-01'),
+    );
     mockRepo.findByPlaca.mockResolvedValue(vehiculoExistente);
     mockRepo.save.mockResolvedValue(undefined);
     mockPublisher.publish.mockResolvedValue(undefined);
@@ -77,7 +81,7 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
     expect(vehiculoGuardado.getRegistrosKilometraje().length).toBe(2);
   });
 
-  it('debe publicar el evento KilometrajeActualizado', async () => {
+  it('debe publicar el evento KilometrajeActualizado con payload completo', async () => {
     mockRepo.findByPlaca.mockResolvedValue(null);
     mockRepo.save.mockResolvedValue(undefined);
     mockPublisher.publish.mockResolvedValue(undefined);
@@ -90,11 +94,56 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
       tipoMotor: 'GASOLINA',
       clienteId: 'cli-2',
       kilometrajeInicial: 1000,
+      origenCaptura: 'CLIENTE_APP',
     });
 
     expect(mockPublisher.publish).toHaveBeenCalledWith(
       KilometrajeActualizadoEvent.EVENT_NAME,
-      expect.objectContaining({ placa: 'ABC-456', nuevoKilometraje: 1000 }),
+      expect.objectContaining({
+        placa: 'ABC-456',
+        nuevoKilometraje: 1000,
+        kilometrajeAnterior: 0,
+        origenCaptura: 'CLIENTE_APP',
+      }),
+    );
+  });
+
+  it('debe incluir kilometrajeAnterior del vehículo existente', async () => {
+    const placaExistente = new Placa('XYZ-123');
+    const vehiculoExistente = new Vehiculo(
+      'veh-1',
+      placaExistente,
+      'Toyota',
+      'Corolla',
+      2022,
+      'GASOLINA',
+      'cli-1',
+    );
+    vehiculoExistente.registrarIngresoKilometraje(
+      3000,
+      new Date('2026-01-01'),
+    );
+    mockRepo.findByPlaca.mockResolvedValue(vehiculoExistente);
+    mockRepo.save.mockResolvedValue(undefined);
+    mockPublisher.publish.mockResolvedValue(undefined);
+
+    await useCase.execute({
+      placa: 'XYZ-123',
+      marca: 'Toyota',
+      modelo: 'Corolla',
+      anio: 2022,
+      tipoMotor: 'GASOLINA',
+      clienteId: 'cli-1',
+      kilometrajeInicial: 6000,
+      fechaIngreso: new Date('2026-06-01'),
+    });
+
+    expect(mockPublisher.publish).toHaveBeenCalledWith(
+      KilometrajeActualizadoEvent.EVENT_NAME,
+      expect.objectContaining({
+        kilometrajeAnterior: 3000,
+        nuevoKilometraje: 6000,
+      }),
     );
   });
 

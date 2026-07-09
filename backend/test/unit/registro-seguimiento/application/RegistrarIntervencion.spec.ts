@@ -17,6 +17,7 @@ describe('RegistrarIntervencion (Use Case)', () => {
   beforeEach(() => {
     mockRepo = {
       findByPlaca: jest.fn(),
+      findAll: jest.fn(),
       save: jest.fn(),
     };
     mockPublisher = {
@@ -56,6 +57,7 @@ describe('RegistrarIntervencion (Use Case)', () => {
         },
       ],
       mecanicoId: 'MEC-001',
+      workshopId: 'WK-001',
       manoDeObra: 80,
     });
 
@@ -90,6 +92,7 @@ describe('RegistrarIntervencion (Use Case)', () => {
         },
       ],
       mecanicoId: 'MEC-001',
+      workshopId: 'WK-001',
       manoDeObra: 200,
     });
 
@@ -98,7 +101,7 @@ describe('RegistrarIntervencion (Use Case)', () => {
     expect(intervencion.getComponentesSustituidos().length).toBe(2);
   });
 
-  it('debe publicar el evento IntervencionRegistrada', async () => {
+  it('debe publicar el evento IntervencionRegistrada con payload completo', async () => {
     mockRepo.findByPlaca.mockResolvedValue(vehiculoExistente);
     mockRepo.save.mockResolvedValue(undefined);
     mockPublisher.publish.mockResolvedValue(undefined);
@@ -112,6 +115,7 @@ describe('RegistrarIntervencion (Use Case)', () => {
       nivelSeveridad: 'BAJA',
       componentes: [],
       mecanicoId: 'MEC-001',
+      workshopId: 'WK-001',
       manoDeObra: 50,
     });
 
@@ -119,9 +123,20 @@ describe('RegistrarIntervencion (Use Case)', () => {
       IntervencionRegistradaEvent.EVENT_NAME,
       expect.objectContaining({
         placa: 'ABC-123',
-        diagnostico: 'Revisión general',
+        vehicleId: 'veh-1',
+        mecanicoId: 'MEC-001',
+        workshopId: 'WK-001',
+        manoDeObra: 50,
       }),
     );
+
+    const publishedPayload = mockPublisher.publish.mock.calls[0][1] as {
+      diagnostico: { fallaDetectada: string; nivelSeveridad: string };
+    };
+    expect(publishedPayload.diagnostico.fallaDetectada).toBe(
+      'Revisión general',
+    );
+    expect(publishedPayload.diagnostico.nivelSeveridad).toBe('BAJA');
   });
 
   it('debe lanzar error si el vehículo no existe', async () => {
@@ -137,6 +152,7 @@ describe('RegistrarIntervencion (Use Case)', () => {
         nivelSeveridad: 'BAJA',
         componentes: [],
         mecanicoId: 'MEC-001',
+        workshopId: 'WK-001',
         manoDeObra: 50,
       }),
     ).rejects.toThrow('Vehículo con placa ZZZ-999 no encontrado.');

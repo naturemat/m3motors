@@ -7,7 +7,6 @@ import { IOCRService } from '../../domain/ports/services/IOCRService';
 import { IVehiculoRepository } from '../../domain/ports/repositories/IVehiculoRepository';
 import { IDomainEventPublisher } from '../../../shared/domain/ports/events/IDomainEventPublisher';
 import { ServicioGeneracionQR } from '../../domain/domain-services/ServicioGeneracionQR';
-import { IntervencionRegistradaEvent } from '../../domain/events/IntervencionRegistradaEvent';
 
 @Injectable()
 export class ActivacionClienteService {

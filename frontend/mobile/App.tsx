@@ -1,55 +1,95 @@
-/**
- * M3Motors Mobile
- * React Native App
- */
-
 import React, {useEffect} from 'react';
-import {NewAppScreen} from '@react-native/new-app-screen';
-import {StatusBar, StyleSheet, useColorScheme, View} from 'react-native';
-import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
-import OneSignal from 'react-native-onesignal';
+import {StatusBar, StyleSheet} from 'react-native';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {NavigationContainer} from '@react-navigation/native';
+import {ClerkProvider, useAuth} from '@clerk/clerk-expo';
+import * as SecureStore from 'expo-secure-store';
+import {RootNavigator} from './src/navigation';
+import {useAuthStore} from './src/store/authStore';
+import {LoadingSpinner} from './src/components/atoms';
+
+const tokenCache = {
+  async getToken(key: string) {
+    try {
+      return await SecureStore.getItemAsync(key);
+    } catch {
+      return null;
+    }
+  },
+  async setToken(key: string, value: string) {
+    try {
+      return await SecureStore.setItemAsync(key, value);
+    } catch {
+      return;
+    }
+  },
+  async saveToken(key: string, value: string) {
+    try {
+      return await SecureStore.setItemAsync(key, value);
+    } catch {
+      return;
+    }
+  },
+  async deleteToken(key: string) {
+    try {
+      return await SecureStore.deleteItemAsync(key);
+    } catch {
+      return;
+    }
+  },
+};
+
 import Config from 'react-native-config';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+const clerkPubKey = Config.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
+
+function AuthLoader() {
+  const {isLoaded, isSignedIn, userId} = useAuth();
+  const {setUser, setLoading} = useAuthStore();
 
   useEffect(() => {
-    // Initialize OneSignal
-    OneSignal.initialize(Config.ONESIGNAL_APP_ID);
+    if (!isLoaded) {
+      setLoading(true);
+      return;
+    }
 
-    // Request permission for notifications
-    OneSignal.Notifications.requestPermission(true);
+    if (isSignedIn && userId) {
+      setUser({
+        id: userId,
+        email: '',
+        firstName: '',
+        lastName: '',
+        role: 'mechanic',
+      });
+    } else {
+      setUser(null);
+    }
+  }, [isLoaded, isSignedIn, userId, setUser, setLoading]);
 
-    // Listen for notification clicks
-    OneSignal.Notifications.addEventListener('click', event => {
-      console.log('OneSignal: notification clicked:', event);
-    });
-
-    // Listen for notifications in foreground
-    OneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
-      console.log('OneSignal: notification will display:', event);
-      event.getNotification().display();
-    });
-  }, []);
-
-  return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
-  );
+  return <LoadingSpinner />;
 }
 
 function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
+  const {isLoading} = useAuthStore();
 
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  return <RootNavigator />;
+}
+
+function App() {
   return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
+    <ClerkProvider tokenCache={tokenCache} publishableKey={clerkPubKey}>
+      <SafeAreaProvider>
+        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <NavigationContainer>
+          <AuthLoader />
+          <AppContent />
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </ClerkProvider>
   );
 }
 

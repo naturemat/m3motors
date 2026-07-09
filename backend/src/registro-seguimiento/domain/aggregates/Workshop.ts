@@ -34,6 +34,11 @@ export class Workshop {
     if (!mecanico.isActivo()) {
       throw new Error('No se puede remover un mecánico inactivo');
     }
+    if (this.mecanicos.length <= 1) {
+      throw new Error(
+        'El taller debe tener al menos un mecánico registrado para operar',
+      );
+    }
     this.mecanicos.splice(index, 1);
   }
 

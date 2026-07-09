@@ -1,13 +1,18 @@
+import { Inject } from '@nestjs/common';
 import { Vehiculo } from '../../domain/aggregates/Vehiculo';
 import { Placa } from '../../../shared/domain/value-objects/Placa';
 import { IVehiculoRepository } from '../../domain/ports/repositories/IVehiculoRepository';
-import { IDomainEventPublisher } from '../../../shared/domain/ports/events/IDomainEventPublisher';
+import {
+  IDomainEventPublisher,
+  IDOMAIN_EVENT_PUBLISHER,
+} from '../../../shared/domain/ports/events/IDomainEventPublisher';
 import { KilometrajeActualizadoEvent } from '../../domain/events/KilometrajeActualizadoEvent';
 import { RegistrarIngresoVehicularDTO } from '../dto/RegistrarIngresoVehicularDTO';
 
 export class RegistrarIngresoVehicular {
   constructor(
     private readonly vehiculoRepository: IVehiculoRepository,
+    @Inject(IDOMAIN_EVENT_PUBLISHER)
     private readonly eventPublisher: IDomainEventPublisher,
   ) {}
 
@@ -16,6 +21,7 @@ export class RegistrarIngresoVehicular {
     const fecha = dto.fechaIngreso ?? new Date();
 
     let vehiculo = await this.vehiculoRepository.findByPlaca(placa);
+    const kilometrajeAnterior = vehiculo?.obtenerUltimoKilometraje() ?? 0;
 
     if (!vehiculo) {
       vehiculo = new Vehiculo(
@@ -33,10 +39,18 @@ export class RegistrarIngresoVehicular {
 
     await this.vehiculoRepository.save(vehiculo);
 
-    await this.eventPublisher.publish(KilometrajeActualizadoEvent.EVENT_NAME, {
+    const evento = new KilometrajeActualizadoEvent({
+      vehicleId: vehiculo.getId(),
       placa: dto.placa,
       nuevoKilometraje: dto.kilometrajeInicial,
-      fecha,
+      kilometrajeAnterior,
+      origenCaptura: dto.origenCaptura ?? 'INGRESO_TALLER',
+      fotoTableroUrl: dto.fotoTableroUrl,
     });
+
+    await this.eventPublisher.publish(
+      KilometrajeActualizadoEvent.EVENT_NAME,
+      evento.toPayload(),
+    );
   }
 }

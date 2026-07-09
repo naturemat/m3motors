@@ -1,3 +1,5 @@
+import { OrigenCaptura } from '../../domain/events/KilometrajeActualizadoEvent';
+
 export interface RegistrarIngresoVehicularDTO {
   placa: string;
   marca: string;
@@ -7,4 +9,6 @@ export interface RegistrarIngresoVehicularDTO {
   clienteId: string;
   kilometrajeInicial: number;
   fechaIngreso?: Date;
+  origenCaptura?: OrigenCaptura;
+  fotoTableroUrl?: string;
 }

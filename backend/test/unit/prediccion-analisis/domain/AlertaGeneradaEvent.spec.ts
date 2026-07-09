@@ -13,8 +13,7 @@ describe('AlertaGeneradaEvent', () => {
     mensajePrediccion:
       'El filtro de aceite alcanzara su limite en aproximadamente 6 semanas.',
     nivelSeveridad: 'MEDIA' as const,
-    recomendacion:
-      'Programar cambio de filtro de aceite en las proximas 2 semanas.',
+    recomendacion: 'Programar cambio de filtro de aceite en las proximas 2 semanas.',
   };
 
   it('debe crear un evento con los atributos correctos', () => {

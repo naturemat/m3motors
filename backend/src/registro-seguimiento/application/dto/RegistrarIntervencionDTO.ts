@@ -1,3 +1,5 @@
+import { NivelSeveridad } from '../../domain/events/IntervencionRegistradaEvent';
+
 export interface ComponenteDTO {
   nombre: string;
   kilometrajeInstalacion: number;
@@ -10,8 +12,9 @@ export interface RegistrarIntervencionDTO {
   kilometrajeActual: number;
   diagnostico: string;
   observacionesMecanico: string;
-  nivelSeveridad: 'BAJA' | 'MEDIA' | 'ALTA';
+  nivelSeveridad: NivelSeveridad;
   componentes: ComponenteDTO[];
   mecanicoId: string;
+  workshopId: string;
   manoDeObra: number;
 }

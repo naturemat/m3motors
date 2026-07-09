@@ -8,9 +8,11 @@ import {
 } from '../../../shared/domain/ports/events/IDomainEventPublisher';
 import { KilometrajeActualizadoEvent } from '../../domain/events/KilometrajeActualizadoEvent';
 import { RegistrarIngresoVehicularDTO } from '../dto/RegistrarIngresoVehicularDTO';
+import { IVEHICULO_REPOSITORY } from '../../../shared/domain/ports/tokens';
 
 export class RegistrarIngresoVehicular {
   constructor(
+    @Inject(IVEHICULO_REPOSITORY)
     private readonly vehiculoRepository: IVehiculoRepository,
     @Inject(IDOMAIN_EVENT_PUBLISHER)
     private readonly eventPublisher: IDomainEventPublisher,

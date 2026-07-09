@@ -12,9 +12,11 @@ import {
 } from '../../../shared/domain/ports/events/IDomainEventPublisher';
 import { IntervencionRegistradaEvent } from '../../domain/events/IntervencionRegistradaEvent';
 import { RegistrarIntervencionDTO } from '../dto/RegistrarIntervencionDTO';
+import { IVEHICULO_REPOSITORY } from '../../../shared/domain/ports/tokens';
 
 export class RegistrarIntervencion {
   constructor(
+    @Inject(IVEHICULO_REPOSITORY)
     private readonly vehiculoRepository: IVehiculoRepository,
     @Inject(IDOMAIN_EVENT_PUBLISHER)
     private readonly eventPublisher: IDomainEventPublisher,

@@ -23,13 +23,17 @@ import { Request } from 'express';
 import { ClerkAuthGuard } from '../../shared/infrastructure/clerk/clerk.guard';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { CreateVehicleDTO } from '../../application/dto/CreateVehicleDTO';
+import { ObtenerHistorialVehiculo } from '../../registro-seguimiento/application/use-cases/ObtenerHistorialVehiculo';
 
 @ApiTags('Vehicles')
 @ApiBearerAuth()
 @Controller('vehicles')
 @UseGuards(ClerkAuthGuard)
 export class VehicleController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly obtenerHistorial: ObtenerHistorialVehiculo,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Listar vehículos del taller' })
@@ -77,6 +81,20 @@ export class VehicleController {
     }
 
     return vehicle;
+  }
+
+  @Get('qr/:qrCode')
+  @ApiOperation({ summary: 'Obtener historial completo por QR' })
+  @ApiResponse({ status: 200, description: 'Historial del vehiculo' })
+  @ApiResponse({ status: 404, description: 'QR no valido' })
+  async findByQr(@Param('qrCode') qrCode: string) {
+    const historial = await this.obtenerHistorial.execute(qrCode);
+
+    if (!historial) {
+      return { error: 'Codigo QR no valido. Intenta nuevamente.' };
+    }
+
+    return historial;
   }
 
   @Post()

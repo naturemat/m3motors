@@ -19,6 +19,7 @@ import { RegistrarVehiculoDesdeFoto } from './registro-seguimiento/application/u
 import { RegistrarIntervencion } from './registro-seguimiento/application/use-cases/RegistrarIntervencion';
 import { RegistrarIngresoVehicular } from './registro-seguimiento/application/use-cases/RegistrarIngresoVehicular';
 import { ActivacionClienteService } from './registro-seguimiento/infrastructure/external-services/ActivacionClienteService';
+import { ObtenerHistorialVehiculo } from './registro-seguimiento/application/use-cases/ObtenerHistorialVehiculo';
 import {
   IVEHICULO_REPOSITORY,
   ICLIENTE_REPOSITORY,
@@ -62,6 +63,7 @@ import {
     RegistrarIntervencion,
     RegistrarIngresoVehicular,
     ActivacionClienteService,
+    ObtenerHistorialVehiculo,
   ],
   exports: [
     IVEHICULO_REPOSITORY,

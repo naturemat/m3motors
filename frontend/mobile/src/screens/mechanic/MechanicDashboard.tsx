@@ -94,6 +94,16 @@ export default function MechanicDashboard() {
           />
         </View>
 
+        <View style={styles.qrSection}>
+          <Button
+            title="Escanear Codigo QR"
+            variant="primary"
+            size="medium"
+            fullWidth
+            onPress={() => navigation.navigate('QRScanner')}
+          />
+        </View>
+
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Clientes Pendientes</Text>
@@ -202,6 +212,10 @@ const styles = StyleSheet.create({
   searchContainer: {
     paddingHorizontal: 16,
     marginTop: 16,
+  },
+  qrSection: {
+    paddingHorizontal: 16,
+    marginTop: 12,
   },
   section: {
     marginTop: 16,

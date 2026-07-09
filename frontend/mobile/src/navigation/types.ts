@@ -7,6 +7,7 @@ export type AuthStackParamList = {
 
 export type MechanicStackParamList = {
   MechanicDashboard: undefined;
+  QRScanner: undefined;
   ActivateCustomer: {customerId: string};
   VehicleHistory: {vehicleId: string};
   NewService: {vehicleId: string};

@@ -20,12 +20,19 @@ export class WebhookHandlerService {
 
       const { PrismaPg } = require('@prisma/adapter-pg');
 
+      const databaseUrl = process.env.DATABASE_URL;
+      if (!databaseUrl) {
+        this.logger.error('DATABASE_URL not set');
+        return;
+      }
+
+      const url = new URL(databaseUrl);
       const adapter = new PrismaPg({
-        host: 'aws-1-us-east-2.pooler.supabase.com',
-        port: 5432,
-        user: 'postgres.tdpxtdgwzwlhgpujnlzc',
-        password: 'Arqui.Pass1@',
-        database: 'postgres',
+        host: url.hostname,
+        port: parseInt(url.port, 10) || 5432,
+        user: url.username,
+        password: url.password,
+        database: url.pathname.replace('/', ''),
         ssl: { rejectUnauthorized: false },
       });
       this.prisma = new PrismaClient({ adapter });

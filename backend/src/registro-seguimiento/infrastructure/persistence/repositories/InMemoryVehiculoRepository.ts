@@ -25,3 +25,5 @@ export class InMemoryVehiculoRepository implements IVehiculoRepository {
     return Promise.resolve();
   }
 }
+
+export const IVEHICULO_REPOSITORY_TOKEN = 'IVEHICULO_REPOSITORY';

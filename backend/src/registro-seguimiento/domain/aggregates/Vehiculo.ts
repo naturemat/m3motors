@@ -16,6 +16,8 @@ export class Vehiculo {
   private qrCode: VehicleQR | null;
   private photos: VehiclePhoto[];
   private estadoActivacion: EstadoActivacion;
+  private fechaActivacion: Date | null;
+  private activadoPor: string | null;
 
   constructor(
     private readonly id: string,
@@ -38,6 +40,8 @@ export class Vehiculo {
     this.qrCode = null;
     this.photos = [];
     this.estadoActivacion = 'PENDING';
+    this.fechaActivacion = null;
+    this.activadoPor = null;
   }
 
   activarVehiculo(
@@ -57,6 +61,8 @@ export class Vehiculo {
     this.qrCode = qr;
     this.photos = fotos;
     this.estadoActivacion = 'ACTIVATED';
+    this.fechaActivacion = new Date();
+    this.activadoPor = mechanicId;
   }
 
   generarQR(qr: VehicleQR): void {
@@ -121,6 +127,22 @@ export class Vehiculo {
     ].getValorKm();
   }
 
+  obtenerProximoMantenimiento(): Date | null {
+    const kilometrajeActual = this.obtenerUltimoKilometraje();
+    if (kilometrajeActual === null) return null;
+
+    const tasaKmSemana = this.tasaDesgasteActual.getKilometrosSemanales();
+    if (tasaKmSemana <= 0) return null;
+
+    const kilometrajeLimite = kilometrajeActual + tasaKmSemana * 12;
+    const semanasRestantes =
+      (kilometrajeLimite - kilometrajeActual) / tasaKmSemana;
+
+    const proximaFecha = new Date();
+    proximaFecha.setDate(proximaFecha.getDate() + semanasRestantes * 7);
+    return proximaFecha;
+  }
+
   getId(): string {
     return this.id;
   }
@@ -171,6 +193,14 @@ export class Vehiculo {
 
   getEstadoActivacion(): EstadoActivacion {
     return this.estadoActivacion;
+  }
+
+  getFechaActivacion(): Date | null {
+    return this.fechaActivacion;
+  }
+
+  getActivadoPor(): string | null {
+    return this.activadoPor;
   }
 
   private validarDatosBasicos(): void {

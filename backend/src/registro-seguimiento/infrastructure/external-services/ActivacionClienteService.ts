@@ -13,12 +13,20 @@ import { ServicioGeneracionQR } from '../../domain/domain-services/ServicioGener
 import { VehiculoActivadoEvent } from '../../domain/events/VehiculoActivadoEvent';
 import { QRGeneradoEvent } from '../../domain/events/QRGeneradoEvent';
 import { ClienteActivadoEvent } from '../../domain/events/ClienteActivadoEvent';
+import {
+  IVEHICULO_REPOSITORY,
+  IOCR_SERVICE,
+  ISERVICIO_GENERACION_QR,
+} from '../../../shared/domain/ports/tokens';
 
 @Injectable()
 export class ActivacionClienteService {
   constructor(
+    @Inject(IOCR_SERVICE)
     private readonly ocrService: IOCRService,
+    @Inject(ISERVICIO_GENERACION_QR)
     private readonly qrService: ServicioGeneracionQR,
+    @Inject(IVEHICULO_REPOSITORY)
     private readonly vehicleRepository: IVehiculoRepository,
     @Inject(IDOMAIN_EVENT_PUBLISHER)
     private readonly eventPublisher: IDomainEventPublisher,
@@ -61,7 +69,10 @@ export class ActivacionClienteService {
       tipoMotor,
     } = params;
 
-    const placaTexto = await this.ocrService.reconocerPlaca(fotoPlaca, mimeType);
+    const placaTexto = await this.ocrService.reconocerPlaca(
+      fotoPlaca,
+      mimeType,
+    );
     const placa = new Placa(placaTexto);
 
     const existente = await this.vehicleRepository.findByPlaca(placa);

@@ -94,12 +94,30 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ env.DO_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Create docker-compose.prod.yml on Droplet
+      - name: Clone/actualizar repo en Droplet
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.DO_USERNAME }}@${{ env.DO_HOST }} "mkdir -p ${{ env.DEPLOY_PATH }}"
-          cat docker-compose.prod.yml | ssh -i ~/.ssh/deploy_key ${{ env.DO_USERNAME }}@${{ env.DO_HOST }} "cat > ${{ env.DEPLOY_PATH }}/docker-compose.prod.yml"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.DO_USERNAME }}@${{ env.DO_HOST }} <<'CLONE_SCRIPT'
+          set -e
+          cd /opt
 
-      - name: Create .env on Droplet
+          if [ -d "m3motors/.git" ]; then
+            echo "=== Repo existe, haciendo pull ==="
+            cd m3motors
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd
+          else
+            echo "=== Clonando repo por primera vez ==="
+            rm -rf m3motors
+            git clone --branch main https://github.com/naturemat/m3motors.git
+            cd m3motors
+          fi
+
+          echo "=== Repo actualizado ==="
+          git log -1 --oneline
+          CLONE_SCRIPT
+
+      - name: Create .env en Droplet
         run: |
           ssh -i ~/.ssh/deploy_key ${{ env.DO_USERNAME }}@${{ env.DO_HOST }} "cat > ${{ env.DEPLOY_PATH }}/.env" <<'ENVEOF'
           DATABASE_URL=${{ secrets.DATABASE_URL }}
@@ -110,11 +128,9 @@ jobs:
           GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
           RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
-          RESEND_FROM_EMAIL=${{ secrets.RESEND_FROM_EMAIL }}
+          RESEND_FROM_EMAIL=onboarding@resend.dev
           ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }}
           ONESIGNAL_REST_API_KEY=${{ secrets.ONESIGNAL_REST_API_KEY }}
-          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_BOT_USERNAME=${{ secrets.TELEGRAM_BOT_USERNAME }}
           NOTIFICATION_ENABLED=true
           NOTIFICATION_MAX_RETRIES=3
           NOTIFICATION_RETRY_DELAY_MS=5000
@@ -129,18 +145,21 @@ jobs:
           set -e
           cd /opt/m3motors
 
-          echo "=== [1/4] Limpiar contenedores viejos ==="
+          echo "=== [1/5] Limpiar contenedores viejos ==="
           docker stop $(docker ps -aq --filter "name=m3motors-") 2>/dev/null || true
           docker rm $(docker ps -aq --filter "name=m3motors-") 2>/dev/null || true
 
-          echo "=== [2/4] Limpiar imagenes no utilizadas ==="
+          echo "=== [2/5] Limpiar imagenes no utilizadas ==="
           docker image prune -af --filter "until=72h" 2>/dev/null || true
 
-          echo "=== [3/4] Descargar e iniciar servicios ==="
+          echo "=== [3/5] Limpiar logs antiguos de contenedores ==="
+          find /var/lib/docker/containers -name "*-json.log" -size +50M -delete 2>/dev/null || true
+
+          echo "=== [4/5] Descargar e iniciar servicios ==="
           docker compose -f docker-compose.prod.yml pull
           docker compose -f docker-compose.prod.yml up -d
 
-          echo "=== [4/4] Verificar estado ==="
+          echo "=== [5/5] Verificar estado ==="
           sleep 10
           docker compose -f docker-compose.prod.yml ps
 

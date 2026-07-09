@@ -29,9 +29,7 @@ describe('AlertaGeneradaEvent', () => {
     expect(evento.semanasEstimadasRestantes).toBe(
       params.semanasEstimadasRestantes,
     );
-    expect(evento.mesesEstimadosRestantes).toBe(
-      params.mesesEstimadosRestantes,
-    );
+    expect(evento.mesesEstimadosRestantes).toBe(params.mesesEstimadosRestantes);
     expect(evento.mensajePrediccion).toBe(params.mensajePrediccion);
     expect(evento.nivelSeveridad).toBe('MEDIA');
     expect(evento.recomendacion).toBe(params.recomendacion);
@@ -47,7 +45,7 @@ describe('AlertaGeneradaEvent', () => {
     const evento = new AlertaGeneradaEvent(params);
 
     expect(() => {
-      (evento as any).nivelSeveridad = 'BAJA';
+      (evento as unknown as { nivelSeveridad: string }).nivelSeveridad = 'BAJA';
     }).toThrow();
   });
 

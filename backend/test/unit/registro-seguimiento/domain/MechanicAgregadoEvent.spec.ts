@@ -31,7 +31,7 @@ describe('MechanicAgregadoEvent', () => {
     const evento = new MechanicAgregadoEvent(params);
 
     expect(() => {
-      (evento as any).nombre = 'Otro Nombre';
+      (evento as unknown as { nombre: string }).nombre = 'Otro Nombre';
     }).toThrow();
   });
 

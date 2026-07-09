@@ -34,7 +34,7 @@ describe('ClienteActivadoEvent', () => {
     const evento = new ClienteActivadoEvent(params);
 
     expect(() => {
-      (evento as any).clienteId = 'cli-999';
+      (evento as unknown as { clienteId: string }).clienteId = 'cli-999';
     }).toThrow();
   });
 
@@ -45,7 +45,9 @@ describe('ClienteActivadoEvent', () => {
     expect(payload.eventId).toBe(evento.eventId);
     expect(payload.eventName).toBe('cliente.activado');
     expect(payload.clienteId).toBe(params.clienteId);
-    expect(payload.preRegisteredCustomerId).toBe(params.preRegisteredCustomerId);
+    expect(payload.preRegisteredCustomerId).toBe(
+      params.preRegisteredCustomerId,
+    );
     expect(payload.workshopId).toBe(params.workshopId);
     expect(payload.mechanicId).toBe(params.mechanicId);
     expect(payload.nombre).toBe(params.nombre);

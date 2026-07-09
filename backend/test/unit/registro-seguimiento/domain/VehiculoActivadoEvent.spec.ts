@@ -42,7 +42,7 @@ describe('VehiculoActivadoEvent', () => {
     const evento = new VehiculoActivadoEvent(params);
 
     expect(() => {
-      (evento as any).placa = 'XYZ-9999';
+      (evento as unknown as { placa: string }).placa = 'XYZ-9999';
     }).toThrow();
   });
 

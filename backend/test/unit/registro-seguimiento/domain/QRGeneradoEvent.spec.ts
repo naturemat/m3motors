@@ -26,7 +26,7 @@ describe('QRGeneradoEvent', () => {
     const evento = new QRGeneradoEvent(params);
 
     expect(() => {
-      (evento as any).qrCode = 'QR-XXXX-XXXX';
+      (evento as unknown as { qrCode: string }).qrCode = 'QR-XXXX-XXXX';
     }).toThrow();
   });
 

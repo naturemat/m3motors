@@ -31,7 +31,7 @@ describe('WorkshopRegistradoEvent', () => {
     const evento = new WorkshopRegistradoEvent(params);
 
     expect(() => {
-      (evento as any).workshopId = 'wk-999';
+      (evento as unknown as { workshopId: string }).workshopId = 'wk-999';
     }).toThrow();
   });
 

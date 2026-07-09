@@ -1,10 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NestEventPublisher } from './NestEventPublisher';
-import {
-  IDomainEventPublisher,
-  IDOMAIN_EVENT_PUBLISHER,
-} from '../../domain/ports/events/IDomainEventPublisher';
+import { IDOMAIN_EVENT_PUBLISHER } from '../../domain/ports/events/IDomainEventPublisher';
 
 @Global()
 @Module({

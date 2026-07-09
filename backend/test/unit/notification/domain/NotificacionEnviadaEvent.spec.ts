@@ -33,7 +33,7 @@ describe('NotificacionEnviadaEvent', () => {
     const evento = new NotificacionEnviadaEvent(params);
 
     expect(() => {
-      (evento as any).entregado = false;
+      (evento as unknown as { entregado: boolean }).entregado = false;
     }).toThrow();
   });
 

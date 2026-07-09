@@ -32,7 +32,7 @@ describe('ClientePreRegistradoEvent', () => {
     const evento = new ClientePreRegistradoEvent(params);
 
     expect(() => {
-      (evento as any).status = 'ACTIVATED';
+      (evento as unknown as { status: string }).status = 'ACTIVATED';
     }).toThrow();
   });
 
@@ -49,7 +49,9 @@ describe('ClientePreRegistradoEvent', () => {
 
     expect(payload.eventId).toBe(evento.eventId);
     expect(payload.eventName).toBe('cliente.pre-registrado');
-    expect(payload.preRegisteredCustomerId).toBe(params.preRegisteredCustomerId);
+    expect(payload.preRegisteredCustomerId).toBe(
+      params.preRegisteredCustomerId,
+    );
     expect(payload.workshopId).toBe(params.workshopId);
     expect(payload.nombre).toBe(params.nombre);
     expect(payload.telefono).toBe(params.telefono);

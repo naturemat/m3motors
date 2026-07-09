@@ -51,7 +51,7 @@ describe('IntervencionRegistradaEvent', () => {
     const evento = new IntervencionRegistradaEvent(params);
 
     expect(() => {
-      (evento as any).placa = 'XYZ-9999';
+      (evento as unknown as { placa: string }).placa = 'XYZ-9999';
     }).toThrow();
   });
 
@@ -59,7 +59,9 @@ describe('IntervencionRegistradaEvent', () => {
     const evento = new IntervencionRegistradaEvent(params);
 
     expect(() => {
-      (evento.diagnostico as any).fallaDetectada = 'Otra';
+      (
+        evento.diagnostico as unknown as { fallaDetectada: string }
+      ).fallaDetectada = 'Otra';
     }).toThrow();
 
     expect(() => {

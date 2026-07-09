@@ -126,13 +126,17 @@ describe('RegistrarIntervencion (Use Case)', () => {
         vehicleId: 'veh-1',
         mecanicoId: 'MEC-001',
         workshopId: 'WK-001',
-        diagnostico: expect.objectContaining({
-          fallaDetectada: 'Revisión general',
-          nivelSeveridad: 'BAJA',
-        }),
         manoDeObra: 50,
       }),
     );
+
+    const publishedPayload = mockPublisher.publish.mock.calls[0][1] as {
+      diagnostico: { fallaDetectada: string; nivelSeveridad: string };
+    };
+    expect(publishedPayload.diagnostico.fallaDetectada).toBe(
+      'Revisión general',
+    );
+    expect(publishedPayload.diagnostico.nivelSeveridad).toBe('BAJA');
   });
 
   it('debe lanzar error si el vehículo no existe', async () => {

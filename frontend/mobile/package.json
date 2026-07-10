@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.19.31",
+    "@emnapi/core": "1.11.2",
+    "@emnapi/runtime": "1.11.2",
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/datetimepicker": "^9.1.0",
     "@react-native/new-app-screen": "0.86.0",

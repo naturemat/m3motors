@@ -8,7 +8,10 @@ import { AuthController } from './shared/infrastructure/clerk/controllers/auth.c
 import { VehicleController } from './interfaces/controllers/vehicle.controller';
 import { InterventionController } from './interfaces/controllers/intervention.controller';
 import { AlertController } from './interfaces/controllers/alert.controller';
+feature/M3MOT-120-Implementar-dashboard-administrativo-para-dueño-del-taller
 import { AdminController } from './interfaces/controllers/admin.controller';
+import { ActivationController } from './interfaces/controllers/activation.controller';
+dev
 import { InMemoryVehiculoRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryVehiculoRepository';
 import { InMemoryClienteRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryClienteRepository';
 import { InMemoryIntervencionRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryIntervencionRepository';
@@ -39,7 +42,10 @@ import {
     VehicleController,
     InterventionController,
     AlertController,
+feature/M3MOT-120-Implementar-dashboard-administrativo-para-dueño-del-taller
     AdminController,
+    ActivationController,
+dev
   ],
   providers: [
     AppService,

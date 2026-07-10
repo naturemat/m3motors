@@ -1,24 +1,42 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsNotEmpty, IsOptional, IsString, IsNumber, Min } from 'class-validator'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsNumber,
+  Min,
+} from 'class-validator';
 
 export class CreateServiceDTO {
-  @ApiProperty({ example: 'Cambio de aceite', description: 'Nombre del servicio ofrecido' })
+  @ApiProperty({
+    example: 'Cambio de aceite',
+    description: 'Nombre del servicio ofrecido',
+  })
   @IsString()
   @IsNotEmpty()
-  nombre!: string
+  nombre!: string;
 
-  @ApiPropertyOptional({ example: 'Servicio de cambio de aceite y filtros', description: 'Descripción detallada del servicio' })
+  @ApiPropertyOptional({
+    example: 'Servicio de cambio de aceite y filtros',
+    description: 'Descripción detallada del servicio',
+  })
   @IsOptional()
   @IsString()
-  descripcion?: string
+  descripcion?: string;
 
-  @ApiProperty({ example: 45, description: 'Precio de referencia del servicio' })
+  @ApiProperty({
+    example: 45,
+    description: 'Precio de referencia del servicio',
+  })
   @IsNumber()
   @Min(0)
-  precioReferencia!: number
+  precioReferencia!: number;
 
-  @ApiPropertyOptional({ example: 'Mantenimiento', description: 'Categoría del servicio' })
+  @ApiPropertyOptional({
+    example: 'Mantenimiento',
+    description: 'Categoría del servicio',
+  })
   @IsOptional()
   @IsString()
-  categoria?: string
+  categoria?: string;
 }

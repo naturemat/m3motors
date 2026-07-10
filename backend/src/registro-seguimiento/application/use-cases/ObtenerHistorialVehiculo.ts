@@ -1,7 +1,10 @@
 import { Inject } from '@nestjs/common';
 import { IVehiculoRepository } from '../../domain/ports/repositories/IVehiculoRepository';
 import { IClienteRepository } from '../../domain/ports/repositories/IClienteRepository';
-import { IVEHICULO_REPOSITORY, ICLIENTE_REPOSITORY } from '../../../shared/domain/ports/tokens';
+import {
+  IVEHICULO_REPOSITORY,
+  ICLIENTE_REPOSITORY,
+} from '../../../shared/domain/ports/tokens';
 
 export interface ComponenteCriticoDTO {
   id: string;
@@ -55,7 +58,7 @@ export class ObtenerHistorialVehiculo {
 
   async execute(qrCode: string): Promise<VehiculoHistorialDTO | null> {
     const vehiculos = await this.vehiculoRepository.findAll();
-    const vehiculo = vehiculos.find(v => {
+    const vehiculo = vehiculos.find((v) => {
       const qr = v.getQrCode();
       return qr && qr.getCodigo() === qrCode;
     });
@@ -65,12 +68,15 @@ export class ObtenerHistorialVehiculo {
     }
 
     const kilometrajeActual = vehiculo.obtenerUltimoKilometraje();
-    const tasaDesgaste = vehiculo.getTasaDesgasteActual().getKilometrosSemanales();
+    const tasaDesgaste = vehiculo
+      .getTasaDesgasteActual()
+      .getKilometrosSemanales();
     const proximoMantenimiento = vehiculo.obtenerProximoMantenimiento();
 
     let cliente = null;
     try {
-      const { ClienteId } = await import('../../domain/value-objects/ClienteId');
+      const { ClienteId } =
+        await import('../../domain/value-objects/ClienteId');
       const clienteId = new ClienteId(vehiculo.getClienteId());
       const clienteEntity = await this.clienteRepository.findById(clienteId);
       if (clienteEntity) {
@@ -87,7 +93,7 @@ export class ObtenerHistorialVehiculo {
 
     const intervenciones: IntervencionDTO[] = vehiculo
       .getHistorialEvolutivo()
-      .map(intervencion => ({
+      .map((intervencion) => ({
         id: intervencion.getId().getValue(),
         fecha: intervencion.getFecha(),
         diagnostico: intervencion.getDiagnostico().getFallaDetectada(),
@@ -96,18 +102,16 @@ export class ObtenerHistorialVehiculo {
         manoDeObra: intervencion.getManoDeObra(),
         mecanicoId: intervencion.getMecanicoId().getValue(),
         estado: intervencion.getEstado(),
-        componentes: intervencion
-          .getComponentesSustituidos()
-          .map(comp => ({
-            id: comp.getId(),
-            nombre: comp.getNombre(),
-            kilometrajeInstalacion: comp.getKilometrajeInstalacion(),
-            limiteKilometrajeFabricante: comp.getLimiteKilometrajeFabricante(),
-            porcentajeDesgaste: kilometrajeActual
-              ? comp.calcularDesgaste(kilometrajeActual)
-              : 0,
-            estado: comp.getEstadoActual(),
-          })),
+        componentes: intervencion.getComponentesSustituidos().map((comp) => ({
+          id: comp.getId(),
+          nombre: comp.getNombre(),
+          kilometrajeInstalacion: comp.getKilometrajeInstalacion(),
+          limiteKilometrajeFabricante: comp.getLimiteKilometrajeFabricante(),
+          porcentajeDesgaste: kilometrajeActual
+            ? comp.calcularDesgaste(kilometrajeActual)
+            : 0,
+          estado: comp.getEstadoActual(),
+        })),
       }));
 
     const estadoGeneral = this.determinarEstado(intervenciones, tasaDesgaste);
@@ -134,16 +138,16 @@ export class ObtenerHistorialVehiculo {
     intervenciones: IntervencionDTO[],
     tasaDesgaste: number,
   ): 'OPTIMO' | 'ATENCION' | 'CRITICO' {
-    const componentesCriticos = intervenciones.flatMap(i =>
-      i.componentes.filter(c => c.estado === 'CRITICO'),
+    const componentesCriticos = intervenciones.flatMap((i) =>
+      i.componentes.filter((c) => c.estado === 'CRITICO'),
     );
 
     if (componentesCriticos.length > 0) {
       return 'CRITICO';
     }
 
-    const componentesDesgaste = intervenciones.flatMap(i =>
-      i.componentes.filter(c => c.estado === 'DESGASTE_MEDIO'),
+    const componentesDesgaste = intervenciones.flatMap((i) =>
+      i.componentes.filter((c) => c.estado === 'DESGASTE_MEDIO'),
     );
 
     if (componentesDesgaste.length > 0 || tasaDesgaste > 800) {
@@ -153,7 +157,9 @@ export class ObtenerHistorialVehiculo {
     return 'OPTIMO';
   }
 
-  private obtenerMensajeEstado(estado: 'OPTIMO' | 'ATENCION' | 'CRITICO'): string {
+  private obtenerMensajeEstado(
+    estado: 'OPTIMO' | 'ATENCION' | 'CRITICO',
+  ): string {
     switch (estado) {
       case 'OPTIMO':
         return 'El vehiculo esta en buen estado';

@@ -10,6 +10,7 @@ import { InterventionController } from './interfaces/controllers/intervention.co
 import { AlertController } from './interfaces/controllers/alert.controller';
 import { AdminController } from './interfaces/controllers/admin.controller';
 import { ActivationController } from './interfaces/controllers/activation.controller';
+import { PublicController } from './interfaces/controllers/public.controller';
 import { InMemoryVehiculoRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryVehiculoRepository';
 import { InMemoryClienteRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryClienteRepository';
 import { InMemoryIntervencionRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryIntervencionRepository';
@@ -42,6 +43,7 @@ import {
     AlertController,
     AdminController,
     ActivationController,
+    PublicController,
   ],
   providers: [
     AppService,

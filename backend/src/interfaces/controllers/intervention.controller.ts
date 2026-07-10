@@ -113,8 +113,7 @@ export class InterventionController {
     }
 
     // 3. Guardar todo en una transacción atómica de Prisma
-    const intervention = await this.prisma.client$.$transaction(async (tx) => {
-      // Crear la intervención (con estado FINALIZADO según el flujo del issue)
+    const intervention = await this.prisma.client$.$transaction(async (tx: any) => {      
       const createdIntervention = await tx.intervention.create({
         data: {
           vehiculoId: dto.vehiculoId,

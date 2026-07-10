@@ -57,10 +57,7 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
       'GASOLINA',
       'cli-1',
     );
-    vehiculoExistente.registrarIngresoKilometraje(
-      3000,
-      new Date('2026-01-01'),
-    );
+    vehiculoExistente.registrarIngresoKilometraje(3000, new Date('2026-01-01'));
     mockRepo.findByPlaca.mockResolvedValue(vehiculoExistente);
     mockRepo.save.mockResolvedValue(undefined);
     mockPublisher.publish.mockResolvedValue(undefined);
@@ -119,10 +116,7 @@ describe('RegistrarIngresoVehicular (Use Case)', () => {
       'GASOLINA',
       'cli-1',
     );
-    vehiculoExistente.registrarIngresoKilometraje(
-      3000,
-      new Date('2026-01-01'),
-    );
+    vehiculoExistente.registrarIngresoKilometraje(3000, new Date('2026-01-01'));
     mockRepo.findByPlaca.mockResolvedValue(vehiculoExistente);
     mockRepo.save.mockResolvedValue(undefined);
     mockPublisher.publish.mockResolvedValue(undefined);

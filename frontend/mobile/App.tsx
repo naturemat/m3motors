@@ -1,9 +1,10 @@
 import React, {useEffect} from 'react';
-import {StatusBar, StyleSheet} from 'react-native';
+import {StatusBar} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {NavigationContainer} from '@react-navigation/native';
 import {ClerkProvider, useAuth} from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
+import Config from 'react-native-config';
 import {RootNavigator} from './src/navigation';
 import {useAuthStore} from './src/store/authStore';
 import {LoadingSpinner} from './src/components/atoms';
@@ -38,8 +39,6 @@ const tokenCache = {
     }
   },
 };
-
-import Config from 'react-native-config';
 
 const clerkPubKey = Config.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
 
@@ -92,11 +91,5 @@ function App() {
     </ClerkProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default App;

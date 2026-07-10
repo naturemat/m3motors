@@ -1,10 +1,7 @@
 import { DomainEventBase } from '../../../shared/domain/events/DomainEventBase';
 
 export type TipoNotificacion =
-  | 'ALERTA_MANTENIMIENTO'
-  | 'RECOMENDACION'
-  | 'BIENVENIDA'
-  | 'RECORDATORIO';
+  'ALERTA_MANTENIMIENTO' | 'RECOMENDACION' | 'BIENVENIDA' | 'RECORDATORIO';
 
 export type CanalEnvio = 'PUSH' | 'EMAIL';
 

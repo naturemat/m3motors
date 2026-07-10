@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -15,204 +15,190 @@ import {AppBar, BottomNav, Card} from '../../components/molecules';
 import {Badge, Button} from '../../components/atoms';
 import {ClientStackParamList} from '../../navigation/types';
 import {colors} from '../../theme';
+import api from '../../services/api';
 
 type Nav = NativeStackNavigationProp<ClientStackParamList, 'ClientDashboard'>;
 
-const mockVehicle = {
-  placa: 'PBA-1234',
-  marca: 'Toyota',
-  modelo: 'Corolla',
-  anio: 2020,
-  ultimoKilometraje: 45000,
-  tasaDesgaste: 500,
-  proximoMantenimiento: {km: 50000, semanas: 4},
-  totalIntervenciones: 8,
-};
+interface VehicleData {
+  placa: string;
+  marca: string;
+  modelo: string;
+  anio: number;
+  kilometrajeActual: number;
+  qrCode: string;
+  totalIntervenciones: number;
+  proximoMantenimiento: string | null;
+  estadoGeneral: string;
+}
 
-const mockAlerts = [
-  {
-    id: '1',
-    severity: 'high' as const,
-    title: 'Frenos desgastados',
-    component: 'Pastillas delanteras',
-    days: 15,
-  },
-  {
-    id: '2',
-    severity: 'medium' as const,
-    title: 'Cambio de aceite proximo',
-    component: 'Motor',
-    days: 30,
-  },
-];
-
-const mockHistory = [
-  {
-    id: '1',
-    fecha: '2026-06-15',
-    servicio: 'Cambio de aceite',
-    mecanico: 'Juan Perez',
-    kilometraje: 45000,
-  },
-  {
-    id: '2',
-    fecha: '2026-05-20',
-    servicio: 'Revision de frenos',
-    mecanico: 'Carlos Lopez',
-    kilometraje: 42000,
-  },
-];
+interface HistoryItem {
+  id: string;
+  fecha: string;
+  servicio: string;
+  mecanico: string;
+  kilometraje: number;
+}
 
 export default function ClientDashboard() {
   const navigation = useNavigation<Nav>();
   const {signOut} = useAuth();
   const [refreshing, setRefreshing] = useState(false);
+  const [vehicle, setVehicle] = useState<VehicleData | null>(null);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const vehiclesRes = await api.get('/vehicles');
+      const vehicles = vehiclesRes.data.vehicles ?? vehiclesRes.data;
+
+      if (Array.isArray(vehicles) && vehicles.length > 0) {
+        const v = vehicles[0];
+        setVehicle({
+          placa: v.placa ?? '',
+          marca: v.marca ?? '',
+          modelo: v.modelo ?? '',
+          anio: v.anio ?? 0,
+          kilometrajeActual: v.kilometrajeActual ?? 0,
+          qrCode: v.qrCode ?? '',
+          totalIntervenciones: v.totalIntervenciones ?? 0,
+          proximoMantenimiento: v.proximoMantenimiento ?? null,
+          estadoGeneral: v.estadoGeneral ?? 'OPTIMO',
+        });
+
+        try {
+          const historyRes = await api.get(`/vehicles/${v.id}`);
+          const interventions = historyRes.data.intervenciones ?? [];
+          setHistory(
+            interventions.slice(0, 5).map((i: any) => ({
+              id: String(i.id),
+              fecha: i.fecha ?? i.creadoEn ?? '',
+              servicio: i.diagnostico ?? 'Servicio',
+              mecanico: i.mecanico?.nombre ?? 'Mecanico',
+              kilometraje: i.kilometrajeEnRegistro ?? 0,
+            })),
+          );
+        } catch {
+          // Vehicle detail fetch failed, continue with basic data
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching client data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await new Promise<void>(r => setTimeout(r, 1000));
+    await fetchData();
     setRefreshing(false);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <AppBar
-        title="Mi Vehiculo"
-        showNotifications
-        notificationCount={2}
-      />
+      <AppBar title="Mi Vehiculo" showNotifications notificationCount={0} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        <Card style={styles.vehicleCard}>
-          <View style={styles.vehicleRow}>
-            <View style={styles.vehicleInfo}>
-              <Text style={styles.vehicleModel}>
-                {mockVehicle.marca} {mockVehicle.modelo}
-              </Text>
-              <Text style={styles.vehiclePlate}>{mockVehicle.placa}</Text>
-              <View style={styles.vehicleMeta}>
-                <Text style={styles.vehicleYear}>{mockVehicle.anio}</Text>
-                <Badge label="ACTIVADO" type="success" size="small" />
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+        {vehicle ? (
+          <>
+            <Card style={styles.vehicleCard}>
+              <View style={styles.vehicleRow}>
+                <View style={styles.vehicleInfo}>
+                  <Text style={styles.vehicleModel}>{vehicle.marca} {vehicle.modelo}</Text>
+                  <Text style={styles.vehiclePlate}>{vehicle.placa}</Text>
+                  <View style={styles.vehicleMeta}>
+                    <Text style={styles.vehicleYear}>{vehicle.anio}</Text>
+                    <Badge label={vehicle.estadoGeneral} type="success" size="small" />
+                  </View>
+                </View>
               </View>
+            </Card>
+
+            <View style={styles.metricsGrid}>
+              <Card style={styles.metricCard}>
+                <Text style={styles.metricValue}>{vehicle.kilometrajeActual.toLocaleString()} km</Text>
+                <Text style={styles.metricLabel}>Kilometraje actual</Text>
+              </Card>
+              <Card style={styles.metricCard}>
+                <Text style={styles.metricValue}>{vehicle.totalIntervenciones}</Text>
+                <Text style={styles.metricLabel}>Servicios</Text>
+              </Card>
             </View>
-          </View>
-        </Card>
 
-        <View style={styles.metricsGrid}>
-          <Card style={styles.metricCard}>
-            <Text style={styles.metricValue}>
-              {mockVehicle.proximoMantenimiento.km.toLocaleString()} km
-            </Text>
-            <Text style={styles.metricLabel}>Proximo mantenimiento</Text>
-            <Text style={styles.metricSub}>
-              {mockVehicle.proximoMantenimiento.semanas} semanas
-            </Text>
-          </Card>
-          <Card style={styles.metricCard}>
-            <Text style={styles.metricValue}>
-              {mockVehicle.tasaDesgaste} km/sem
-            </Text>
-            <Text style={styles.metricLabel}>Tasa de desgaste</Text>
-          </Card>
-          <Card style={styles.metricCard}>
-            <Text style={styles.metricValue}>
-              {mockVehicle.totalIntervenciones}
-            </Text>
-            <Text style={styles.metricLabel}>Servicios</Text>
-            <Text style={styles.metricSub}>intervenciones</Text>
-          </Card>
-        </View>
-
-        <Card style={styles.qrSection}>
-          <Text style={styles.qrTitle}>QR de tu vehiculo</Text>
-          <View style={styles.qrPlaceholder}>
-            <Text style={styles.qrIcon}>📱</Text>
-          </View>
-          <Text style={styles.qrHint}>
-            Muestra este codigo al mecanico en tu proxima visita
-          </Text>
-          <Button
-            title="Ver QR"
-            variant="secondary"
-            size="small"
-            onPress={() => navigation.navigate('ClientQR')}
-          />
-        </Card>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Ultimas Alertas</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAll}>Ver todas</Text>
-            </TouchableOpacity>
-          </View>
-          {mockAlerts.map(alert => (
-            <Card
-              key={alert.id}
-              style={[
-                styles.alertCard,
-                {borderLeftColor: alert.severity === 'high' ? colors.error[500] : colors.warning[500]},
-              ]}>
-              <View style={styles.alertRow}>
-                <Badge
-                  label={alert.severity === 'high' ? 'ALTA' : 'MEDIA'}
-                  type={alert.severity === 'high' ? 'error' : 'warning'}
-                  size="small"
-                />
-                <Text style={styles.alertDays}>{alert.days} dias</Text>
+            <Card style={styles.qrSection}>
+              <Text style={styles.qrTitle}>QR de tu vehiculo</Text>
+              <View style={styles.qrPlaceholder}>
+                <Text style={styles.qrHint}>Muestra este codigo al mecanico en tu proxima visita</Text>
               </View>
-              <Text style={styles.alertTitle}>{alert.title}</Text>
-              <Text style={styles.alertComponent}>{alert.component}</Text>
+              <Button
+                title="Ver QR"
+                variant="secondary"
+                size="small"
+                onPress={() => navigation.navigate('ClientQR')}
+              />
             </Card>
-          ))}
-        </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Historial Reciente</Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('ClientHistory')}>
-              <Text style={styles.seeAll}>Ver todo</Text>
-            </TouchableOpacity>
-          </View>
-          {mockHistory.map(item => (
-            <Card key={item.id} style={styles.historyItem}>
-              <View style={styles.historyRow}>
-                <View>
-                  <Text style={styles.historyDate}>{item.fecha}</Text>
-                  <Text style={styles.historyService}>{item.servicio}</Text>
-                </View>
-                <View style={styles.historyRight}>
-                  <Text style={styles.historyMechanic}>{item.mecanico}</Text>
-                  <Text style={styles.historyKm}>
-                    {item.kilometraje.toLocaleString()} km
-                  </Text>
-                </View>
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Historial Reciente</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('ClientHistory')}>
+                  <Text style={styles.seeAll}>Ver todo</Text>
+                </TouchableOpacity>
               </View>
-            </Card>
-          ))}
-        </View>
+              {history.length > 0 ? (
+                history.map(item => (
+                  <Card key={item.id} style={styles.historyItem}>
+                    <View style={styles.historyRow}>
+                      <View>
+                        <Text style={styles.historyDate}>{item.fecha.split('T')[0]}</Text>
+                        <Text style={styles.historyService}>{item.servicio}</Text>
+                      </View>
+                      <View style={styles.historyRight}>
+                        <Text style={styles.historyMechanic}>{item.mecanico}</Text>
+                        <Text style={styles.historyKm}>{item.kilometraje.toLocaleString()} km</Text>
+                      </View>
+                    </View>
+                  </Card>
+                ))
+              ) : (
+                <Text style={styles.emptyText}>Aun no tienes servicios registrados</Text>
+              )}
+            </View>
 
-        <View style={styles.actions}>
-          <Button
-            title="Actualizar Kilometraje"
-            variant="secondary"
-            size="large"
-            fullWidth
-            onPress={() => navigation.navigate('UpdateKM')}
-          />
-          <Button
-            title="Ver Historial Completo"
-            variant="ghost"
-            size="large"
-            fullWidth
-            onPress={() => navigation.navigate('ClientHistory')}
-          />
-        </View>
+            <View style={styles.actions}>
+              <Button
+                title="Actualizar Kilometraje"
+                variant="secondary"
+                size="large"
+                fullWidth
+                onPress={() => navigation.navigate('UpdateKM')}
+              />
+              <Button
+                title="Ver Historial Completo"
+                variant="ghost"
+                size="large"
+                fullWidth
+                onPress={() => navigation.navigate('ClientHistory')}
+              />
+            </View>
+          </>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>No tienes vehiculos activos</Text>
+            <Text style={styles.emptySubtitle}>Contacta a tu taller para activar tu cuenta</Text>
+          </View>
+        )}
       </ScrollView>
 
       <BottomNav
@@ -221,12 +207,12 @@ export default function ClientDashboard() {
           {key: 'inicio', label: 'Inicio', icon: 'home'},
           {key: 'historial', label: 'Historial', icon: 'file-text'},
           {key: 'qr', label: 'QR', icon: 'qrcode'},
-          {key: 'perfil', label: 'Perfil', icon: 'user'},
+          {key: 'perfil', label: 'Salir', icon: 'log-out'},
         ]}
         onPress={key => {
           if (key === 'historial') navigation.navigate('ClientHistory');
           else if (key === 'qr') navigation.navigate('ClientQR');
-          else if (key === 'perfil') navigation.navigate('ClientProfile');
+          else if (key === 'perfil') void handleLogout();
         }}
       />
     </SafeAreaView>
@@ -234,173 +220,37 @@ export default function ClientDashboard() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral[100],
-  },
-  scrollContent: {
-    paddingBottom: 80,
-  },
-  vehicleCard: {
-    marginHorizontal: 16,
-    marginTop: 16,
-  },
-  vehicleRow: {
-    flexDirection: 'row',
-  },
-  vehicleInfo: {
-    flex: 1,
-    gap: 4,
-  },
-  vehicleModel: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.neutral[900],
-  },
-  vehiclePlate: {
-    fontSize: 14,
-    color: colors.neutral[600],
-  },
-  vehicleMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 4,
-  },
-  vehicleYear: {
-    fontSize: 14,
-    color: colors.neutral[600],
-  },
-  metricsGrid: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    gap: 12,
-    marginTop: 12,
-  },
-  metricCard: {
-    flex: 1,
-    alignItems: 'center',
-    padding: 12,
-  },
-  metricValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.primary[500],
-  },
-  metricLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.neutral[600],
-    textAlign: 'center',
-  },
-  metricSub: {
-    fontSize: 12,
-    color: colors.neutral[400],
-    textAlign: 'center',
-  },
-  qrSection: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    alignItems: 'center',
-    gap: 12,
-  },
-  qrTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.neutral[900],
-  },
-  qrPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 12,
-    backgroundColor: colors.neutral[100],
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.primary[500],
-  },
-  qrIcon: {
-    fontSize: 48,
-  },
-  qrHint: {
-    fontSize: 14,
-    color: colors.neutral[600],
-    textAlign: 'center',
-  },
-  section: {
-    marginHorizontal: 16,
-    marginTop: 16,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.neutral[900],
-  },
-  seeAll: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.secondary[500],
-  },
-  alertCard: {
-    marginBottom: 8,
-    borderLeftWidth: 4,
-  },
-  alertRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  alertDays: {
-    fontSize: 12,
-    color: colors.neutral[600],
-  },
-  alertTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.neutral[900],
-  },
-  alertComponent: {
-    fontSize: 12,
-    color: colors.neutral[600],
-  },
-  historyItem: {
-    marginBottom: 8,
-  },
-  historyRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  historyDate: {
-    fontSize: 12,
-    color: colors.neutral[600],
-  },
-  historyService: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.neutral[900],
-  },
-  historyRight: {
-    alignItems: 'flex-end',
-  },
-  historyMechanic: {
-    fontSize: 12,
-    color: colors.neutral[600],
-  },
-  historyKm: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.primary[500],
-  },
-  actions: {
-    paddingHorizontal: 16,
-    gap: 8,
-    marginTop: 16,
-  },
+  container: {flex: 1, backgroundColor: colors.neutral[100]},
+  scrollContent: {paddingBottom: 80},
+  vehicleCard: {marginHorizontal: 16, marginTop: 16},
+  vehicleRow: {flexDirection: 'row'},
+  vehicleInfo: {flex: 1, gap: 4},
+  vehicleModel: {fontSize: 18, fontWeight: '600', color: colors.neutral[900]},
+  vehiclePlate: {fontSize: 14, color: colors.neutral[600]},
+  vehicleMeta: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4},
+  vehicleYear: {fontSize: 14, color: colors.neutral[600]},
+  metricsGrid: {flexDirection: 'row', paddingHorizontal: 16, gap: 12, marginTop: 12},
+  metricCard: {flex: 1, alignItems: 'center', padding: 12},
+  metricValue: {fontSize: 18, fontWeight: '700', color: colors.primary[500]},
+  metricLabel: {fontSize: 12, fontWeight: '500', color: colors.neutral[600], textAlign: 'center'},
+  qrSection: {marginHorizontal: 16, marginTop: 16, alignItems: 'center', gap: 12},
+  qrTitle: {fontSize: 18, fontWeight: '600', color: colors.neutral[900]},
+  qrPlaceholder: {width: 120, height: 120, borderRadius: 12, backgroundColor: colors.neutral[100], alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.primary[500]},
+  qrHint: {fontSize: 12, color: colors.neutral[600], textAlign: 'center'},
+  section: {marginHorizontal: 16, marginTop: 16},
+  sectionHeader: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12},
+  sectionTitle: {fontSize: 18, fontWeight: '600', color: colors.neutral[900]},
+  seeAll: {fontSize: 14, fontWeight: '500', color: colors.secondary[500]},
+  historyItem: {marginBottom: 8},
+  historyRow: {flexDirection: 'row', justifyContent: 'space-between'},
+  historyDate: {fontSize: 12, color: colors.neutral[600]},
+  historyService: {fontSize: 14, fontWeight: '500', color: colors.neutral[900]},
+  historyRight: {alignItems: 'flex-end'},
+  historyMechanic: {fontSize: 12, color: colors.neutral[600]},
+  historyKm: {fontSize: 12, fontWeight: '500', color: colors.primary[500]},
+  actions: {paddingHorizontal: 16, gap: 8, marginTop: 16},
+  emptyContainer: {alignItems: 'center', justifyContent: 'center', paddingVertical: 60},
+  emptyTitle: {fontSize: 18, fontWeight: '600', color: colors.neutral[900], textAlign: 'center'},
+  emptySubtitle: {fontSize: 14, color: colors.neutral[600], textAlign: 'center', marginTop: 8},
+  emptyText: {fontSize: 14, color: colors.neutral[400], textAlign: 'center', paddingVertical: 16},
 });

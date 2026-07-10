@@ -1,258 +1,226 @@
-﻿import React, { useMemo, useState } from 'react'
+﻿import React, { useEffect, useState, useCallback } from 'react'
+import axios from 'axios'
+import { useAuth } from '@clerk/clerk-react'
+
+const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
 interface Vehiculo {
+  id: string
   marca: string
   modelo: string
-  year: number
+  anio: number
   placa: string
   kilometrajeActual: number
+  qrCode: string
 }
 
 interface Servicio {
-  id: number
+  id: string
   fecha: string
-  tipo: string
-  kilometraje: number
-  detalles: string
+  diagnostico: string
+  kilometraje: number | null
+  observaciones: string
+  mecanico: { nombre: string } | null
 }
 
 export default function PanelCliente() {
-  const colores = {
-    primary: '#1A5276',
-    secondary: '#2E86C1',
-    tertiary: '#3498DB',
-    neutralBg: '#F4F6F7',
-    textDark: '#1C2833',
-  }
+  const { getToken } = useAuth()
+  const [vehiculo, setVehiculo] = useState<Vehiculo | null>(null)
+  const [historial, setHistorial] = useState<Servicio[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const [vehiculo, setVehiculo] = useState<Vehiculo>({
-    marca: 'Toyota',
-    modelo: 'Corolla',
-    year: 2022,
-    placa: 'PBA-1234',
-    kilometrajeActual: 42500,
-  })
+  const fetchData = useCallback(async () => {
+    try {
+      const token = await getToken()
+      const headers = { Authorization: `Bearer ${token}` }
 
-  const [historial] = useState<Servicio[]>([
-    { id: 1, fecha: '2026-05-10', tipo: 'Cambio de Aceite y Filtros', kilometraje: 40000, detalles: 'Aceite 10W-30 sintético' },
-    { id: 2, fecha: '2025-11-15', tipo: 'Alineación y Balanceo', kilometraje: 30000, detalles: 'Rotación de neumáticos traseros' },
-    { id: 3, fecha: '2025-04-02', tipo: 'Mantenimiento General', kilometraje: 20000, detalles: 'Revisión de frenos y niveles de líquidos' },
-  ])
+      const vehiclesRes = await axios.get(`${apiUrl}/vehicles`, { headers })
+      const vehicles = vehiclesRes.data.vehicles ?? vehiclesRes.data
 
-  const [nuevoKilometraje, setNuevoKilometraje] = useState<string>('')
-  const [fotoTablero, setFotoTablero] = useState<File | null>(null)
-  const [errorValidacion, setErrorValidacion] = useState<string>('')
-  const [mensajeExito, setMensajeExito] = useState<string>('')
+      if (Array.isArray(vehicles) && vehicles.length > 0) {
+        const v = vehicles[0]
+        setVehiculo({
+          id: String(v.id),
+          marca: v.marca ?? '',
+          modelo: v.modelo ?? '',
+          anio: v.anio ?? 0,
+          placa: v.placa ?? '',
+          kilometrajeActual: v.kilometrajeActual ?? 0,
+          qrCode: v.qrCode ?? '',
+        })
 
-  const historialOrdenado = useMemo(
-    () => [...historial].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()),
-    [historial],
-  )
+        const detailRes = await axios.get(`${apiUrl}/vehicles/${v.id}`, { headers })
+        const interventions = detailRes.data.intervenciones ?? []
+        setHistorial(
+          interventions.map((i: any) => ({
+            id: String(i.id),
+            fecha: i.fecha ?? i.creadoEn ?? '',
+            diagnostico: i.diagnostico ?? 'Servicio',
+            kilometraje: i.kilometrajeEnRegistro ?? null,
+            observaciones: i.observaciones ?? '',
+            mecanico: i.mecanico ?? null,
+          })),
+        )
+      }
+    } catch (err: any) {
+      console.error(err)
+      setError(err?.response?.data?.message ?? 'Error cargando datos del vehiculo')
+    } finally {
+      setLoading(false)
+    }
+  }, [getToken])
 
-  const handleActualizarKilometraje = (event: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    void fetchData()
+  }, [fetchData])
+
+  const handleActualizarKilometraje = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setErrorValidacion('')
-    setMensajeExito('')
+    if (!vehiculo) return
 
-    const kms = parseInt(nuevoKilometraje, 10)
+    const form = event.target as HTMLFormElement
+    const input = form.elements.namedItem('kilometraje') as HTMLInputElement
+    const kms = parseInt(input.value, 10)
+
     if (isNaN(kms) || kms <= vehiculo.kilometrajeActual) {
-      setErrorValidacion(`El kilometraje debe ser mayor al registro actual (${vehiculo.kilometrajeActual.toLocaleString()} km).`)
+      setError(`El kilometraje debe ser mayor al registro actual (${vehiculo.kilometrajeActual.toLocaleString()} km).`)
       return
     }
 
-    setVehiculo(prev => ({ ...prev, kilometrajeActual: kms }))
-    window.dispatchEvent(
-      new CustomEvent('KilometrajeActualizado', {
-        detail: {
-          placa: vehiculo.placa,
-          kilometraje: kms,
-          timestamp: new Date().toISOString(),
+    try {
+      const token = await getToken()
+      await axios.post(
+        `${apiUrl}/interventions`,
+        {
+          vehiculoId: vehiculo.id,
+          diagnostico: 'Actualizacion de kilometraje',
+          kilometrajeEnRegistro: kms,
+          observaciones: 'Actualizado por el cliente',
         },
-      }),
-    )
-    setMensajeExito('¡Kilometraje actualizado correctamente!')
-    setNuevoKilometraje('')
-    setFotoTablero(null)
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+      setVehiculo(prev => prev ? { ...prev, kilometrajeActual: kms } : prev)
+      input.value = ''
+      setError(null)
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? 'Error actualizando kilometraje')
+    }
   }
 
-  const handleFotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFotoTablero(event.target.files?.[0] ?? null)
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-100 flex items-center justify-center">
+        <p className="text-neutral-600">Cargando datos del vehiculo...</p>
+      </div>
+    )
   }
+
+  if (!vehiculo) {
+    return (
+      <div className="min-h-screen bg-neutral-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-neutral-900">No tienes vehiculos activos</p>
+          <p className="mt-2 text-neutral-600">Contacta a tu taller para activar tu cuenta</p>
+        </div>
+      </div>
+    )
+  }
+
+  const historialOrdenado = [...historial].sort(
+    (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
+  )
 
   return (
-    <div className="min-h-screen p-6 bg-slate-50 text-slate-900 font-sans antialiased" style={{ backgroundColor: colores.neutralBg, color: colores.textDark }}>
-      <header className="max-w-6xl mx-auto mb-6 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm shadow-slate-200/60 backdrop-blur">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.35em] text-slate-500">Cliente Activado</p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight" style={{ color: colores.primary }}>Panel Cliente</h1>
-            <p className="mt-2 text-sm text-slate-600">Accede a tu vehículo, historial y alertas predictivas en un solo lugar.</p>
-          </div>
-          <div className="rounded-3xl bg-slate-100 px-4 py-3 text-sm font-medium text-slate-700 shadow-sm">
-            Estado: <span className="font-semibold text-slate-900">Activo</span>
-          </div>
+    <div className="min-h-screen bg-neutral-100">
+      <header className="bg-primary text-white">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+          <h1 className="text-xl font-semibold">Panel Cliente</h1>
+          <span className="text-sm opacity-80">Estado: Activo</span>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto space-y-6">
-        <section className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-          <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Resumen Vehículo</p>
-                <h2 className="mt-2 text-2xl font-semibold" style={{ color: colores.primary }}>{vehiculo.marca} {vehiculo.modelo}</h2>
-                <p className="text-sm text-slate-600">Año {vehiculo.year} · Placa {vehiculo.placa}</p>
-              </div>
-              <div className="rounded-3xl bg-slate-50 px-4 py-3 text-slate-700 shadow-inner">
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Kilometraje</p>
-                <p className="mt-1 text-3xl font-semibold" style={{ color: colores.secondary }}>{vehiculo.kilometrajeActual.toLocaleString()} km</p>
-              </div>
+      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        {error && (
+          <div className="rounded-lg bg-error-light border border-error/20 px-4 py-3 text-sm text-error">{error}</div>
+        )}
+
+        <section className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+          <article className="rounded-lg bg-white p-6 shadow-sm">
+            <p className="text-xs uppercase tracking-wider text-neutral-600">Resumen Vehiculo</p>
+            <h2 className="mt-2 text-2xl font-semibold text-primary">{vehiculo.marca} {vehiculo.modelo}</h2>
+            <p className="text-sm text-neutral-600">Ano {vehiculo.anio} - Placa {vehiculo.placa}</p>
+
+            <div className="mt-4 rounded-lg bg-neutral-100 p-4">
+              <p className="text-xs uppercase tracking-wider text-neutral-600">Kilometraje</p>
+              <p className="mt-1 text-3xl font-semibold text-primary">{vehiculo.kilometrajeActual.toLocaleString()} km</p>
             </div>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-3xl bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Marca</p>
-                <p className="mt-2 font-semibold">{vehiculo.marca}</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div className="rounded-lg bg-neutral-100 p-4">
+                <p className="text-xs uppercase tracking-wider text-neutral-600">Marca</p>
+                <p className="mt-1 font-semibold">{vehiculo.marca}</p>
               </div>
-              <div className="rounded-3xl bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Modelo</p>
-                <p className="mt-2 font-semibold">{vehiculo.modelo}</p>
+              <div className="rounded-lg bg-neutral-100 p-4">
+                <p className="text-xs uppercase tracking-wider text-neutral-600">Modelo</p>
+                <p className="mt-1 font-semibold">{vehiculo.modelo}</p>
               </div>
             </div>
           </article>
 
-          <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between">
+          <article className="rounded-lg bg-white p-6 shadow-sm">
+            <p className="text-xs uppercase tracking-wider text-neutral-600">Actualizar Kilometraje</p>
+            <h3 className="mt-2 text-xl font-semibold text-primary">Registro rapido</h3>
+
+            <form onSubmit={handleActualizarKilometraje} className="mt-4 space-y-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.28em] text-slate-500">QR del Vehículo</p>
-                <p className="mt-2 text-sm text-slate-600">Escanea o comparte este código para identificar tu auto.</p>
-              </div>
-              <div className="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700">M3-QR</div>
-            </div>
-
-            <div className="mt-6 flex items-center justify-center rounded-3xl bg-slate-100 p-6">
-              <div className="relative grid h-40 w-40 grid-cols-6 gap-1 rounded-3xl bg-white p-3 shadow-sm">
-                {Array.from({ length: 36 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className={
-                      index % 5 === 0 || index % 7 === 0 || index % 11 === 0
-                        ? 'rounded-sm bg-slate-900'
-                        : 'rounded-sm bg-slate-300'
-                    }
-                  />
-                ))}
-              </div>
-            </div>
-
-            <p className="mt-4 text-center text-sm font-medium text-slate-600">Placa: <span className="font-semibold text-slate-900">{vehiculo.placa}</span></p>
-          </article>
-        </section>
-
-        <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-          <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Actualizar Kilometraje</p>
-                <h3 className="mt-2 text-xl font-semibold" style={{ color: colores.primary }}>Registro rápido</h3>
-              </div>
-              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Evento: KilometrajeActualizado</span>
-            </div>
-
-            <form onSubmit={handleActualizarKilometraje} className="mt-6 space-y-4 text-sm">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Ingrese el nuevo kilometraje</label>
+                <label className="block text-sm font-medium text-neutral-800">Ingrese el nuevo kilometraje</label>
                 <input
+                  name="kilometraje"
                   type="number"
                   min={vehiculo.kilometrajeActual + 1}
-                  value={nuevoKilometraje}
-                  onChange={event => setNuevoKilometraje(event.target.value)}
                   placeholder="Ej. 43000"
-                  className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white"
+                  className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-neutral-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
-
-              <div>
-                <p className="mb-2 text-sm font-medium text-slate-700">Foto del tablero (opcional)</p>
-                <label className="flex cursor-pointer flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 transition hover:border-slate-400 hover:bg-slate-100">
-                  <span>Seleccionar imagen</span>
-                  <span className="mt-1 text-xs text-slate-400">PNG, JPG o JPEG</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleFotoChange} />
-                </label>
-                {fotoTablero && <p className="mt-3 text-sm text-emerald-700">✓ {fotoTablero.name} seleccionado</p>}
-              </div>
-
-              {errorValidacion && <div className="rounded-3xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 border border-rose-100">{errorValidacion}</div>}
-              {mensajeExito && <div className="rounded-3xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 border border-emerald-100">{mensajeExito}</div>}
-
               <button
                 type="submit"
-                className="w-full rounded-3xl bg-slate-900 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary-600"
               >
-                Guardar y notificar kilometraje
+                Guardar kilometraje
               </button>
             </form>
           </article>
-
-          <aside className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Alertas predictivas</p>
-            <h3 className="mt-3 text-xl font-semibold" style={{ color: colores.primary }}>Mantenimiento sugerido</h3>
-            <div className="mt-4 space-y-4">
-              {vehiculo.kilometrajeActual >= 40000 ? (
-                <div className="rounded-3xl bg-amber-50 p-4 text-sm text-amber-900 shadow-sm border border-amber-100">
-                  <p className="font-semibold">Mantenimiento cercano</p>
-                  <p className="mt-1 text-sm text-slate-700">Tu auto está a punto de llegar a 45,000 km. Revisa frenos y suspensión.</p>
-                </div>
-              ) : (
-                <div className="rounded-3xl bg-slate-50 p-4 text-sm text-slate-700 shadow-sm border border-slate-100">
-                  <p className="font-semibold">Estado saludable</p>
-                  <p className="mt-1 text-sm">Continúa con el mantenimiento preventivo según el plan.</p>
-                </div>
-              )}
-
-              <div className="rounded-3xl bg-slate-50 p-4 text-sm border border-slate-200">
-                <p className="font-semibold" style={{ color: colores.primary }}>Próximo servicio recomendado</p>
-                <p className="mt-1 text-slate-600">45,000 km o Noviembre 2026</p>
-              </div>
-
-              <div className="rounded-3xl bg-slate-50 p-4 text-sm border border-slate-200">
-                <p className="font-semibold uppercase tracking-[0.2em] text-slate-500">Recomendaciones</p>
-                <ul className="mt-2 space-y-2 text-slate-600">
-                  <li>• Calibración periódica de neumáticos.</li>
-                  <li>• Revisión de niveles de aceite y fluidos.</li>
-                  <li>• Inspección de frenos cada 5,000 km.</li>
-                </ul>
-              </div>
-            </div>
-          </aside>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-lg bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Historial</p>
-              <h3 className="mt-2 text-2xl font-semibold" style={{ color: colores.primary }}>Historial cronológico de servicios</h3>
+              <p className="text-xs uppercase tracking-wider text-neutral-600">Historial</p>
+              <h3 className="mt-2 text-2xl font-semibold text-primary">Historial cronologico de servicios</h3>
             </div>
-            <span className="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700">{historialOrdenado.length} registros</span>
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-800">
+              {historialOrdenado.length} registros
+            </span>
           </div>
 
-          <div className="mt-6 overflow-x-auto rounded-3xl border border-slate-200">
-            <table className="min-w-full border-collapse text-left text-sm">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-4 py-3 font-semibold text-slate-500">Fecha</th>
-                  <th className="px-4 py-3 font-semibold text-slate-500">Servicio</th>
-                  <th className="px-4 py-3 font-semibold text-slate-500">Kilometraje</th>
-                  <th className="px-4 py-3 font-semibold text-slate-500">Detalles</th>
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-neutral-200">
+                  <th className="px-4 py-3 font-semibold text-neutral-600">Fecha</th>
+                  <th className="px-4 py-3 font-semibold text-neutral-600">Servicio</th>
+                  <th className="px-4 py-3 font-semibold text-neutral-600">Mecanico</th>
+                  <th className="px-4 py-3 font-semibold text-neutral-600">Kilometraje</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody>
                 {historialOrdenado.map(servicio => (
-                  <tr key={servicio.id} className="transition hover:bg-slate-50">
-                    <td className="px-4 py-4 font-mono text-xs text-slate-500">{servicio.fecha}</td>
-                    <td className="px-4 py-4 font-semibold" style={{ color: colores.primary }}>{servicio.tipo}</td>
-                    <td className="px-4 py-4 text-slate-700">{servicio.kilometraje.toLocaleString()} km</td>
-                    <td className="px-4 py-4 text-sm text-slate-600">{servicio.detalles}</td>
+                  <tr key={servicio.id} className="border-b border-neutral-100 hover:bg-neutral-100">
+                    <td className="px-4 py-3 text-xs text-neutral-600">{servicio.fecha.split('T')[0]}</td>
+                    <td className="px-4 py-3 font-semibold text-primary">{servicio.diagnostico}</td>
+                    <td className="px-4 py-3 text-neutral-800">{servicio.mecanico?.nombre ?? '-'}</td>
+                    <td className="px-4 py-3 text-neutral-700">{servicio.kilometraje?.toLocaleString() ?? '-'} km</td>
                   </tr>
                 ))}
               </tbody>

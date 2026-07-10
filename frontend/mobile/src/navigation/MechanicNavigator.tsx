@@ -7,6 +7,7 @@ import ActivateCustomer from '../screens/mechanic/ActivateCustomer';
 import VehicleHistory from '../screens/mechanic/VehicleHistory';
 import NewService from '../screens/mechanic/NewService';
 import CustomerSearchScreen from '../screens/mechanic/CustomerSearchScreen';
+import { ServiceRegistrationScreen } from '../screens/mechanic/ServiceRegistrationScreen';
 
 const Stack = createNativeStackNavigator<MechanicStackParamList>();
 
@@ -23,6 +24,7 @@ export default function MechanicNavigator() {
       <Stack.Screen name="VehicleHistory" component={VehicleHistory} />
       <Stack.Screen name="NewService" component={NewService} />
       <Stack.Screen name="CustomerSearch" component={CustomerSearchScreen} />
+      <Stack.Screen name="ServiceRegistration" component={ServiceRegistrationScreen} />
     </Stack.Navigator>
   );
 }

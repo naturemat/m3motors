@@ -12,6 +12,13 @@ export type MechanicStackParamList = {
   VehicleHistory: {vehicleId: string};
   NewService: {vehicleId: string};
   CustomerSearch: undefined;
+  ServiceRegistration: { 
+  vehiculoId?: number; 
+  placa?: string; 
+  marca?: string; 
+  modelo?: string; 
+  kilometrajeActual?: number; 
+} | undefined;
 };
 
 export type ClientStackParamList = {

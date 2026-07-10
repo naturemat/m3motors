@@ -40,7 +40,7 @@ export default function VehicleHistory() {
       setError(null);
       const data = await fetchHistorialByQR(vehicleId);
       setVehicle(data);
-    } catch (err) {
+    } catch (_err) {
       setError('No se pudo cargar el historial del vehiculo');
     }
   }, [vehicleId]);

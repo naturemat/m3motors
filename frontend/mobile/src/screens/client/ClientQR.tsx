@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {AppBar, BottomNav, Card} from '../../components/molecules';
+import {AppBar, BottomNav} from '../../components/molecules';
 import {Button} from '../../components/atoms';
 import {ClientStackParamList} from '../../navigation/types';
 import {colors} from '../../theme';

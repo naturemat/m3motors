@@ -10,7 +10,7 @@ import {
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {AppBar, BottomNav, Card} from '../../components/molecules';
-import {Input, Button, Badge} from '../../components/atoms';
+import {Input, Button} from '../../components/atoms';
 import {MechanicStackParamList} from '../../navigation/types';
 import {colors} from '../../theme';
 
@@ -29,7 +29,7 @@ const serviceOptions = [
 export default function NewService() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
-  const {vehicleId} = route.params;
+  const {_vehicleId} = route.params;
 
   const [kilometraje, setKilometraje] = useState('');
   const [tipoServicio, setTipoServicio] = useState('');

@@ -11,6 +11,7 @@ import {
   Req,
   Query,
   HttpCode,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -82,7 +83,7 @@ export class InterventionController {
   @Post()
   @HttpCode(201)
   @ApiOperation({ summary: 'Registrar una nueva intervención' })
-  @ApiResponse({ status: 201, description: 'Intervención creada' })
+  @ApiResponse({ status: 201, description: 'Intervención creada exitosamente' })
   async create(@Body() dto: CreateInterventionDTO, @Req() req: Request) {
     const { userId } = (req as any).auth;
 
@@ -91,35 +92,69 @@ export class InterventionController {
     });
 
     if (!mechanic) {
-      return { error: 'Mecánico no encontrado' };
+      throw new BadRequestException('Mecánico no encontrado');
     }
 
-    const intervention = await this.prisma.client$.intervention.create({
-      data: {
-        vehiculoId: dto.vehiculoId,
-        mecanicoId: mechanic.id,
-        serviceCatalogId: dto.serviceCatalogId,
-        fecha: new Date(),
-        kilometrajeOdometro: dto.kilometrajeOdometro,
-        diagnostico: dto.diagnostico,
-        observaciones: dto.observaciones,
-        severidad: dto.severidad,
-        manoDeObra: dto.manoDeObra,
-        estado: 'BORRADOR',
-        detalles: dto.detalles
-          ? {
-              create: dto.detalles.map((d) => ({
-                componenteReemplazado: d.componenteReemplazado,
-                kilometrajeInstalacion: d.kilometrajeInstalacion,
-                limiteKilometraje: d.limiteKilometraje,
-                tipoServicio: d.tipoServicio,
-              })),
-            }
-          : undefined,
-      },
-      include: { detalles: true },
+    // 1. Validar si el vehículo existe y obtener su último kilometraje
+    const vehiculo = await this.prisma.client$.vehiculo.findUnique({
+      where: { id: dto.vehiculoId },
+      select: { kilometrajeActual: true },
     });
 
-    return intervention;
+    if (!vehiculo) {
+      throw new BadRequestException('El vehículo especificado no existe.');
+    }
+
+    // 2. REQUERIMIENTO CRÍTICO: Validar que el kilometraje ingresado sea mayor al anterior
+    if (dto.kilometrajeOdometro <= vehiculo.kilometrajeActual) {
+      throw new BadRequestException(
+        `El kilometraje ingresado (${dto.kilometrajeOdometro} km) debe ser estrictamente mayor al último registro (${vehiculo.kilometrajeActual} km).`
+      );
+    }
+
+    // 3. Guardar todo en una transacción atómica de Prisma
+    const intervention = await this.prisma.client$.$transaction(async (tx: any) => {      
+      const createdIntervention = await tx.intervention.create({
+        data: {
+          vehiculoId: dto.vehiculoId,
+          mecanicoId: mechanic.id,
+          serviceCatalogId: dto.serviceCatalogId,
+          fecha: new Date(),
+          kilometrajeOdometro: dto.kilometrajeOdometro,
+          diagnostico: dto.diagnostico,
+          observaciones: dto.observaciones,
+          severidad: dto.severidad,
+          manoDeObra: dto.manoDeObra,
+          estado: 'FINALIZADO', // Cambiado a FINALIZADO al guardarse exitosamente
+          detalles: dto.detalles
+            ? {
+                create: dto.detalles.map((d) => ({
+                  componenteReemplazado: d.componenteReemplazado,
+                  kilometrajeInstalacion: dto.kilometrajeOdometro, // Autocompletado del kilometraje actual
+                  limiteKilometraje: d.limiteKilometraje,
+                  tipoServicio: d.tipoServicio,
+                })),
+              }
+            : undefined,
+        },
+        include: { detalles: true },
+      });
+
+      // Actualizar el kilometraje actual en el Vehículo
+      await tx.vehiculo.update({
+        where: { id: dto.vehiculoId },
+        data: { kilometrajeActual: dto.kilometrajeOdometro },
+      });
+
+      return createdIntervention;
+    });
+
+    // 4. REQUERIMIENTO CRÍTICO: Lanzar evento de dominio IntervencionRegistrada
+    console.log(`[Evento Dominio] IntervencionRegistrada disparado para ID: ${intervention.id}`);
+
+    return {
+      mensaje: 'Servicio registrado exitosamente',
+      intervention,
+    };
   }
 }

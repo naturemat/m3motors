@@ -1,10 +1,7 @@
 import { DomainEventBase } from '../../../shared/domain/events/DomainEventBase';
 
 export type OrigenCaptura =
-  | 'INGRESO_TALLER'
-  | 'INSPECCION_RAPIDA'
-  | 'CLIENTE_APP'
-  | 'FOTO_TABLERO';
+  'INGRESO_TALLER' | 'INSPECCION_RAPIDA' | 'CLIENTE_APP' | 'FOTO_TABLERO';
 
 export interface KilometrajeActualizadoPayload extends DomainEventBase {
   readonly eventName: 'kilometraje.actualizado';

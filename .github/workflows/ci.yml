@@ -26,8 +26,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
 
-  frontend-lint:
-    name: Frontend Lint
+  frontend-web-lint:
+    name: Frontend Web Lint
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -39,7 +39,23 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: ./frontend/package-lock.json
-      - run: npm ci
+      - run: npm install --legacy-peer-deps
+      - run: npm run lint
+
+  frontend-mobile-lint:
+    name: Frontend Mobile Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ./frontend/mobile/package-lock.json
+      - run: npm install --legacy-peer-deps
       - run: npm run lint
 
   backend-test:
@@ -59,9 +75,9 @@ jobs:
       - run: npm ci
       - run: npm test
 
-  frontend-test:
-    name: Frontend Tests
-    needs: [frontend-lint]
+  frontend-web-test:
+    name: Frontend Web Tests
+    needs: [frontend-web-lint]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -73,5 +89,22 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: ./frontend/package-lock.json
-      - run: npm ci
+      - run: npm install --legacy-peer-deps
+      - run: npm test
+
+  frontend-mobile-test:
+    name: Frontend Mobile Tests
+    needs: [frontend-mobile-lint]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ./frontend/mobile/package-lock.json
+      - run: npm install --legacy-peer-deps
       - run: npm test

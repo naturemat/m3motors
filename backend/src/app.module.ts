@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ClerkModule } from './shared/infrastructure/clerk/clerk.module';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 import { EventPublisherModule } from './shared/infrastructure/events/EventPublisherModule';
+import { NotificationModule } from './notification/notification.module';
 import { AuthController } from './shared/infrastructure/clerk/controllers/auth.controller';
 import { VehicleController } from './interfaces/controllers/vehicle.controller';
 import { InterventionController } from './interfaces/controllers/intervention.controller';
@@ -31,7 +32,12 @@ import {
 } from './shared/domain/ports/tokens';
 
 @Module({
-  imports: [ClerkModule, PrismaModule, EventPublisherModule],
+  imports: [
+    ClerkModule,
+    PrismaModule,
+    EventPublisherModule,
+    NotificationModule,
+  ],
   controllers: [
     AppController,
     AuthController,

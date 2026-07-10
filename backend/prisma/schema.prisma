@@ -270,3 +270,32 @@ model AlertaPredictiva {
   @@index([estadoAlerta])
   @@map("alerta_predictiva")
 }
+
+// =============================================================================
+// NOTIFICACION — Register de notificaciones enviadas/fallidas
+// =============================================================================
+model Notificacion {
+  id                String    @id
+  id_cliente        Int?      @map("id_cliente")
+  id_vehiculo       Int?      @map("id_vehiculo")
+  tipo_notificacion String    @map("tipo_notificacion") @db.VarChar(50)
+  canal             String    @db.VarChar(20)
+  asunto            String?   @db.VarChar(255)
+  contenido         String
+  estado            String?   @default("PENDIENTE") @db.VarChar(20)
+  entregado         Boolean?  @default(false)
+  fallo_motivo      String?   @map("fallo_motivo") @db.VarChar(500)
+  intentos          Int?      @default(0)
+  max_intentos      Int?      @default(3) @map("max_intentos")
+  enviado_en        DateTime? @map("enviado_en")
+  proximo_intento_en DateTime? @map("proximo_intento_en")
+  metadata          Json?
+  created_at        DateTime? @default(now()) @map("created_at")
+  updated_at        DateTime? @default(now()) @map("updated_at") @updatedAt
+
+  @@index([id_cliente])
+  @@index([id_vehiculo])
+  @@index([estado])
+  @@index([tipo_notificacion])
+  @@map("notificacion")
+}

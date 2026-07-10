@@ -18,11 +18,7 @@ export class QRGeneradoEvent {
   public readonly qrUrl: string;
   public readonly fechaGeneracion: Date;
 
-  constructor(params: {
-    vehicleId: string;
-    qrCode: string;
-    qrUrl: string;
-  }) {
+  constructor(params: { vehicleId: string; qrCode: string; qrUrl: string }) {
     this.eventId = crypto.randomUUID();
     this.occurredOn = new Date();
     this.vehicleId = params.vehicleId;

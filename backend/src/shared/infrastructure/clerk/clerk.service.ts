@@ -23,7 +23,10 @@ export class ClerkService {
 
   async verifyToken(token: string) {
     const { createRemoteJWKSet, jwtVerify } = await import('jose');
-    const issuer = 'https://open-crow-10.clerk.accounts.dev';
+    const issuer = process.env.CLERK_ISSUER_URL;
+    if (!issuer) {
+      throw new Error('CLERK_ISSUER_URL no está configurado');
+    }
     const jwksUrl = new URL(`${issuer}/.well-known/jwks.json`);
     const jwks = createRemoteJWKSet(jwksUrl);
 

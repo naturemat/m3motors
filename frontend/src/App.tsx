@@ -1,26 +1,28 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { SignedIn, SignedOut } from '@clerk/clerk-react'
+import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react'
 import Landing from './pages/Landing'
 import PublicLanding from './pages/PublicLanding'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
+import PanelCliente from './pages/PanelCliente'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  return (
-    <SignedIn>
-      {children}
-    </SignedIn>
-  )
+  return <SignedIn>{children}</SignedIn>
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  return (
-    <SignedOut>
-      {children}
-    </SignedOut>
-  )
+  return <SignedOut>{children}</SignedOut>
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useUser()
+  const role = user?.publicMetadata?.role as string | undefined
+  if (role !== 'admin') {
+    return <Navigate to="/dashboard" />
+  }
+  return <>{children}</>
 }
 
 function App() {
@@ -52,12 +54,21 @@ function App() {
           </ProtectedRoute>
         }
       />
-      
       <Route
         path="/dashboard/admin"
         element={
           <ProtectedRoute>
-            <AdminDashboard />
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/cliente"
+        element={
+          <ProtectedRoute>
+            <PanelCliente />
           </ProtectedRoute>
         }
       />

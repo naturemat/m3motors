@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { SignedIn, SignedOut } from '@clerk/clerk-react'
 import Landing from './pages/Landing'
+import PublicLanding from './pages/PublicLanding'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
@@ -25,7 +26,8 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<PublicLanding />} />
+      <Route path="/landing/:id" element={<Landing />} />
       <Route
         path="/login/*"
         element={

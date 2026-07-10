@@ -92,6 +92,7 @@ export default function MechanicDashboard() {
             <Input
               placeholder="Buscar cliente por nombre, telefono o placa"
               editable={false}
+              value=""
             />
           </TouchableOpacity>
         </View>
@@ -103,6 +104,17 @@ export default function MechanicDashboard() {
             size="medium"
             fullWidth
             onPress={() => navigation.navigate('QRScanner')}
+          />
+        </View>
+
+        {/* 🛠️ BOTÓN NUEVO: Registrar Intervención Mecánica */}
+        <View style={styles.actionSection}>
+          <Button
+            title="Registrar Nueva Intervención"
+            variant="secondary"
+            size="medium"
+            fullWidth
+            onPress={() => navigation.navigate('ServiceRegistration')}
           />
         </View>
 
@@ -125,6 +137,7 @@ export default function MechanicDashboard() {
                         label={customer.licensePlate}
                         type="outlined"
                         size="small"
+                        style={{}}
                       />
                     )}
                   </View>
@@ -220,6 +233,10 @@ const styles = StyleSheet.create({
   qrSection: {
     paddingHorizontal: 16,
     marginTop: 12,
+  },
+  actionSection: {
+    paddingHorizontal: 16,
+    marginTop: 8,
   },
   section: {
     marginTop: 16,

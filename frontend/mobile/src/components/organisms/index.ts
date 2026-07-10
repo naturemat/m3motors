@@ -4,3 +4,6 @@ export {default as StatusIndicator} from './StatusIndicator';
 export {default as InterventionsList} from './InterventionsList';
 export {default as ComponentsList} from './ComponentsList';
 export {default as NextMaintenance} from './NextMaintenance';
+export {default as PhotoStep} from './PhotoStep';
+export {default as OCRProcessing} from './OCRProcessing';
+export {default as ActivationFlow} from './ActivationFlow';

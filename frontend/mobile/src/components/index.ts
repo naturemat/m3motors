@@ -1,5 +1,5 @@
-export {Button, Input, Badge, LoadingSpinner} from './atoms';
-export {AppBar, BottomNav, Card} from './molecules';
+export {Button, Input, Badge, LoadingSpinner, StepIndicator, PhotoPreview, CameraButton} from './atoms';
+export {AppBar, BottomNav, Card, CameraCapture, PlateInput, ActivationSummary} from './molecules';
 export {
   VehicleHeader,
   ClientInfo,
@@ -7,4 +7,7 @@ export {
   InterventionsList,
   ComponentsList,
   NextMaintenance,
+  PhotoStep,
+  OCRProcessing,
+  ActivationFlow,
 } from './organisms';

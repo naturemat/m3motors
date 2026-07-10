@@ -11,6 +11,9 @@ import { AuthController } from './shared/infrastructure/clerk/controllers/auth.c
 import { VehicleController } from './interfaces/controllers/vehicle.controller';
 import { InterventionController } from './interfaces/controllers/intervention.controller';
 import { AlertController } from './interfaces/controllers/alert.controller';
+import { AdminController } from './interfaces/controllers/admin.controller';
+import { ActivationController } from './interfaces/controllers/activation.controller';
+import { PublicController } from './interfaces/controllers/public.controller';
 import { GeminiOCRService } from './registro-seguimiento/infrastructure/external-services/GeminiOCRService';
 import { EcuadorVehicleDataProvider } from './registro-seguimiento/infrastructure/external-services/EcuadorVehicleDataProvider';
 import { GroqEngineInfoService } from './registro-seguimiento/infrastructure/external-services/GroqEngineInfoService';
@@ -42,6 +45,9 @@ import {
     VehicleController,
     InterventionController,
     AlertController,
+    AdminController,
+    ActivationController,
+    PublicController,
   ],
   providers: [
     AppService,

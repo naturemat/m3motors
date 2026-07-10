@@ -65,6 +65,7 @@ export interface Customer {
   licensePlate?: string;
   vehicleId?: string;
   status: 'pending' | 'active';
+  fechaPreRegistro?: string;
 }
 
 export interface DashboardData {

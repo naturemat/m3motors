@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { InMemoryClienteRepository } from './infrastructure/persistence/repositories/InMemoryClienteRepository';
-import { InMemoryVehiculoRepository } from './infrastructure/persistence/repositories/InMemoryVehiculoRepository';
-import { InMemoryIntervencionRepository } from './infrastructure/persistence/repositories/InMemoryIntervencionRepository';
+import { PrismaClienteRepository } from './infrastructure/persistence/repositories/PrismaClienteRepository';
+import { PrismaVehiculoRepository } from './infrastructure/persistence/repositories/PrismaVehiculoRepository';
+import { PrismaIntervencionRepository } from './infrastructure/persistence/repositories/PrismaIntervencionRepository';
 import {
   ICLIENTE_REPOSITORY,
   IVEHICULO_REPOSITORY,
@@ -12,15 +12,15 @@ import {
   providers: [
     {
       provide: ICLIENTE_REPOSITORY,
-      useClass: InMemoryClienteRepository,
+      useClass: PrismaClienteRepository,
     },
     {
       provide: IVEHICULO_REPOSITORY,
-      useClass: InMemoryVehiculoRepository,
+      useClass: PrismaVehiculoRepository,
     },
     {
       provide: IINTERVENCION_REPOSITORY,
-      useClass: InMemoryIntervencionRepository,
+      useClass: PrismaIntervencionRepository,
     },
   ],
   exports: [

@@ -62,7 +62,6 @@ const mockRecentCustomers: Customer[] = [
 export default function MechanicDashboard() {
   const navigation = useNavigation<Nav>();
   const {signOut} = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [pendingCustomers, setPendingCustomers] = useState<Customer[]>(mockPendingCustomers);
   const [recentCustomers, setRecentCustomers] = useState<Customer[]>(mockRecentCustomers);
@@ -87,11 +86,14 @@ export default function MechanicDashboard() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
         <View style={styles.searchContainer}>
-          <Input
-            placeholder="Buscar cliente por nombre, telefono o placa"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('CustomerSearch')}>
+            <Input
+              placeholder="Buscar cliente por nombre, telefono o placa"
+              editable={false}
+            />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.qrSection}>
@@ -152,7 +154,7 @@ export default function MechanicDashboard() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Clientes Recientes</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('CustomerSearch')}>
               <Text style={styles.seeAll}>Ver todos</Text>
             </TouchableOpacity>
           </View>
@@ -192,7 +194,9 @@ export default function MechanicDashboard() {
           {key: 'profile', label: 'Perfil', icon: 'user'},
         ]}
         onPress={key => {
-          if (key === 'profile') {
+          if (key === 'search') {
+            navigation.navigate('CustomerSearch');
+          } else if (key === 'profile') {
             handleLogout();
           }
         }}

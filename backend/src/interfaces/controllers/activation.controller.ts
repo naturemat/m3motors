@@ -4,8 +4,10 @@
 
 import {
   Controller,
+  Get,
   Post,
   Body,
+  Query,
   UseGuards,
   Req,
   HttpCode,
@@ -32,6 +34,79 @@ export class ActivationController {
     private readonly prisma: PrismaService,
     private readonly activacionService: ActivacionClienteService,
   ) {}
+
+  @Get('pre-registered')
+  @ApiOperation({ summary: 'Buscar clientes pre-registrados' })
+  @ApiResponse({ status: 200, description: 'Lista de clientes encontrados' })
+  async searchPreRegistered(
+    @Req() req: Request,
+    @Query('q') query?: string,
+    @Query('status') status?: string,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+    @Query('orderBy') orderBy?: string
+  ) {
+    const { userId } = (req as any).auth;
+
+    const mechanic = await this.prisma.client$.mechanic.findFirst({
+      where: { clerkId: userId },
+    });
+
+    if (!mechanic) {
+      throw new BadRequestException('Mecanico no encontrado');
+    }
+
+    const workshopId = mechanic.workshopId;
+    const skipNum = Math.max(0, skip ? parseInt(skip, 10) || 0 : 0);
+    const takeNum = Math.min(
+      100,
+      Math.max(1, take ? parseInt(take, 10) || 20 : 20),
+    );
+
+    const whereClause: Record<string, unknown> = { workshopId };
+
+    if (status && status !== 'ALL') {
+      whereClause.status = status;
+    }
+
+    const trimmedQuery = query?.trim();
+    if (trimmedQuery) {
+      whereClause.OR = [
+        { nombre: { contains: trimmedQuery, mode: 'insensitive' } },
+        { telefono: { contains: trimmedQuery, mode: 'insensitive' } },
+        { licensePlate: { contains: trimmedQuery, mode: 'insensitive' } },
+      ];
+    }
+
+    let orderByClause: Record<string, 'asc' | 'desc'> = {
+      fechaPreRegistro: 'desc',
+    };
+    if (orderBy === 'name_asc') {
+      orderByClause = { nombre: 'asc' };
+    } else if (orderBy === 'name_desc') {
+      orderByClause = { nombre: 'desc' };
+    }
+
+    const total = await this.prisma.client$.preRegisteredCustomer.count({
+      where: whereClause
+    });
+
+    const customers = await this.prisma.client$.preRegisteredCustomer.findMany({
+      where: whereClause,
+      skip: skipNum,
+      take: takeNum,
+      orderBy: orderByClause
+    });
+
+    return {
+      data: customers,
+      meta: {
+        total,
+        skip: skipNum,
+        take: takeNum
+      }
+    };
+  }
 
   @Post('activate-client')
   @HttpCode(200)

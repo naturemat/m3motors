@@ -11,6 +11,7 @@ export type MechanicStackParamList = {
   ActivateCustomer: {customerId: string};
   VehicleHistory: {vehicleId: string};
   NewService: {vehicleId: string};
+  CustomerSearch: undefined;
 };
 
 export type ClientStackParamList = {

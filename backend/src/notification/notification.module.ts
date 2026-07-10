@@ -4,6 +4,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
+import { RegistroSeguimientoModule } from '../registro-seguimiento/registro-seguimiento.module';
 
 import { EnviarNotificacion } from './application/use-cases/EnviarNotificacion';
 import { ReintentarNotificaciones } from './application/use-cases/ReintentarNotificaciones';
@@ -31,6 +32,7 @@ import { PrismaService } from '../shared/infrastructure/prisma/prisma.service';
     ConfigModule,
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
+    RegistroSeguimientoModule,
     HttpModule.register({
       timeout: 15000,
       maxRedirects: 3,

@@ -8,5 +8,6 @@ export interface EnviarNotificacionDTO {
   canal: CanalEnvio;
   asunto: string;
   contenido: string;
+  email: string;
   metadata?: Record<string, unknown>;
 }

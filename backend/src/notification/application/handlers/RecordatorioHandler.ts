@@ -59,6 +59,7 @@ export class RecordatorioHandler {
       canal: CanalEnvio.EMAIL,
       asunto,
       contenido,
+      email: cliente.email,
       metadata: {
         diasInactivo,
         fechaPreRegistro: cliente.fechaPreRegistro,

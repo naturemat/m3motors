@@ -10,6 +10,7 @@ export interface NotificacionProps {
   canal: CanalEnvio;
   asunto: string;
   contenido: string;
+  emailDestino?: string;
   estado?: EstadoNotificacion;
   entregado?: boolean;
   falloMotivo?: string;
@@ -30,6 +31,7 @@ export class Notificacion {
   private readonly _canal: CanalEnvio;
   private readonly _asunto: string;
   private readonly _contenido: string;
+  private readonly _emailDestino?: string;
   private _estado: EstadoNotificacion;
   private _entregado: boolean;
   private _falloMotivo?: string;
@@ -49,6 +51,7 @@ export class Notificacion {
     this._canal = props.canal;
     this._asunto = props.asunto;
     this._contenido = props.contenido;
+    this._emailDestino = props.emailDestino;
     this._estado = props.estado ?? EstadoNotificacion.PENDIENTE;
     this._entregado = props.entregado ?? false;
     this._falloMotivo = props.falloMotivo;
@@ -87,6 +90,10 @@ export class Notificacion {
 
   get contenido(): string {
     return this._contenido;
+  }
+
+  get emailDestino(): string | undefined {
+    return this._emailDestino;
   }
 
   get estado(): EstadoNotificacion {
@@ -137,6 +144,11 @@ export class Notificacion {
     this._updatedAt = new Date();
   }
 
+  marcarComoLeida(): void {
+    this._entregado = true;
+    this._updatedAt = new Date();
+  }
+
   marcarComoFallida(error: string): void {
     this._intentos += 1;
     this._falloMotivo = error;
@@ -171,6 +183,7 @@ export class Notificacion {
       canal: this._canal,
       asunto: this._asunto,
       contenido: this._contenido,
+      emailDestino: this._emailDestino,
       estado: this._estado,
       entregado: this._entregado,
       falloMotivo: this._falloMotivo,

@@ -282,6 +282,7 @@ model Notificacion {
   canal             String    @db.VarChar(20)
   asunto            String?   @db.VarChar(255)
   contenido         String
+  email_destino     String?   @map("email_destino") @db.VarChar(255)
   estado            String?   @default("PENDIENTE") @db.VarChar(20)
   entregado         Boolean?  @default(false)
   fallo_motivo      String?   @map("fallo_motivo") @db.VarChar(500)

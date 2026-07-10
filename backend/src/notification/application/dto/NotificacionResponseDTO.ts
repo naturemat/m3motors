@@ -10,6 +10,7 @@ export interface NotificacionResponseDTO {
   canal: CanalEnvio;
   asunto: string;
   contenido: string;
+  emailDestino?: string;
   estado: EstadoNotificacion;
   entregado: boolean;
   falloMotivo?: string;

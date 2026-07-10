@@ -28,6 +28,7 @@ export class EnviarNotificacion {
       canal: dto.canal,
       asunto: dto.asunto,
       contenido: dto.contenido,
+      emailDestino: dto.email,
       estado: EstadoNotificacion.PENDIENTE,
       metadata: dto.metadata,
     });
@@ -66,7 +67,7 @@ export class EnviarNotificacion {
     dto: EnviarNotificacionDTO,
   ): Promise<void> {
     const result = await this.emailService.sendEmail({
-      to: dto.asunto,
+      to: dto.email,
       subject: dto.asunto,
       html: dto.contenido,
     });

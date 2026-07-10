@@ -24,8 +24,15 @@ export class ReintentarNotificaciones {
     for (const notificacion of notificaciones) {
       try {
         if (notificacion.canal === CanalEnvio.EMAIL) {
+          const emailDestino = notificacion.emailDestino;
+          if (!emailDestino) {
+            this.logger.warn(
+              `Notificacion ${notificacion.id} sin emailDestino, omitiendo reintento de email`,
+            );
+            continue;
+          }
           const emailResult = await this.emailService.sendEmail({
-            to: notificacion.asunto,
+            to: emailDestino,
             subject: notificacion.asunto,
             html: notificacion.contenido,
           });

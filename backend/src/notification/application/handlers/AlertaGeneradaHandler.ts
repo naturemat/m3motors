@@ -1,21 +1,45 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EnviarNotificacion } from '../use-cases/EnviarNotificacion';
 import { CanalEnvio } from '../../domain/value-objects/CanalEnvio';
 import { TipoNotificacion } from '../../domain/value-objects/TipoNotificacion';
 import { AlertaGeneradaPayload } from '../../domain/events/AlertaGeneradaEvent';
+import { IClienteRepository } from '../../../registro-seguimiento/domain/ports/repositories/IClienteRepository';
+import { ClienteId } from '../../../registro-seguimiento/domain/value-objects/ClienteId';
+import { ICLIENTE_REPOSITORY } from '../../../shared/domain/ports/tokens';
 
 @Injectable()
 export class AlertaGeneradaHandler {
   private readonly logger = new Logger(AlertaGeneradaHandler.name);
 
-  constructor(private readonly enviarNotificacion: EnviarNotificacion) {}
+  constructor(
+    private readonly enviarNotificacion: EnviarNotificacion,
+    @Inject(ICLIENTE_REPOSITORY)
+    private readonly clienteRepository: IClienteRepository,
+  ) {}
 
   @OnEvent('alerta.generada')
   async handle(payload: AlertaGeneradaPayload): Promise<void> {
     this.logger.log(
       `Procesando alerta generada para vehiculo ${payload.vehicleId}`,
     );
+
+    const cliente = await this.clienteRepository.findById(
+      new ClienteId(payload.clienteId),
+    );
+
+    if (!cliente) {
+      this.logger.warn(
+        `Cliente ${payload.clienteId} no encontrado para alerta`,
+      );
+      return;
+    }
+
+    const email = cliente.getEmail();
+    if (!email) {
+      this.logger.warn(`Cliente ${payload.clienteId} sin email para alerta`);
+      return;
+    }
 
     const asunto = `Alerta de mantenimiento: ${payload.componenteAfectado}`;
     const contenido = this.construirContenidoAlerta(payload);
@@ -27,6 +51,7 @@ export class AlertaGeneradaHandler {
       canal: CanalEnvio.EMAIL,
       asunto,
       contenido,
+      email,
       metadata: {
         placa: payload.placa,
         componenteAfectado: payload.componenteAfectado,

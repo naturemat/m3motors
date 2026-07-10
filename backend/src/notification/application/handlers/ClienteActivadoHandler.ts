@@ -26,6 +26,7 @@ export class ClienteActivadoHandler {
       canal: CanalEnvio.EMAIL,
       asunto,
       contenido,
+      email: payload.email,
       metadata: {
         preRegisteredCustomerId: payload.preRegisteredCustomerId,
         workshopId: payload.workshopId,

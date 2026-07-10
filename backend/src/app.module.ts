@@ -5,13 +5,12 @@ import { ClerkModule } from './shared/infrastructure/clerk/clerk.module';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 import { EventPublisherModule } from './shared/infrastructure/events/EventPublisherModule';
 import { NotificationModule } from './notification/notification.module';
+import { RegistroSeguimientoModule } from './registro-seguimiento/registro-seguimiento.module';
+import { PrediccionAnalisisModule } from './prediccion-analisis/prediccion-analisis.module';
 import { AuthController } from './shared/infrastructure/clerk/controllers/auth.controller';
 import { VehicleController } from './interfaces/controllers/vehicle.controller';
 import { InterventionController } from './interfaces/controllers/intervention.controller';
 import { AlertController } from './interfaces/controllers/alert.controller';
-import { InMemoryVehiculoRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryVehiculoRepository';
-import { InMemoryClienteRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryClienteRepository';
-import { InMemoryIntervencionRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryIntervencionRepository';
 import { GeminiOCRService } from './registro-seguimiento/infrastructure/external-services/GeminiOCRService';
 import { EcuadorVehicleDataProvider } from './registro-seguimiento/infrastructure/external-services/EcuadorVehicleDataProvider';
 import { GroqEngineInfoService } from './registro-seguimiento/infrastructure/external-services/GroqEngineInfoService';
@@ -22,9 +21,6 @@ import { RegistrarIngresoVehicular } from './registro-seguimiento/application/us
 import { ActivacionClienteService } from './registro-seguimiento/infrastructure/external-services/ActivacionClienteService';
 import { ObtenerHistorialVehiculo } from './registro-seguimiento/application/use-cases/ObtenerHistorialVehiculo';
 import {
-  IVEHICULO_REPOSITORY,
-  ICLIENTE_REPOSITORY,
-  IINTERVENCION_REPOSITORY,
   IOCR_SERVICE,
   IVEHICLE_DATA_PROVIDER,
   IENGINE_INFO_SERVICE,
@@ -36,6 +32,8 @@ import {
     ClerkModule,
     PrismaModule,
     EventPublisherModule,
+    RegistroSeguimientoModule,
+    PrediccionAnalisisModule,
     NotificationModule,
   ],
   controllers: [
@@ -47,12 +45,6 @@ import {
   ],
   providers: [
     AppService,
-    { provide: IVEHICULO_REPOSITORY, useClass: InMemoryVehiculoRepository },
-    { provide: ICLIENTE_REPOSITORY, useClass: InMemoryClienteRepository },
-    {
-      provide: IINTERVENCION_REPOSITORY,
-      useClass: InMemoryIntervencionRepository,
-    },
     { provide: IOCR_SERVICE, useClass: GeminiOCRService },
     { provide: IVEHICLE_DATA_PROVIDER, useClass: EcuadorVehicleDataProvider },
     { provide: IENGINE_INFO_SERVICE, useClass: GroqEngineInfoService },
@@ -72,9 +64,6 @@ import {
     ObtenerHistorialVehiculo,
   ],
   exports: [
-    IVEHICULO_REPOSITORY,
-    ICLIENTE_REPOSITORY,
-    IINTERVENCION_REPOSITORY,
     RegistrarVehiculoDesdeFoto,
     RegistrarIntervencion,
     RegistrarIngresoVehicular,

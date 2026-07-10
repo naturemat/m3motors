@@ -34,6 +34,7 @@ export class PrismaNotificacionRepository implements INotificationRepository {
         canal: data.canal,
         asunto: data.asunto,
         contenido: data.contenido,
+        email_destino: data.emailDestino,
         estado: data.estado,
         entregado: data.entregado,
         fallo_motivo: data.falloMotivo,
@@ -126,6 +127,7 @@ export class PrismaNotificacionRepository implements INotificationRepository {
     canal: string;
     asunto: string | null;
     contenido: string;
+    email_destino: string | null;
     estado: string | null;
     entregado: boolean | null;
     fallo_motivo: string | null;
@@ -145,6 +147,7 @@ export class PrismaNotificacionRepository implements INotificationRepository {
       canal: record.canal as CanalEnvio,
       asunto: record.asunto ?? '',
       contenido: record.contenido,
+      emailDestino: record.email_destino ?? undefined,
       estado:
         (record.estado as EstadoNotificacion) ?? EstadoNotificacion.PENDIENTE,
       entregado: record.entregado ?? false,

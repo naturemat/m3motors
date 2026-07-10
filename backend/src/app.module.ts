@@ -8,6 +8,7 @@ import { AuthController } from './shared/infrastructure/clerk/controllers/auth.c
 import { VehicleController } from './interfaces/controllers/vehicle.controller';
 import { InterventionController } from './interfaces/controllers/intervention.controller';
 import { AlertController } from './interfaces/controllers/alert.controller';
+import { AdminController } from './interfaces/controllers/admin.controller';
 import { InMemoryVehiculoRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryVehiculoRepository';
 import { InMemoryClienteRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryClienteRepository';
 import { InMemoryIntervencionRepository } from './registro-seguimiento/infrastructure/persistence/repositories/InMemoryIntervencionRepository';
@@ -38,6 +39,7 @@ import {
     VehicleController,
     InterventionController,
     AlertController,
+    AdminController,
   ],
   providers: [
     AppService,

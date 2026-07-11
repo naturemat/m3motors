@@ -29,7 +29,7 @@ export default function UpdateKM() {
     navigation.goBack();
   };
 
-  const isInvalid = !!newKM && parseInt(newKM) <= currentKM;
+  const isInvalid = !!newKM && parseInt(newKM, 10) <= currentKM;
 
   return (
     <SafeAreaView style={styles.container}>

@@ -36,7 +36,7 @@ export default function QRScanner() {
       navigation.replace('VehicleHistory', {
         vehicleId: historial.vehicleId,
       });
-    } catch (error) {
+    } catch (_error) {
       Alert.alert(
         'Codigo QR no valido',
         'Intenta nuevamente con un codigo valido.',

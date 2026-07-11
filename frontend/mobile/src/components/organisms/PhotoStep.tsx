@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import CameraCapture from '../molecules/CameraCapture';
 import PhotoPreview from '../atoms/PhotoPreview';
 import {colors} from '../../theme';

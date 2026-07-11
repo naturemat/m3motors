@@ -1,5 +1,3 @@
-import {UserRole} from '../types';
-
 export type AuthStackParamList = {
   Login: undefined;
   ForgotPassword: undefined;

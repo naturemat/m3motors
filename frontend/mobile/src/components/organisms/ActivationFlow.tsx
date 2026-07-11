@@ -54,11 +54,11 @@ export default function ActivationFlow() {
 
   useEffect(() => {
     requestPermission();
-  }, []);
+  }, [requestPermission]);
 
   const getStepIndex = (step: FlowStep): number => {
     if (step.startsWith('photo-')) {
-      return parseInt(step.split('-')[1]);
+      return parseInt(step.split('-')[1], 10);
     }
     return 0;
   };

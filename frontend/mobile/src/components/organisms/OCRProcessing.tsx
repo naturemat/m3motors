@@ -16,7 +16,7 @@ export default function OCRProcessing({
   recognizedPlate,
   error,
   onConfirmPlate,
-  onRetryOCR,
+  onRetryOCR: _onRetryOCR,
 }: OCRProcessingProps) {
   if (isProcessing) {
     return (

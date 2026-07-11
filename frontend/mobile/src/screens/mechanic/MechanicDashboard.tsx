@@ -26,11 +26,11 @@ export default function MechanicDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [pendingCustomers, setPendingCustomers] = useState<Customer[]>([]);
   const [recentCustomers, setRecentCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, _setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {
-      const [customersRes, kpisRes] = await Promise.all([
+      const [customersRes, _kpisRes] = await Promise.all([
         api.get('/admin/customers'),
         api.get('/admin/kpis'),
       ]);

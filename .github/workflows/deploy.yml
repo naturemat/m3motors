@@ -113,19 +113,18 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
       - name: Generate android project if missing
         run: |
           if [ ! -d "android" ]; then
             echo "=== android/ not found, generating ==="
-            cd /tmp
-            npx @react-native-community/cli@20.1.0 init M3MotorsMobile --directory ./m3motors-mobile-tmp --skip-install --skip-git-init --version 0.86.0
-            cp -r /tmp/m3motors-mobile-tmp/android "$GITHUB_WORKSPACE/frontend/mobile/android"
-            rm -rf /tmp/m3motors-mobile-tmp
+            npx @react-native-community/cli@20.1.0 init M3MotorsMobile --directory ./android-tmp --skip-install --skip-git-init --version 0.86.0
+            mv ./android-tmp/android ./android
+            rm -rf ./android-tmp
             echo "=== android/ generated ==="
           fi
-
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
 
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses || true
@@ -147,7 +146,7 @@ jobs:
   # ===========================================================================
   deploy:
     name: Deploy to Droplet
-    needs: [detect-changes, build-backend, build-frontend-web, build-frontend-mobile]
+    needs: [detect-changes, build-backend, build-frontend-web]
     if: always() && needs.build-backend.result != 'failure' && needs.build-frontend-web.result != 'failure' && (needs.build-backend.result == 'success' || needs.build-frontend-web.result == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 10

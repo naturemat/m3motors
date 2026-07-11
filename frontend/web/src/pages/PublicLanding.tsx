@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import ReCAPTCHA from 'react-google-recaptcha'
 import axios from 'axios'
 import { useParams, Link } from 'react-router-dom'
 
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 const recaptchaKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY ?? ''
+const recaptchaEnabled = recaptchaKey.length > 0
 
 type FormValues = {
   nombre: string
@@ -42,13 +42,18 @@ export default function PublicLanding() {
 
   const onSubmit = async (data: FormValues) => {
     setServerError(null)
-    if (!captchaToken) {
+
+    if (recaptchaEnabled && !captchaToken) {
       setServerError('Por favor completa el captcha')
       return
     }
 
     try {
-      await axios.post(`${apiUrl}/public/workshop/${id}/pre-register`, { ...data }, { headers: { 'x-recaptcha-token': captchaToken } })
+      const headers: Record<string, string> = {}
+      if (captchaToken) {
+        headers['x-recaptcha-token'] = captchaToken
+      }
+      await axios.post(`${apiUrl}/public/workshop/${id}/pre-register`, { ...data }, { headers })
       setSuccess(true)
       reset()
     } catch (err: any) {
@@ -144,18 +149,32 @@ export default function PublicLanding() {
               {errors.placa && <p className="mt-1 text-rose-600 text-sm">{errors.placa.message}</p>}
             </div>
 
-            <div className="mt-2">
-              <ReCAPTCHA sitekey={recaptchaKey} onChange={token => setCaptchaToken(token)} />
-            </div>
+            {recaptchaEnabled && (
+              <div className="mt-2">
+                <ReCAPTCHAWidget sitekey={recaptchaKey} onChange={token => setCaptchaToken(token)} />
+              </div>
+            )}
 
             {serverError && <div className="text-rose-600">{serverError}</div>}
 
             <div>
-              <button type="submit" disabled={!isValid || !captchaToken} className="w-full rounded-3xl bg-primary px-4 py-3 text-white disabled:opacity-60">Pre-registrarme</button>
+              <button type="submit" disabled={!isValid || (recaptchaEnabled && !captchaToken)} className="w-full rounded-3xl bg-primary px-4 py-3 text-white disabled:opacity-60">Pre-registrarme</button>
             </div>
           </form>
         </main>
       </div>
     </div>
   )
+}
+
+function ReCAPTCHAWidget({ sitekey, onChange }: { sitekey: string; onChange: (token: string | null) => void }) {
+  const [ReCAPTCHA, setReCAPTCHA] = useState<any>(null)
+
+  useEffect(() => {
+    if (!sitekey) return
+    import('react-google-recaptcha').then(mod => setReCAPTCHA(() => mod.default))
+  }, [sitekey])
+
+  if (!ReCAPTCHA) return null
+  return <ReCAPTCHA sitekey={sitekey} onChange={onChange} />
 }

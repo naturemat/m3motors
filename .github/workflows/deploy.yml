@@ -81,6 +81,10 @@ jobs:
           file: ./frontend/web/Dockerfile
           push: true
           tags: ${{ env.DOCKERHUB_USERNAME }}/m3motors-frontend:latest
+          build-args: |
+            VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_RECAPTCHA_SITE_KEY=${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

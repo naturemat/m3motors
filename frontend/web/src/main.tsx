@@ -7,9 +7,13 @@ import './index.css'
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
+if (!clerkPubKey) {
+  console.error('VITE_CLERK_PUBLISHABLE_KEY is not set. Clerk authentication will not work.')
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ClerkProvider publishableKey={clerkPubKey}>
+    <ClerkProvider publishableKey={clerkPubKey ?? ''}>
       <BrowserRouter>
         <App />
       </BrowserRouter>

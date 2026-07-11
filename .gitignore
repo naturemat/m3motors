@@ -56,4 +56,18 @@ Thumbs.db
 *.tgz
 .cache/
 
+# Expo / React Native
+android/
+ios/
+.expo/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# GoogleAI reference (not committed)
+GoogleAI/
+
 AGENTS.md

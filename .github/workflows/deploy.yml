@@ -124,7 +124,7 @@ jobs:
         run: |
           if [ ! -d "android" ]; then
             echo "=== android/ not found, generating ==="
-            npx @react-native-community/cli@20.1.0 init M3MotorsMobile --directory ./android-tmp --skip-install --skip-git-init --version 0.86.0
+            npx @react-native-community/cli@20.1.0 init M3MotorsMobile --directory ./android-tmp --skip-git-init --version 0.86.0
             mv ./android-tmp/android ./android
             rm -rf ./android-tmp
             echo "=== android/ generated ==="

@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "M3Motors",
+    "slug": "m3motors",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#003b5a"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.m3motors.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#003b5a"
+      },
+      "package": "com.m3motors.app",
+      "permissions": ["CAMERA"]
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-local-authentication",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permitir M3Motors acceder a la camara para escanear codigos QR y tomar fotos de vehiculos"
+        }
+      ]
+    ]
+  }
+}

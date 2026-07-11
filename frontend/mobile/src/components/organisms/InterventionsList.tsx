@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {Card} from '../molecules';
 import {Badge} from '../atoms';
-import {colors, typography, spacing, borderRadius} from '../../theme';
+import {colors, typography, spacing} from '../../theme';
 import {IntervencionData} from '../../services/vehicle';
 
 interface Props {

@@ -9,7 +9,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useAuth} from '@clerk/clerk-expo';
-import {AppBar, BottomNav, Card} from '../../components/molecules';
+import {AppBar, BottomNav} from '../../components/molecules';
 import {Input, Button} from '../../components/atoms';
 import {ClientStackParamList} from '../../navigation/types';
 import {colors} from '../../theme';

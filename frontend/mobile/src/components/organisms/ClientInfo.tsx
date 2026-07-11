@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {Card} from '../molecules';
-import {colors, typography, spacing, borderRadius} from '../../theme';
+import {colors, typography, spacing} from '../../theme';
 import {ClienteData} from '../../services/vehicle';
 
 interface Props {

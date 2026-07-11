@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, TouchableOpacity, Text, StyleSheet, ViewStyle} from 'react-native';
+import {View, TouchableOpacity, StyleSheet, ViewStyle} from 'react-native';
 import {colors} from '../../theme';
 
 interface CameraButtonProps {

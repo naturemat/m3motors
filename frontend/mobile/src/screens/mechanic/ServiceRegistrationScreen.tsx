@@ -8,7 +8,7 @@ export const ServiceRegistrationScreen = ({ route, navigation }: any) => {
   const [vehiculo, setVehiculo] = useState<VehiculoInfo | null>(null);
   const [kilometraje, setKilometraje] = useState('');
   const [diagnostico, setDiagnostico] = useState('');
-  const [severidad, setSeveridad] = useState<'BAJA' | 'MEDIA' | 'ALTA'>('MEDIA');
+  const [severidad, _setSeveridad] = useState<'BAJA' | 'MEDIA' | 'ALTA'>('MEDIA');
   const [manoDeObra, setManoDeObra] = useState('');
   const [detalles, setDetalles] = useState<DetalleComponenteDTO[]>([]);
 

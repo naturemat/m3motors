@@ -30,15 +30,7 @@ jobs:
             backend:
               - 'backend/**'
             frontend-web:
-              - 'frontend/src/**'
-              - 'frontend/public/**'
-              - 'frontend/package.json'
-              - 'frontend/package-lock.json'
-              - 'frontend/tailwind.config.js'
-              - 'frontend/vite.config.*'
-              - 'frontend/tsconfig.*'
-              - 'frontend/Dockerfile'
-              - 'frontend/nginx.conf'
+              - 'frontend/web/**'
             frontend-mobile:
               - 'frontend/mobile/**'
 
@@ -50,6 +42,7 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -74,6 +67,7 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.frontend-web == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -83,8 +77,8 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: ./frontend/web
+          file: ./frontend/web/Dockerfile
           push: true
           tags: ${{ env.DOCKERHUB_USERNAME }}/m3motors-frontend:latest
           cache-from: type=gha
@@ -98,6 +92,7 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.frontend-mobile == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: ./frontend/mobile
@@ -122,7 +117,11 @@ jobs:
         run: |
           if [ ! -d "android" ]; then
             echo "=== android/ not found, generating ==="
-            npx @react-native-community/cli@latest init M3MotorsMobile --directory . --skip-install --skip-git-init --version 0.86.0 || true
+            cd /tmp
+            npx @react-native-community/cli@20.1.0 init M3MotorsMobile --directory ./m3motors-mobile-tmp --skip-install --skip-git-init --version 0.86.0
+            cp -r /tmp/m3motors-mobile-tmp/android "$GITHUB_WORKSPACE/frontend/mobile/android"
+            rm -rf /tmp/m3motors-mobile-tmp
+            echo "=== android/ generated ==="
           fi
 
       - name: Install dependencies
@@ -151,6 +150,7 @@ jobs:
     needs: [detect-changes, build-backend, build-frontend-web, build-frontend-mobile]
     if: always() && needs.build-backend.result != 'failure' && needs.build-frontend-web.result != 'failure' && (needs.build-backend.result == 'success' || needs.build-frontend-web.result == 'success')
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -187,11 +187,13 @@ jobs:
       - name: Create .env en Droplet
         run: |
           ssh -i ~/.ssh/deploy_key ${{ env.DO_USERNAME }}@${{ env.DO_HOST }} "cat > ${{ env.DEPLOY_PATH }}/.env" <<'ENVEOF'
+          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
           APP_PORT=3000
           NODE_ENV=production
           DATABASE_URL=${{ secrets.DATABASE_URL }}
           CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
           CLERK_ISSUER_URL=${{ secrets.CLERK_ISSUER_URL }}
+          CLERK_WEBHOOK_SECRET=${{ secrets.CLERK_WEBHOOK_SECRET }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
           LLM_API_KEY=${{ secrets.LLM_API_KEY }}
@@ -228,8 +230,8 @@ jobs:
           find /var/lib/docker/containers -name "*-json.log" -size +50M -delete 2>/dev/null || true
 
           echo "=== [4/5] Descargar e iniciar servicios ==="
-          docker compose -f docker-compose.prod.yml pull
-          docker compose -f docker-compose.prod.yml up -d
+          docker compose -f docker-compose.prod.yml --env-file .env pull
+          docker compose -f docker-compose.prod.yml --env-file .env up -d
 
           echo "=== [5/5] Verificar estado ==="
           sleep 10
@@ -248,6 +250,7 @@ jobs:
       - name: Upload APK to Droplet
         if: needs.build-frontend-mobile.result == 'success'
         run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DO_USERNAME }}@${{ env.DO_HOST }} "mkdir -p ${{ env.DEPLOY_PATH }}/apk"
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ./apk/*.apk ${{ env.DO_USERNAME }}@${{ env.DO_HOST }}:${{ env.DEPLOY_PATH }}/apk/
 
       - name: Cleanup SSH key

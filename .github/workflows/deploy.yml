@@ -190,7 +190,9 @@ jobs:
       - name: Create .env en Droplet
         run: |
           ssh -i ~/.ssh/deploy_key ${{ env.DO_USERNAME }}@${{ env.DO_HOST }} "cat > ${{ env.DEPLOY_PATH }}/.env" <<'ENVEOF'
+          # === Docker ===
           DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+          # === Backend ===
           APP_PORT=3000
           NODE_ENV=production
           DATABASE_URL=${{ secrets.DATABASE_URL }}
@@ -214,6 +216,10 @@ jobs:
           NOTIFICATION_RETRY_DELAY_MS=5000
           LOG_LEVEL=${{ secrets.LOG_LEVEL }}
           CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
+          # === Frontend (build-time vars, baked into JS by Vite) ===
+          VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_API_URL=${{ secrets.VITE_API_URL }}
+          VITE_RECAPTCHA_SITE_KEY=${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
           ENVEOF
 
       - name: Deploy via SSH

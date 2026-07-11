@@ -30,15 +30,7 @@ jobs:
             backend:
               - 'backend/**'
             frontend-web:
-              - 'frontend/src/**'
-              - 'frontend/public/**'
-              - 'frontend/package.json'
-              - 'frontend/package-lock.json'
-              - 'frontend/tailwind.config.js'
-              - 'frontend/vite.config.*'
-              - 'frontend/tsconfig.*'
-              - 'frontend/Dockerfile'
-              - 'frontend/nginx.conf'
+              - 'frontend/web/**'
             frontend-mobile:
               - 'frontend/mobile/**'
 
@@ -85,8 +77,8 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: ./frontend/web
+          file: ./frontend/web/Dockerfile
           push: true
           tags: ${{ env.DOCKERHUB_USERNAME }}/m3motors-frontend:latest
           cache-from: type=gha

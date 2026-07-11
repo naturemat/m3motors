@@ -6,7 +6,7 @@ export default function Landing() {
     <div className="min-h-screen bg-white">
       <header className="bg-primary text-white">
         <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">M3Motors</h1>
+          <img src="/logo.svg" alt="M3Motors" className="h-8" />
           <SignedOut>
             <div className="space-x-4">
               <Link to="/login" className="hover:underline">Iniciar Sesión</Link>

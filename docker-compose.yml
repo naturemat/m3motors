@@ -46,7 +46,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend/web
       dockerfile: Dockerfile.dev
     container_name: m3motors-frontend
     restart: unless-stopped
@@ -60,10 +60,10 @@ services:
       VITE_SUPABASE_URL: ${SUPABASE_URL}
       VITE_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
     volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/package.json:/app/package.json
-      - ./frontend/index.html:/app/index.html
-      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - ./frontend/web/src:/app/src
+      - ./frontend/web/package.json:/app/package.json
+      - ./frontend/web/index.html:/app/index.html
+      - ./frontend/web/vite.config.ts:/app/vite.config.ts
     depends_on:
       - backend
     networks:

@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colors} from '../../theme';
+import Logo from '../atoms/Logo';
 
 interface AppBarProps {
   title: string;
@@ -31,6 +32,7 @@ export default function AppBar({
               <Text style={styles.backArrow}>{'‹'}</Text>
             </TouchableOpacity>
           )}
+          {!showBack && <Logo size="small" variant="light" />}
         </View>
 
         <Text style={styles.title} numberOfLines={1}>
@@ -75,7 +77,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   left: {
-    width: 40,
+    width: 80,
     alignItems: 'flex-start',
   },
   backButton: {
@@ -88,13 +90,13 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: colors.neutral[0],
     textAlign: 'center',
   },
   right: {
-    width: 40,
+    width: 80,
     alignItems: 'flex-end',
   },
   notificationButton: {

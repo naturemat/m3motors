@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [dev, main]
+    branches: [dev]
   pull_request:
-    branches: [dev, main]
+    branches: [main]
 
 env:
   NODE_VERSION: '22'
@@ -30,11 +30,15 @@ jobs:
             frontend-mobile:
               - 'frontend/mobile/**'
 
+  # =====================================================================
+  # PUSH A DEV — Solo lint (feedback rapido)
+  # =====================================================================
   backend-lint:
     name: Backend Lint
     needs: detect-changes
     if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./backend
@@ -53,6 +57,7 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.frontend-web == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./frontend/web
@@ -71,6 +76,7 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.frontend-mobile == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./frontend/mobile
@@ -84,11 +90,15 @@ jobs:
       - run: npm install --legacy-peer-deps
       - run: npm run lint
 
+  # =====================================================================
+  # PULL REQUEST A MAIN — Tests completos (validacion fuerte)
+  # =====================================================================
   backend-test:
     name: Backend Tests
-    needs: [detect-changes, backend-lint]
+    needs: detect-changes
     if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./backend
@@ -104,9 +114,10 @@ jobs:
 
   frontend-web-test:
     name: Frontend Web Tests
-    needs: [detect-changes, frontend-web-lint]
+    needs: detect-changes
     if: needs.detect-changes.outputs.frontend-web == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./frontend/web
@@ -122,9 +133,10 @@ jobs:
 
   frontend-mobile-test:
     name: Frontend Mobile Tests
-    needs: [detect-changes, frontend-mobile-lint]
+    needs: detect-changes
     if: needs.detect-changes.outputs.frontend-mobile == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./frontend/mobile

@@ -42,6 +42,7 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -66,6 +67,7 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.frontend-web == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -94,6 +96,7 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.frontend-mobile == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: ./frontend/mobile
@@ -127,9 +130,10 @@ jobs:
   # ===========================================================================
   deploy:
     name: Deploy to Droplet
-    needs: [detect-changes, build-backend, build-frontend-web, build-frontend-mobile]
+    needs: [detect-changes, build-backend, build-frontend-web]
     if: always() && needs.build-backend.result != 'failure' && needs.build-frontend-web.result != 'failure' && (needs.build-backend.result == 'success' || needs.build-frontend-web.result == 'success')
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -192,7 +196,7 @@ jobs:
           NOTIFICATION_RETRY_DELAY_MS=5000
           LOG_LEVEL=${{ secrets.LOG_LEVEL }}
           CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
-          # === Frontend (build-time vars) ===
+          # === Frontend (build-time vars, baked into JS by Vite) ===
           VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           VITE_API_URL=${{ secrets.VITE_API_URL }}
           VITE_RECAPTCHA_SITE_KEY=${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
@@ -215,8 +219,8 @@ jobs:
           find /var/lib/docker/containers -name "*-json.log" -size +50M -delete 2>/dev/null || true
 
           echo "=== [4/5] Descargar e iniciar servicios ==="
-          docker compose -f docker-compose.prod.yml pull
-          docker compose -f docker-compose.prod.yml up -d
+          docker compose -f docker-compose.prod.yml --env-file .env pull
+          docker compose -f docker-compose.prod.yml --env-file .env up -d
 
           echo "=== [5/5] Verificar estado ==="
           sleep 10
@@ -235,6 +239,7 @@ jobs:
       - name: Upload APK to Droplet
         if: needs.build-frontend-mobile.result == 'success'
         run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DO_USERNAME }}@${{ env.DO_HOST }} "mkdir -p ${{ env.DEPLOY_PATH }}/apk"
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ./apk/*.apk ${{ env.DO_USERNAME }}@${{ env.DO_HOST }}:${{ env.DEPLOY_PATH }}/apk/
 
       - name: Cleanup SSH key

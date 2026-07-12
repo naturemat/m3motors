@@ -7,12 +7,11 @@ import {
   SafeAreaView,
   TouchableOpacity,
   RefreshControl,
+  Image,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useAuth} from '@clerk/clerk-expo';
-import {AppBar, BottomNav, Card} from '../../components/molecules';
-import {Badge, Button} from '../../components/atoms';
 import {ClientStackParamList} from '../../navigation/types';
 import {colors} from '../../theme';
 import api from '../../services/api';
@@ -79,13 +78,11 @@ export default function ClientDashboard() {
             })),
           );
         } catch {
-          // Vehicle detail fetch failed, continue with basic data
+          // continue with basic data
         }
       }
     } catch (err) {
       console.error('Error fetching client data:', err);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -99,55 +96,66 @@ export default function ClientDashboard() {
     setRefreshing(false);
   };
 
-  const handleLogout = async () => {
-    await signOut();
-  };
-
   return (
     <SafeAreaView style={styles.container}>
-      <AppBar title="Mi Vehiculo" showNotifications notificationCount={0} />
-
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         {vehicle ? (
           <>
-            <Card style={styles.vehicleCard}>
-              <View style={styles.vehicleRow}>
-                <View style={styles.vehicleInfo}>
-                  <Text style={styles.vehicleModel}>{vehicle.marca} {vehicle.modelo}</Text>
-                  <Text style={styles.vehiclePlate}>{vehicle.placa}</Text>
-                  <View style={styles.vehicleMeta}>
-                    <Text style={styles.vehicleYear}>{vehicle.anio}</Text>
-                    <Badge label={vehicle.estadoGeneral} type="success" size="small" />
+            <View style={styles.header}>
+              <Text style={styles.headerLabel}>Mi Vehiculo</Text>
+              <Text style={styles.headerTitle}>
+                {vehicle.marca} {vehicle.modelo}
+              </Text>
+              <View style={styles.headerMeta}>
+                <View style={styles.plateBadge}>
+                  <Text style={styles.plateText}>{vehicle.placa}</Text>
+                </View>
+                <Text style={styles.yearText}>{vehicle.anio}</Text>
+                <View style={styles.statusBadge}>
+                  <Text style={styles.statusText}>{vehicle.estadoGeneral}</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.metricsGrid}>
+              <View style={styles.metricCardPrimary}>
+                <Text style={styles.metricValueLarge}>
+                  {vehicle.kilometrajeActual.toLocaleString()}
+                </Text>
+                <Text style={styles.metricUnit}>km</Text>
+                <Text style={styles.metricLabelLight}>Kilometraje actual</Text>
+              </View>
+              <View style={styles.metricCardWhite}>
+                <Text style={styles.metricValueDark}>
+                  {vehicle.totalIntervenciones}
+                </Text>
+                <Text style={styles.metricLabelDark}>Servicios</Text>
+              </View>
+            </View>
+
+            <View style={styles.qrSection}>
+              <View style={styles.qrContainer}>
+                <View style={styles.qrCornerTL} />
+                <View style={styles.qrCornerTR} />
+                <View style={styles.qrCornerBL} />
+                <View style={styles.qrCornerBR} />
+                <View style={styles.qrInner}>
+                  <View style={styles.qrPlaceholder}>
+                    <Text style={styles.qrPlaceholderText}>QR</Text>
                   </View>
                 </View>
               </View>
-            </Card>
-
-            <View style={styles.metricsGrid}>
-              <Card style={styles.metricCard}>
-                <Text style={styles.metricValue}>{vehicle.kilometrajeActual.toLocaleString()} km</Text>
-                <Text style={styles.metricLabel}>Kilometraje actual</Text>
-              </Card>
-              <Card style={styles.metricCard}>
-                <Text style={styles.metricValue}>{vehicle.totalIntervenciones}</Text>
-                <Text style={styles.metricLabel}>Servicios</Text>
-              </Card>
+              <Text style={styles.qrHint}>
+                Muestra este codigo al mecanico para acceder a tu historial
+              </Text>
+              <TouchableOpacity
+                style={styles.qrButton}
+                onPress={() => navigation.navigate('ClientQR')}>
+                <Text style={styles.qrButtonText}>Ver QR completo</Text>
+              </TouchableOpacity>
             </View>
-
-            <Card style={styles.qrSection}>
-              <Text style={styles.qrTitle}>QR de tu vehiculo</Text>
-              <View style={styles.qrPlaceholder}>
-                <Text style={styles.qrHint}>Muestra este codigo al mecanico en tu proxima visita</Text>
-              </View>
-              <Button
-                title="Ver QR"
-                variant="secondary"
-                size="small"
-                onPress={() => navigation.navigate('ClientQR')}
-              />
-            </Card>
 
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
@@ -157,100 +165,248 @@ export default function ClientDashboard() {
                 </TouchableOpacity>
               </View>
               {history.length > 0 ? (
-                history.map(item => (
-                  <Card key={item.id} style={styles.historyItem}>
-                    <View style={styles.historyRow}>
-                      <View>
-                        <Text style={styles.historyDate}>{item.fecha.split('T')[0]}</Text>
-                        <Text style={styles.historyService}>{item.servicio}</Text>
-                      </View>
-                      <View style={styles.historyRight}>
-                        <Text style={styles.historyMechanic}>{item.mecanico}</Text>
-                        <Text style={styles.historyKm}>{item.kilometraje.toLocaleString()} km</Text>
+                <View style={styles.timeline}>
+                  {history.map((item, idx) => (
+                    <View key={item.id} style={styles.timelineItem}>
+                      <View style={styles.timelineDot} />
+                      {idx < history.length - 1 && <View style={styles.timelineLine} />}
+                      <View style={styles.timelineCard}>
+                        <View style={styles.timelineHeader}>
+                          <Text style={styles.timelineDate}>
+                            {item.fecha.split('T')[0]}
+                          </Text>
+                          <View style={styles.timelineTypeBadge}>
+                            <Text style={styles.timelineTypeText}>Servicio</Text>
+                          </View>
+                        </View>
+                        <Text style={styles.timelineTitle}>{item.servicio}</Text>
+                        <Text style={styles.timelineMechanic}>{item.mecanico}</Text>
+                        {item.kilometraje > 0 && (
+                          <Text style={styles.timelineKm}>
+                            {item.kilometraje.toLocaleString()} km
+                          </Text>
+                        )}
                       </View>
                     </View>
-                  </Card>
-                ))
+                  ))}
+                </View>
               ) : (
-                <Text style={styles.emptyText}>Aun no tienes servicios registrados</Text>
+                <View style={styles.emptyCard}>
+                  <Text style={styles.emptyText}>
+                    Aun no tienes servicios registrados
+                  </Text>
+                </View>
               )}
             </View>
 
             <View style={styles.actions}>
-              <Button
-                title="Actualizar Kilometraje"
-                variant="secondary"
-                size="large"
-                fullWidth
-                onPress={() => navigation.navigate('UpdateKM')}
-              />
-              <Button
-                title="Ver Historial Completo"
-                variant="ghost"
-                size="large"
-                fullWidth
-                onPress={() => navigation.navigate('ClientHistory')}
-              />
+              <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={() => navigation.navigate('UpdateKM')}>
+                <Text style={styles.primaryButtonText}>Actualizar Kilometraje</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.outlineButton}
+                onPress={() => navigation.navigate('ClientHistory')}>
+                <Text style={styles.outlineButtonText}>Ver Historial Completo</Text>
+              </TouchableOpacity>
             </View>
           </>
         ) : (
           <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconContainer}>
+              <Text style={styles.emptyIcon}>!</Text>
+            </View>
             <Text style={styles.emptyTitle}>No tienes vehiculos activos</Text>
-            <Text style={styles.emptySubtitle}>Contacta a tu taller para activar tu cuenta</Text>
+            <Text style={styles.emptySubtitle}>
+              Contacta a tu taller para activar tu cuenta
+            </Text>
           </View>
         )}
       </ScrollView>
 
-      <BottomNav
-        active="inicio"
-        items={[
-          {key: 'inicio', label: 'Inicio', icon: 'home'},
-          {key: 'historial', label: 'Historial', icon: 'file-text'},
-          {key: 'qr', label: 'QR', icon: 'qrcode'},
-          {key: 'perfil', label: 'Salir', icon: 'log-out'},
-        ]}
-        onPress={key => {
-          if (key === 'historial') navigation.navigate('ClientHistory');
-          else if (key === 'qr') navigation.navigate('ClientQR');
-          else if (key === 'perfil') void handleLogout();
-        }}
-      />
+      <View style={styles.bottomNav}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate('ClientDashboard')}>
+          <Text style={styles.navIconActive}>Inicio</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate('ClientHistory')}>
+          <Text style={styles.navIcon}>Historial</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navItemCenter}
+          onPress={() => navigation.navigate('ClientQR')}>
+          <View style={styles.qrFab}>
+            <Text style={styles.qrFabText}>QR</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate('ClientProfile')}>
+          <Text style={styles.navIcon}>Perfil</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => void signOut()}>
+          <Text style={styles.navIcon}>Salir</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: colors.neutral[100]},
-  scrollContent: {paddingBottom: 80},
-  vehicleCard: {marginHorizontal: 16, marginTop: 16},
-  vehicleRow: {flexDirection: 'row'},
-  vehicleInfo: {flex: 1, gap: 4},
-  vehicleModel: {fontSize: 18, fontWeight: '600', color: colors.neutral[900]},
-  vehiclePlate: {fontSize: 14, color: colors.neutral[600]},
-  vehicleMeta: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4},
-  vehicleYear: {fontSize: 14, color: colors.neutral[600]},
-  metricsGrid: {flexDirection: 'row', paddingHorizontal: 16, gap: 12, marginTop: 12},
-  metricCard: {flex: 1, alignItems: 'center', padding: 12},
-  metricValue: {fontSize: 18, fontWeight: '700', color: colors.primary[500]},
-  metricLabel: {fontSize: 12, fontWeight: '500', color: colors.neutral[600], textAlign: 'center'},
-  qrSection: {marginHorizontal: 16, marginTop: 16, alignItems: 'center', gap: 12},
-  qrTitle: {fontSize: 18, fontWeight: '600', color: colors.neutral[900]},
-  qrPlaceholder: {width: 120, height: 120, borderRadius: 12, backgroundColor: colors.neutral[100], alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.primary[500]},
-  qrHint: {fontSize: 12, color: colors.neutral[600], textAlign: 'center'},
-  section: {marginHorizontal: 16, marginTop: 16},
+  container: {flex: 1, backgroundColor: colors.background},
+  scrollContent: {paddingBottom: 100},
+
+  header: {
+    backgroundColor: colors.primary[600],
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  headerLabel: {fontSize: 12, fontWeight: '600', color: colors.accent.light, textTransform: 'uppercase', letterSpacing: 1},
+  headerTitle: {fontSize: 26, fontWeight: '800', color: colors.neutral[0], marginTop: 4},
+  headerMeta: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12},
+  plateBadge: {backgroundColor: colors.accent.bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8},
+  plateText: {fontSize: 12, fontWeight: '700', color: colors.accent.dark},
+  yearText: {fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.7)'},
+  statusBadge: {backgroundColor: 'rgba(39,174,96,0.2)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12},
+  statusText: {fontSize: 10, fontWeight: '700', color: '#27AE60', textTransform: 'uppercase'},
+
+  metricsGrid: {flexDirection: 'row', paddingHorizontal: 16, gap: 12, marginTop: 16},
+  metricCardPrimary: {
+    flex: 1,
+    backgroundColor: colors.primary[600],
+    borderRadius: 16,
+    padding: 16,
+    minHeight: 110,
+    justifyContent: 'space-between',
+  },
+  metricValueLarge: {fontSize: 28, fontWeight: '800', color: colors.neutral[0]},
+  metricUnit: {fontSize: 14, fontWeight: '600', color: colors.accent.light},
+  metricLabelLight: {fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.7)', marginTop: 4},
+  metricCardWhite: {
+    flex: 1,
+    backgroundColor: colors.neutral[0],
+    borderRadius: 16,
+    padding: 16,
+    minHeight: 110,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+  },
+  metricValueDark: {fontSize: 28, fontWeight: '800', color: colors.neutral[900]},
+  metricLabelDark: {fontSize: 11, fontWeight: '600', color: colors.neutral[400], marginTop: 4},
+
+  qrSection: {alignItems: 'center', marginTop: 20, paddingHorizontal: 16},
+  qrContainer: {position: 'relative', padding: 8},
+  qrCornerTL: {position: 'absolute', top: 0, left: 0, width: 28, height: 28, borderTopWidth: 4, borderLeftWidth: 4, borderColor: colors.primary[600], borderTopLeftRadius: 12},
+  qrCornerTR: {position: 'absolute', top: 0, right: 0, width: 28, height: 28, borderTopWidth: 4, borderRightWidth: 4, borderColor: colors.primary[600], borderTopRightRadius: 12},
+  qrCornerBL: {position: 'absolute', bottom: 0, left: 0, width: 28, height: 28, borderBottomWidth: 4, borderLeftWidth: 4, borderColor: colors.primary[600], borderBottomLeftRadius: 12},
+  qrCornerBR: {position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderBottomWidth: 4, borderRightWidth: 4, borderColor: colors.primary[600], borderBottomRightRadius: 12},
+  qrInner: {
+    backgroundColor: colors.neutral[0],
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: colors.primary[500],
+  },
+  qrPlaceholder: {width: 180, height: 180, backgroundColor: colors.neutral[50], borderRadius: 12, alignItems: 'center', justifyContent: 'center'},
+  qrPlaceholderText: {fontSize: 32, fontWeight: '800', color: colors.primary[500]},
+  qrHint: {fontSize: 12, fontWeight: '600', color: colors.neutral[500], textAlign: 'center', marginTop: 16, maxWidth: 260, lineHeight: 18},
+  qrButton: {
+    marginTop: 12,
+    backgroundColor: colors.primary[600],
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  qrButtonText: {fontSize: 13, fontWeight: '700', color: colors.neutral[0]},
+
+  section: {marginHorizontal: 16, marginTop: 24},
   sectionHeader: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12},
-  sectionTitle: {fontSize: 18, fontWeight: '600', color: colors.neutral[900]},
-  seeAll: {fontSize: 14, fontWeight: '500', color: colors.secondary[500]},
-  historyItem: {marginBottom: 8},
-  historyRow: {flexDirection: 'row', justifyContent: 'space-between'},
-  historyDate: {fontSize: 12, color: colors.neutral[600]},
-  historyService: {fontSize: 14, fontWeight: '500', color: colors.neutral[900]},
-  historyRight: {alignItems: 'flex-end'},
-  historyMechanic: {fontSize: 12, color: colors.neutral[600]},
-  historyKm: {fontSize: 12, fontWeight: '500', color: colors.primary[500]},
-  actions: {paddingHorizontal: 16, gap: 8, marginTop: 16},
-  emptyContainer: {alignItems: 'center', justifyContent: 'center', paddingVertical: 60},
-  emptyTitle: {fontSize: 18, fontWeight: '600', color: colors.neutral[900], textAlign: 'center'},
-  emptySubtitle: {fontSize: 14, color: colors.neutral[600], textAlign: 'center', marginTop: 8},
-  emptyText: {fontSize: 14, color: colors.neutral[400], textAlign: 'center', paddingVertical: 16},
+  sectionTitle: {fontSize: 17, fontWeight: '700', color: colors.primary[600]},
+  seeAll: {fontSize: 13, fontWeight: '600', color: colors.secondary[500]},
+
+  timeline: {borderLeftWidth: 2, borderLeftColor: colors.neutral[200], marginLeft: 8, paddingLeft: 16},
+  timelineItem: {marginBottom: 16, position: 'relative'},
+  timelineDot: {position: 'absolute', left: -23, top: 8, width: 12, height: 12, borderRadius: 6, backgroundColor: colors.primary[600], borderWidth: 2, borderColor: colors.neutral[0]},
+  timelineLine: {position: 'absolute', left: -18, top: 22, width: 2, height: '100%', backgroundColor: colors.neutral[200]},
+  timelineCard: {
+    backgroundColor: colors.neutral[0],
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+  },
+  timelineHeader: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6},
+  timelineDate: {fontSize: 11, fontWeight: '600', color: colors.neutral[400]},
+  timelineTypeBadge: {backgroundColor: colors.accent.bg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6},
+  timelineTypeText: {fontSize: 10, fontWeight: '700', color: colors.accent.dark},
+  timelineTitle: {fontSize: 14, fontWeight: '700', color: colors.primary[600]},
+  timelineMechanic: {fontSize: 12, color: colors.neutral[500], marginTop: 2},
+  timelineKm: {fontSize: 11, fontWeight: '600', color: colors.neutral[400], marginTop: 4},
+
+  emptyCard: {backgroundColor: colors.neutral[50], borderRadius: 12, padding: 24, alignItems: 'center'},
+  emptyText: {fontSize: 13, color: colors.neutral[400], fontWeight: '500'},
+
+  actions: {paddingHorizontal: 16, gap: 10, marginTop: 20},
+  primaryButton: {
+    backgroundColor: colors.primary[600],
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  primaryButtonText: {fontSize: 14, fontWeight: '700', color: colors.neutral[0]},
+  outlineButton: {
+    borderWidth: 2,
+    borderColor: colors.primary[600],
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  outlineButtonText: {fontSize: 14, fontWeight: '700', color: colors.primary[600]},
+
+  emptyContainer: {alignItems: 'center', justifyContent: 'center', paddingVertical: 80, paddingHorizontal: 32},
+  emptyIconContainer: {width: 64, height: 64, borderRadius: 32, backgroundColor: colors.accent.bg, alignItems: 'center', justifyContent: 'center', marginBottom: 16},
+  emptyIcon: {fontSize: 28, fontWeight: '800', color: colors.primary[600]},
+  emptyTitle: {fontSize: 18, fontWeight: '700', color: colors.neutral[900], textAlign: 'center'},
+  emptySubtitle: {fontSize: 13, color: colors.neutral[500], textAlign: 'center', marginTop: 8},
+
+  bottomNav: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.neutral[0],
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: colors.neutral[200],
+  },
+  navItem: {alignItems: 'center', padding: 4},
+  navIcon: {fontSize: 11, fontWeight: '600', color: colors.neutral[400]},
+  navIconActive: {fontSize: 11, fontWeight: '700', color: colors.primary[600]},
+  navItemCenter: {alignItems: 'center', marginTop: -20},
+  qrFab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary[600],
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.primary[600],
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  qrFabText: {fontSize: 16, fontWeight: '800', color: colors.neutral[0]},
 });

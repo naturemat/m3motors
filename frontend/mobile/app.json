@@ -33,6 +33,11 @@
           "cameraPermission": "Permitir M3Motors acceder a la camara para escanear codigos QR y tomar fotos de vehiculos"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3ed23a20-01f7-4e26-8778-a8948d8d0bf7"
+      }
+    }
   }
 }

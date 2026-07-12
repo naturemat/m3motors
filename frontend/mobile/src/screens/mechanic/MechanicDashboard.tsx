@@ -26,7 +26,7 @@ export default function MechanicDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [pendingCustomers, setPendingCustomers] = useState<Customer[]>([]);
   const [recentCustomers, setRecentCustomers] = useState<Customer[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {

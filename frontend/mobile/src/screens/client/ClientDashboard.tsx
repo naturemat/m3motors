@@ -44,6 +44,7 @@ export default function ClientDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [vehicle, setVehicle] = useState<VehicleData | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {

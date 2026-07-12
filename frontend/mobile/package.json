@@ -43,6 +43,7 @@
     "@react-native/typescript-config": "^0.86.0",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.1.10",
+    "babel-preset-expo": "^57.0.2",
     "eas-cli": "^15.0.0",
     "typescript": "^5.8.3"
   }

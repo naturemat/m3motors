@@ -57,7 +57,30 @@ export default function PublicLanding() {
     }
   }
 
-  if (loading) return <div className="p-6">Cargando...</div>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-neutral-600">Cargando información del taller...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!workshop) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 bg-error-light rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">!</span>
+          </div>
+          <h2 className="text-xl font-semibold text-neutral-900 mb-2">Taller no encontrado</h2>
+          <p className="text-neutral-600">El enlace puede estar incorrecto o el taller ya no está disponible.</p>
+        </div>
+      </div>
+    )
+  }
 
   if (success) {
     return (

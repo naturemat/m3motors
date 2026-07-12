@@ -1,29 +1,23 @@
 # Rutas del Frontend Web — M3Motors
 
-## Rutas de React Router (Frontend)
+## Arquitectura
 
-| Ruta | Componente | Auth | Rol | Descripcion |
-|------|-----------|------|-----|-------------|
-| `/` | `PublicLanding` | No | Publico | Landing publico con formulario de pre-registro de clientes |
-| `/landing/:id` | `Landing` | No | Publico | Landing de taller especifico (por ID de taller) |
-| `/login/*` | `Login` | `SignedOut` | Publico | Login con Clerk (routing path-based) |
-| `/register/*` | `Register` | `SignedOut` | Publico | Registro con Clerk (routing path-based) |
-| `/dashboard` | `Dashboard` | `SignedIn` | Cualquier rol | Dashboard general — muestra perfil y links segun rol |
-| `/dashboard/admin` | `AdminDashboard` | `SignedIn` | `admin` | Panel de administracion del taller (mecanicos, servicios, clientes, KPIs) |
-| `/dashboard/cliente` | `PanelCliente` | `SignedIn` | Cualquier rol | Panel del cliente — vehiculo, kilometraje, historial |
-| `*` (catch-all) | `Navigate to /` | No | — | Cualquier ruta no definida redirige a `/` |
+- **Web**: Panel del **dueño/admin del taller** + landing pública de pre-registro
+- **Mobile**: Cliente y mecánico (app React Native separada)
+
+## Rutas de React Router
+
+| Ruta | Componente | Auth | Descripcion |
+|------|-----------|------|-------------|
+| `/` | `Login` | `SignedOut` | Login del dueño del taller (pantalla principal) |
+| `/dashboard` | `AdminDashboard` | `SignedIn` | Panel de administración del taller |
+| `/workshop/:id` | `PublicLanding` | No | Landing pública del taller — formulario de pre-registro para clientes |
+| `*` | `Navigate to /` | — | Catch-all → redirige al login |
 
 ### Guard de autenticacion
 
-- **`ProtectedRoute`**: Usa `<SignedIn>` de Clerk. Si no esta autenticado, no renderiza hijos.
-- **`PublicRoute`**: Usa `<SignedOut>` de Clerk. Solo renderiza si NO esta autenticado (evita ver login/registro estando logueado).
-- **`AdminRoute`**: Verifica `user.publicMetadata.role === 'admin'`. Si no es admin, redirige a `/dashboard`.
-
-### Dependencias de Clerk
-
-- `@clerk/clerk-react` v5.61.8
-- Requiere `VITE_CLERK_PUBLISHABLE_KEY` en `.env`
-- Login y Register usan `<SignIn>` / `<SignUp>` con routing path-based
+- **`ProtectedRoute`**: Usa `<SignedIn>` de Clerk. Si no está autenticado, redirige a login.
+- **`PublicRoute`**: Usa `<SignedOut>` de Clerk. Solo renderiza si NO está autenticado.
 
 ---
 
@@ -33,31 +27,22 @@
 
 | Metodo | Endpoint | Pagina | Descripcion |
 |--------|----------|--------|-------------|
-| `GET` | `/public/workshop/:id` | PublicLanding | Obtener datos del taller |
+| `GET` | `/public/workshop/:id` | PublicLanding | Datos del taller |
 | `POST` | `/public/workshop/:id/pre-register` | PublicLanding | Pre-registrar cliente (requiere captcha) |
 
-### Autenticados (requieren Bearer token)
-
-| Metodo | Endpoint | Pagina | Descripcion |
-|--------|----------|--------|-------------|
-| `GET` | `/auth/me` | Dashboard | Obtener perfil del usuario actual |
-| `GET` | `/vehicles` | PanelCliente | Listar vehiculos del cliente |
-| `GET` | `/vehicles/:id` | PanelCliente | Detalle de vehiculo con historial |
-| `POST` | `/interventions` | PanelCliente | Actualizar kilometraje |
-
-### Admin (requieren Bearer token + rol admin)
+### Admin (requieren Bearer token)
 
 | Metodo | Endpoint | Pagina | Descripcion |
 |--------|----------|--------|-------------|
 | `GET` | `/admin/kpis` | AdminDashboard | KPIs del taller |
 | `GET` | `/admin/workshop` | AdminDashboard | Datos del taller |
 | `PUT` | `/admin/workshop` | AdminDashboard | Actualizar datos del taller |
-| `GET` | `/admin/mechanics` | AdminDashboard | Listar mecanicos |
-| `POST` | `/admin/mechanics` | AdminDashboard | Crear mecanico |
-| `DELETE` | `/admin/mechanics/:id` | AdminDashboard | Eliminar mecanico |
-| `GET` | `/admin/services` | AdminDashboard | Listar servicios del catalogo |
+| `GET` | `/admin/mechanics` | AdminDashboard | Listar mecánicos |
+| `POST` | `/admin/mechanics` | AdminDashboard | Crear mecánico |
+| `DELETE` | `/admin/mechanics/:id` | AdminDashboard | Eliminar mecánico |
+| `GET` | `/admin/services` | AdminDashboard | Catálogo de servicios |
 | `POST` | `/admin/services` | AdminDashboard | Crear servicio |
-| `GET` | `/admin/customers` | AdminDashboard | Listar clientes (activos + pre-registrados) |
+| `GET` | `/admin/customers` | AdminDashboard | Clientes (activos + pre-registrados) |
 | `POST` | `/admin/customers/:id/activate` | AdminDashboard | Activar cliente pre-registrado |
 
 ---
@@ -67,10 +52,9 @@
 | Variable | Requerida | Descripcion |
 |----------|-----------|-------------|
 | `VITE_API_URL` | Si | URL base del backend (`http://localhost:3000` en dev) |
-| `VITE_CLERK_PUBLISHABLE_KEY` | Si | Clerk publishable key (test o live) |
-| `VITE_RECAPTCHA_SITE_KEY` | No | Google reCAPTCHA site key (solo para pre-registro) |
-| `VITE_TELEGRAM_BOT_USERNAME` | No | Username del bot de Telegram |
-| `VITE_NODE_ENV` | No | `development` o `production` |
+| `VITE_CLERK_PUBLISHABLE_KEY` | Si | Clerk publishable key |
+| `VITE_RECAPTCHA_SITE_KEY` | No | Google reCAPTCHA site key (pre-registro) |
+| `VITE_TELEGRAM_BOT_USERNAME` | No | Bot de Telegram |
 
 ---
 
@@ -78,33 +62,17 @@
 
 ```
 src/
-├── main.tsx          → Entry point: ClerkProvider + BrowserRouter + App
-├── App.tsx           → Router config: todas las rutas + guards
-├── index.css         → Tailwind + CSS custom properties (colores del tema)
+├── main.tsx              → Entry: ClerkProvider + BrowserRouter + App
+├── App.tsx               → Router: /, /dashboard, /workshop/:id
+├── index.css             → Tailwind + CSS custom properties
 ├── pages/
-│   ├── PublicLanding.tsx      → Landing publico + formulario pre-registro
-│   ├── Landing.tsx            → Landing de taller especifico
-│   ├── Login.tsx              → Login con Clerk
-│   ├── Register.tsx           → Registro con Clerk
-│   ├── Dashboard.tsx          → Dashboard general (perfil + links por rol)
-│   ├── AdminDashboard.tsx     → Panel admin: mecanicos, servicios, clientes, KPIs
-│   └── PanelCliente.tsx       → Panel cliente: vehiculo, kilometraje, historial
-├── components/
-│   ├── atoms/                 → (vacio, por crear)
-│   ├── molecules/             → (vacio, por crear)
-│   ├── organisms/             → (vacio, por crear)
-│   └── templates/             → (vacio, por crear)
-├── hooks/                     → (vacio, por crear)
-├── services/                  → (vacio, por crear)
-├── store/                     → (vacio, por crear)
-├── types/                     → (vacio, por crear)
-└── utils/                     → (vacio, por crear)
+│   ├── Login.tsx           → Login del dueño (pantalla principal con branding)
+│   ├── AdminDashboard.tsx  → Panel admin: mecánicos, servicios, clientes, KPIs
+│   └── PublicLanding.tsx   → Landing pública: info del taller + formulario pre-registro
+├── components/            → (atomicos, por crear)
+├── hooks/                 → (por crear)
+├── services/              → (por crear)
+├── store/                 → (por crear)
+├── types/                 → (por crear)
+└── utils/                 → (por crear)
 ```
-
-### Estado actual
-
-- **7 paginas creadas** (~950 lineas de codigo total)
-- **Componentes atomicos no extraidos**: toda la UI esta en los archivos de pagina
-- **Sin tests**: directorio `tests/` vacio
-- **Sin servicios abstractos**: llamadas API inline en cada pagina
-- **Sin state management**: solo `useState` local en cada componente

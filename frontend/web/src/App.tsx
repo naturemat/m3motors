@@ -1,12 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react'
-import Landing from './pages/Landing'
-import PublicLanding from './pages/PublicLanding'
+import { SignedIn, SignedOut } from '@clerk/clerk-react'
 import Login from './pages/Login'
-import Register from './pages/Register'
-import Dashboard from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
-import PanelCliente from './pages/PanelCliente'
+import PublicLanding from './pages/PublicLanding'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <SignedIn>{children}</SignedIn>
@@ -16,62 +12,33 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <SignedOut>{children}</SignedOut>
 }
 
-function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useUser()
-  const role = user?.publicMetadata?.role as string | undefined
-  if (role !== 'admin') {
-    return <Navigate to="/dashboard" />
-  }
-  return <>{children}</>
-}
-
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<PublicLanding />} />
-      <Route path="/landing/:id" element={<Landing />} />
+      {/* Login — pantalla principal para el dueño del taller */}
       <Route
-        path="/login/*"
+        path="/"
         element={
           <PublicRoute>
             <Login />
           </PublicRoute>
         }
       />
-      <Route
-        path="/register/*"
-        element={
-          <PublicRoute>
-            <Register />
-          </PublicRoute>
-        }
-      />
+
+      {/* Panel de administración del taller (requiere login) */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <Dashboard />
+            <AdminDashboard />
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/dashboard/admin"
-        element={
-          <ProtectedRoute>
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/cliente"
-        element={
-          <ProtectedRoute>
-            <PanelCliente />
-          </ProtectedRoute>
-        }
-      />
+
+      {/* Landing pública de un taller específico (para que clientes se pre-registren) */}
+      <Route path="/workshop/:id" element={<PublicLanding />} />
+
+      {/* Cualquier otra ruta → login */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )

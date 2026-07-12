@@ -123,6 +123,10 @@ model Vehicle {
   fechaActivacion   DateTime? @map("fecha_activacion")
   idMecanicoActivo  Int      @map("id_mecanico_activo")
   ultimoKilometraje Int      @default(0) @map("ultimo_kilometraje")
+  tasaDesgasteKmSem Int      @default(0) @map("tasa_desgaste_km_sem")
+  metodoCalculo     String?  @map("metodo_calculo") @db.VarChar(30)
+  confianzaTasa     Float?   @map("confianza_tasa")
+  fechaCalculoTasa  DateTime? @map("fecha_calculo_tasa")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @default(now()) @map("updated_at") @updatedAt
 

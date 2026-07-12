@@ -63,6 +63,10 @@ export class IntervencionRegistradaHandler {
       where: { id: vehicleId },
       data: {
         ultimoKilometraje: intervenciones[intervenciones.length - 1].kilometrajeOdometro,
+        tasaDesgasteKmSem: Math.round(tasa.getKilometrosSemanales()),
+        metodoCalculo: tasa.getMetodo(),
+        confianzaTasa: tasa.getNivelConfianza(),
+        fechaCalculoTasa: new Date(),
       },
     });
   }

@@ -4,6 +4,10 @@ import {
   IDOMAIN_EVENT_PUBLISHER,
 } from '../../../shared/domain/ports/events/IDomainEventPublisher';
 import { AlertaGeneradaEvent } from '../../domain/events/AlertaGeneradaEvent';
+import {
+  ServicioPrediccionLLM,
+  ContextoVehiculo,
+} from '../../domain/domain-services/ServicioPrediccionLLM';
 
 export interface ComponenteCritico {
   nombre: string;
@@ -15,7 +19,11 @@ export interface GenerarPrediccionParams {
   vehicleId: string;
   placa: string;
   clienteId: string;
+  marca: string;
+  modelo: string;
+  anio: number;
   kilometrajeActual: number;
+  kmPorSemana: number;
   componentesCriticos: ComponenteCritico[];
 }
 
@@ -26,67 +34,61 @@ export class GenerarPrediccion {
   constructor(
     @Inject(IDOMAIN_EVENT_PUBLISHER)
     private readonly eventPublisher: IDomainEventPublisher,
+    @Inject('SERVICIO_PREDICCION_LLM')
+    private readonly servicioPrediccion: ServicioPrediccionLLM,
   ) {}
 
   async execute(params: GenerarPrediccionParams): Promise<void> {
-    for (const componente of params.componentesCriticos) {
-      const kilometrajeRestante =
-        componente.limiteKilometraje - params.kilometrajeActual;
-      const porcentajeDesgaste =
-        (params.kilometrajeActual / componente.limiteKilometraje) * 100;
+    if (params.componentesCriticos.length === 0) {
+      this.logger.log(`Vehículo ${params.vehicleId}: sin componentes críticos`);
+      return;
+    }
 
-      if (kilometrajeRestante <= 0) {
-        const evento = new AlertaGeneradaEvent({
-          vehicleId: params.vehicleId,
-          placa: params.placa,
-          clienteId: params.clienteId,
-          componenteAfectado: componente.nombre,
-          kilometrajeActual: params.kilometrajeActual,
-          kilometrajeLimite: componente.limiteKilometraje,
-          semanasEstimadasRestantes: 0,
-          mesesEstimadosRestantes: 0,
-          mensajePrediccion: `El componente ${componente.nombre} ha superado su limite de kilometraje.`,
-          nivelSeveridad: 'CRITICA',
-          recomendacion: 'Requiere reemplazo inmediato. Contacte al taller.',
-        });
+    const contexto: ContextoVehiculo = {
+      vehicleId: params.vehicleId,
+      placa: params.placa,
+      marca: params.marca,
+      modelo: params.modelo,
+      anio: params.anio,
+      kilometrajeActual: params.kilometrajeActual,
+      kmPorSemana: params.kmPorSemana,
+      componentesCriticos: params.componentesCriticos,
+    };
 
-        await this.eventPublisher.publish(
-          AlertaGeneradaEvent.EVENT_NAME,
-          evento.toPayload(),
+    try {
+      const prediccion = await this.servicioPrediccion.predecir(contexto);
+
+      if (prediccion.severidad === 'BAJA' && prediccion.semanasEstimadas > 12) {
+        this.logger.log(
+          `Vehículo ${params.vehicleId}: ${prediccion.componenteAfectado} OK (${prediccion.semanasEstimadas} semanas)`,
         );
-      } else if (porcentajeDesgaste >= 80) {
-        const kilometrosPorSemana = 200;
-        const semanasRestantes = Math.floor(
-          kilometrajeRestante / kilometrosPorSemana,
-        );
-        const mesesRestantes = Math.floor(semanasRestantes / 4);
-
-        let severidad: 'BAJA' | 'MEDIA' | 'CRITICA' = 'BAJA';
-        if (porcentajeDesgaste >= 95) {
-          severidad = 'CRITICA';
-        } else if (porcentajeDesgaste >= 85) {
-          severidad = 'MEDIA';
-        }
-
-        const evento = new AlertaGeneradaEvent({
-          vehicleId: params.vehicleId,
-          placa: params.placa,
-          clienteId: params.clienteId,
-          componenteAfectado: componente.nombre,
-          kilometrajeActual: params.kilometrajeActual,
-          kilometrajeLimite: componente.limiteKilometraje,
-          semanasEstimadasRestantes: semanasRestantes,
-          mesesEstimadosRestantes: mesesRestantes,
-          mensajePrediccion: `El componente ${componente.nombre} esta al ${porcentajeDesgaste.toFixed(1)}% de desgaste.`,
-          nivelSeveridad: severidad,
-          recomendacion: `Programar mantenimiento en las proximas ${semanasRestantes} semanas.`,
-        });
-
-        await this.eventPublisher.publish(
-          AlertaGeneradaEvent.EVENT_NAME,
-          evento.toPayload(),
-        );
+        return;
       }
+
+      const evento = new AlertaGeneradaEvent({
+        vehicleId: params.vehicleId,
+        placa: params.placa,
+        clienteId: params.clienteId,
+        componenteAfectado: prediccion.componenteAfectado,
+        kilometrajeActual: prediccion.kilometrajeActual,
+        kilometrajeLimite: prediccion.kilometrajeLimite,
+        semanasEstimadasRestantes: prediccion.semanasEstimadas,
+        mesesEstimadosRestantes: prediccion.mesesEstimados,
+        mensajePrediccion: prediccion.mensajePrediccion,
+        nivelSeveridad: prediccion.severidad,
+        recomendacion: prediccion.recomendacion,
+      });
+
+      await this.eventPublisher.publish(
+        AlertaGeneradaEvent.EVENT_NAME,
+        evento.toPayload(),
+      );
+
+      this.logger.log(
+        `Alerta generada: ${prediccion.componenteAfectado} — ${prediccion.severidad} (${prediccion.semanasEstimadas} sem)`,
+      );
+    } catch (error) {
+      this.logger.error(`Error generando predicción: ${error}`);
     }
   }
 }

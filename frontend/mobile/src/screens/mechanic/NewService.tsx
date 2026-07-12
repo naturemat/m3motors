@@ -29,7 +29,7 @@ const serviceOptions = [
 export default function NewService() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
-  const {_vehicleId} = route.params;
+  const {vehicleId} = route.params;
 
   const [kilometraje, setKilometraje] = useState('');
   const [tipoServicio, setTipoServicio] = useState('');

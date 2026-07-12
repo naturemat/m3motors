@@ -1,78 +1,62 @@
-# Rutas del Frontend Web — M3Motors
+# Frontend Web — M3Motors
 
 ## Arquitectura
 
-- **Web**: Panel del **dueño/admin del taller** + landing pública de pre-registro
+- **Web**: Panel del **dueño/admin del taller** (7 pantallas)
 - **Mobile**: Cliente y mecánico (app React Native separada)
 
-## Rutas de React Router
+## Pantallas
 
-| Ruta | Componente | Auth | Descripcion |
-|------|-----------|------|-------------|
-| `/` | `Login` | `SignedOut` | Login del dueño del taller (pantalla principal) |
-| `/dashboard` | `AdminDashboard` | `SignedIn` | Panel de administración del taller |
-| `/workshop/:id` | `PublicLanding` | No | Landing pública del taller — formulario de pre-registro para clientes |
-| `*` | `Navigate to /` | — | Catch-all → redirige al login |
+| # | Pantalla | Componente | Descripción |
+|---|----------|-----------|-------------|
+| 1 | Login | `LoginView` | Login del dueño con animación 3D y acceso demo |
+| 2 | Dashboard | `DashboardView` | KPIs, gráficos de ingresos, evolución de clientes, actividad reciente |
+| 3 | Clientes | `ClientsView` | Listado, búsqueda, filtros, KPIs de clientes, CRUD |
+| 4 | Servicios | `ServicesView` | Órdenes de trabajo, estados, filtros, CRUD |
+| 5 | Mecánicos | `MechanicsView` | Equipo técnico, carga de trabajo, especialidades, CRUD |
+| 6 | Reportes | `ReportsView` | KPIs de rendimiento, distribución de servicios, horas pico |
+| 7 | Configuración | `SettingsView` | Ajustes del taller, notificaciones, reset de datos |
 
-### Guard de autenticacion
+## Navegación
 
-- **`ProtectedRoute`**: Usa `<SignedIn>` de Clerk. Si no está autenticado, redirige a login.
-- **`PublicRoute`**: Usa `<SignedOut>` de Clerk. Solo renderiza si NO está autenticado.
+- **Sidebar** (desktop) + **Drawer** (mobile) — componente reutilizado en todas las pantallas
+- Navegación por **tabs** (estado `activeTab` en App.tsx)
+- Login con **localStorage** (`m3_logged_in`)
+- Datos persistidos en **localStorage** (clientes, mecánicos, órdenes)
 
----
+## Componentes reutilizados
 
-## Endpoints del Backend consumidos
+- `Sidebar` — navegación lateral con logo M3Motors, menú, perfil de admin, logout
+- `LoginView` — pantalla de login con branding M3Motors, formulario, acceso demo rápido
+- Cada vista tiene su **top bar** sticky con título y acciones contextual
 
-### Publicos (sin auth)
-
-| Metodo | Endpoint | Pagina | Descripcion |
-|--------|----------|--------|-------------|
-| `GET` | `/public/workshop/:id` | PublicLanding | Datos del taller |
-| `POST` | `/public/workshop/:id/pre-register` | PublicLanding | Pre-registrar cliente (requiere captcha) |
-
-### Admin (requieren Bearer token)
-
-| Metodo | Endpoint | Pagina | Descripcion |
-|--------|----------|--------|-------------|
-| `GET` | `/admin/kpis` | AdminDashboard | KPIs del taller |
-| `GET` | `/admin/workshop` | AdminDashboard | Datos del taller |
-| `PUT` | `/admin/workshop` | AdminDashboard | Actualizar datos del taller |
-| `GET` | `/admin/mechanics` | AdminDashboard | Listar mecánicos |
-| `POST` | `/admin/mechanics` | AdminDashboard | Crear mecánico |
-| `DELETE` | `/admin/mechanics/:id` | AdminDashboard | Eliminar mecánico |
-| `GET` | `/admin/services` | AdminDashboard | Catálogo de servicios |
-| `POST` | `/admin/services` | AdminDashboard | Crear servicio |
-| `GET` | `/admin/customers` | AdminDashboard | Clientes (activos + pre-registrados) |
-| `POST` | `/admin/customers/:id/activate` | AdminDashboard | Activar cliente pre-registrado |
-
----
-
-## Variables de Entorno
-
-| Variable | Requerida | Descripcion |
-|----------|-----------|-------------|
-| `VITE_API_URL` | Si | URL base del backend (`http://localhost:3000` en dev) |
-| `VITE_CLERK_PUBLISHABLE_KEY` | Si | Clerk publishable key |
-| `VITE_RECAPTCHA_SITE_KEY` | No | Google reCAPTCHA site key (pre-registro) |
-| `VITE_TELEGRAM_BOT_USERNAME` | No | Bot de Telegram |
-
----
-
-## Estructura de Paginas
+## Estructura de archivos
 
 ```
 src/
-├── main.tsx              → Entry: ClerkProvider + BrowserRouter + App
-├── App.tsx               → Router: /, /dashboard, /workshop/:id
-├── index.css             → Tailwind + CSS custom properties
-├── pages/
-│   ├── Login.tsx           → Login del dueño (pantalla principal con branding)
-│   ├── AdminDashboard.tsx  → Panel admin: mecánicos, servicios, clientes, KPIs
-│   └── PublicLanding.tsx   → Landing pública: info del taller + formulario pre-registro
-├── components/            → (atomicos, por crear)
-├── hooks/                 → (por crear)
-├── services/              → (por crear)
-├── store/                 → (por crear)
-├── types/                 → (por crear)
-└── utils/                 → (por crear)
+├── main.tsx              → Entry point
+├── App.tsx               → Estado global + navegación por tabs
+├── types.ts              → Interfaces (Client, Mechanic, ServiceOrder)
+├── data.ts               → Datos iniciales de demostración
+├── index.css             → Tailwind CSS
+├── components/
+│   ├── Sidebar.tsx       → Navegación lateral (reutilizado en todas las vistas)
+│   ├── LoginView.tsx     → Login del admin
+│   ├── DashboardView.tsx → Dashboard con KPIs y gráficos
+│   ├── ClientsView.tsx   → Gestión de clientes
+│   ├── MechanicsView.tsx → Gestión de mecánicos
+│   ├── ServicesView.tsx  → Gestión de servicios/órdenes
+│   ├── ReportsView.tsx   → Reportes de rendimiento
+│   └── SettingsView.tsx  → Configuración del taller
+└── public/
+    └── Logo_M3Motors.png → Logo del proyecto
 ```
+
+## Stack
+
+- React 19 + TypeScript
+- Tailwind CSS v3 (PostCSS)
+- lucide-react (iconos)
+- Vite 8 (build con sourcemaps)
+- OxLint (linting)
+- Vitest (testing)

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+
 import {
   Controller,
   Get,
@@ -47,10 +47,7 @@ export class PartsCatalogController {
     if (subcategoria) where.subcategoria = subcategoria;
     if (workshopId) {
       // Incluir global (null) + específico del taller
-      where.OR = [
-        { workshopId: null },
-        { workshopId: parseInt(workshopId) },
-      ];
+      where.OR = [{ workshopId: null }, { workshopId: parseInt(workshopId) }];
     } else {
       // Solo catálogo global
       where.workshopId = null;
@@ -58,7 +55,11 @@ export class PartsCatalogController {
 
     const parts = await this.prisma.client$.partsCatalog.findMany({
       where,
-      orderBy: [{ categoria: 'asc' }, { subcategoria: 'asc' }, { nombre: 'asc' }],
+      orderBy: [
+        { categoria: 'asc' },
+        { subcategoria: 'asc' },
+        { nombre: 'asc' },
+      ],
     });
 
     return { parts };
@@ -75,7 +76,9 @@ export class PartsCatalogController {
       orderBy: { categoria: 'asc' },
     });
 
-    return { categories: categories.map((c: { categoria: string }) => c.categoria) };
+    return {
+      categories: categories.map((c: { categoria: string }) => c.categoria),
+    };
   }
 
   @Get(':id')
@@ -112,7 +115,7 @@ export class PartsCatalogController {
       marcasComunes?: string;
       notas?: string;
     },
-    @Req() req: Request,
+    @Req() _req: Request,
   ) {
     const part = await this.prisma.client$.partsCatalog.create({
       data: {

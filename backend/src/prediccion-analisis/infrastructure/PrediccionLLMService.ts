@@ -34,7 +34,9 @@ export class PrediccionLLMService implements ServicioPrediccionLLM {
   async predecir(contexto: ContextoVehiculo): Promise<AlertaPrediccion> {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
-      this.logger.warn('GROQ_API_KEY no configurada — usando predicción matemática');
+      this.logger.warn(
+        'GROQ_API_KEY no configurada — usando predicción matemática',
+      );
       return this.prediccionMatematica(contexto);
     }
 
@@ -43,7 +45,7 @@ export class PrediccionLLMService implements ServicioPrediccionLLM {
       const respuesta = await this.llamarGroq(prompt, apiKey);
       return this.parsearRespuesta(respuesta, contexto);
     } catch (error) {
-      this.logger.error(`Error en predicción LLM: ${error}`);
+      this.logger.error(`Error en predicción LLM: ${String(error)}`);
       return this.prediccionMatematica(contexto);
     }
   }
@@ -140,8 +142,9 @@ Si un componente ya venció, pon kilometrosRestantes en 0 y severidad en CRITICA
       componenteAfectado: principal.componente,
       kilometrajeActual: contexto.kilometrajeActual,
       kilometrajeLimite:
-        contexto.componentesCriticos.find((c) => c.nombre === principal.componente)
-          ?.limiteKilometraje ?? 0,
+        contexto.componentesCriticos.find(
+          (c) => c.nombre === principal.componente,
+        )?.limiteKilometraje ?? 0,
       semanasEstimadas: principal.semanasEstimadas,
       mesesEstimados: principal.mesesEstimados,
       mensajePrediccion: principal.razon,

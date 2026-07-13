@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ServicioCalculoDesgaste } from '../domain/domain-services/ServicioCalculoDesgaste';
-import { TasaDesgaste, MetodoCalculo } from '../domain/value-objects/TasaDesgaste';
+import { TasaDesgaste } from '../domain/value-objects/TasaDesgaste';
 import { RegistroKilometraje } from '../../registro-seguimiento/domain/value-objects/RegistroKilometraje';
 
 const MINIMO_REGISTROS = 3;
@@ -68,9 +68,7 @@ export class CalculoDesgasteService implements ServicioCalculoDesgaste {
     for (let i = 1; i < puntos.length; i++) {
       const deltaSemanas = puntos[i].semanas - puntos[i - 1].semanas;
       if (deltaSemanas > 0) {
-        pendientes.push(
-          (puntos[i].km - puntos[i - 1].km) / deltaSemanas,
-        );
+        pendientes.push((puntos[i].km - puntos[i - 1].km) / deltaSemanas);
       }
     }
 
@@ -151,13 +149,9 @@ export class CalculoDesgasteService implements ServicioCalculoDesgaste {
     const n = puntos.length;
     const mediaY = puntos.reduce((s, p) => s + p.km, 0) / n;
 
-    const ssTot = puntos.reduce(
-      (s, p) => s + Math.pow(p.km - mediaY, 2),
-      0,
-    );
+    const ssTot = puntos.reduce((s, p) => s + Math.pow(p.km - mediaY, 2), 0);
     const ssRes = puntos.reduce(
-      (s, p) =>
-        s + Math.pow(p.km - (pendiente * p.semanas + intercepto), 2),
+      (s, p) => s + Math.pow(p.km - (pendiente * p.semanas + intercepto), 2),
       0,
     );
 

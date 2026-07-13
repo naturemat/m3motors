@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { IntervencionRegistradaPayload } from '../../../registro-seguimiento/domain/events/IntervencionRegistradaEvent';
@@ -62,7 +63,8 @@ export class IntervencionRegistradaHandler {
     await this.prisma.client$.vehiculo.update({
       where: { id: vehicleId },
       data: {
-        ultimoKilometraje: intervenciones[intervenciones.length - 1].kilometrajeOdometro,
+        ultimoKilometraje:
+          intervenciones[intervenciones.length - 1].kilometrajeOdometro,
         tasaDesgasteKmSem: Math.round(tasa.getKilometrosSemanales()),
         metodoCalculo: tasa.getMetodo(),
         confianzaTasa: tasa.getNivelConfianza(),

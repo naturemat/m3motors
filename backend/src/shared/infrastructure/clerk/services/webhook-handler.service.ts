@@ -61,6 +61,7 @@ export class WebhookHandlerService {
     const orgId = data?.organization?.id;
     const role = data?.role;
     const email = data?.public_user_data?.identifier ?? '';
+    const memberType = data?.public_metadata?.type as string | undefined;
 
     if (!userId || !orgId || !role) {
       this.logger.warn('Invalid webhook data structure');
@@ -72,10 +73,11 @@ export class WebhookHandlerService {
         await this.syncAdmin(userId, orgId, email);
         break;
       case 'org:member':
-        await this.syncMechanic(userId, orgId, email);
-        break;
-      case 'org:client':
-        await this.syncCliente(userId, orgId, email);
+        if (memberType === 'client') {
+          await this.syncCliente(userId, orgId, email);
+        } else {
+          await this.syncMechanic(userId, orgId, email);
+        }
         break;
       default:
         this.logger.warn('Unknown role:', role);

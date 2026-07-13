@@ -108,55 +108,59 @@ export class InterventionController {
     // 2. REQUERIMIENTO CRÍTICO: Validar que el kilometraje ingresado sea mayor al anterior
     if (dto.kilometrajeOdometro <= vehiculo.kilometrajeActual) {
       throw new BadRequestException(
-        `El kilometraje ingresado (${dto.kilometrajeOdometro} km) debe ser estrictamente mayor al último registro (${vehiculo.kilometrajeActual} km).`
+        `El kilometraje ingresado (${dto.kilometrajeOdometro} km) debe ser estrictamente mayor al último registro (${vehiculo.kilometrajeActual} km).`,
       );
     }
 
     // 3. Guardar todo en una transacción atómica de Prisma
-    const intervention = await this.prisma.client$.$transaction(async (tx: any) => {      
-      const createdIntervention = await tx.intervention.create({
-        data: {
-          vehiculoId: dto.vehiculoId,
-          mecanicoId: mechanic.id,
-          serviceCatalogId: dto.serviceCatalogId,
-          fecha: new Date(),
-          kilometrajeOdometro: dto.kilometrajeOdometro,
-          diagnostico: dto.diagnostico,
-          observaciones: dto.observaciones,
-          severidad: dto.severidad,
-          manoDeObra: dto.manoDeObra,
-          estado: 'FINALIZADO',
-          tipoIntervencion: dto.tipoIntervencion ?? 'PREVENTIVO',
-          detalles: dto.detalles
-            ? {
-                create: dto.detalles.map((d) => ({
-                  componenteReemplazado: d.componenteReemplazado,
-                  kilometrajeInstalacion: dto.kilometrajeOdometro,
-                  limiteKilometraje: d.limiteKilometraje,
-                  tipoServicio: d.tipoServicio,
-                  partsCatalogId: d.partsCatalogId ?? null,
-                  marcaRepuesto: d.marcaRepuesto ?? null,
-                  calidadRepuesto: d.calidadRepuesto ?? null,
-                  observaciones: d.observaciones ?? null,
-                  vidaUtilDiasEstimada: d.vidaUtilDiasEstimada ?? null,
-                })),
-              }
-            : undefined,
-        },
-        include: { detalles: { include: { partsCatalog: true } } },
-      });
+    const intervention = await this.prisma.client$.$transaction(
+      async (tx: any) => {
+        const createdIntervention = await tx.intervention.create({
+          data: {
+            vehiculoId: dto.vehiculoId,
+            mecanicoId: mechanic.id,
+            serviceCatalogId: dto.serviceCatalogId,
+            fecha: new Date(),
+            kilometrajeOdometro: dto.kilometrajeOdometro,
+            diagnostico: dto.diagnostico,
+            observaciones: dto.observaciones,
+            severidad: dto.severidad,
+            manoDeObra: dto.manoDeObra,
+            estado: 'FINALIZADO',
+            tipoIntervencion: dto.tipoIntervencion ?? 'PREVENTIVO',
+            detalles: dto.detalles
+              ? {
+                  create: dto.detalles.map((d) => ({
+                    componenteReemplazado: d.componenteReemplazado,
+                    kilometrajeInstalacion: dto.kilometrajeOdometro,
+                    limiteKilometraje: d.limiteKilometraje,
+                    tipoServicio: d.tipoServicio,
+                    partsCatalogId: d.partsCatalogId ?? null,
+                    marcaRepuesto: d.marcaRepuesto ?? null,
+                    calidadRepuesto: d.calidadRepuesto ?? null,
+                    observaciones: d.observaciones ?? null,
+                    vidaUtilDiasEstimada: d.vidaUtilDiasEstimada ?? null,
+                  })),
+                }
+              : undefined,
+          },
+          include: { detalles: { include: { partsCatalog: true } } },
+        });
 
-      // Actualizar el kilometraje actual en el Vehículo
-      await tx.vehiculo.update({
-        where: { id: dto.vehiculoId },
-        data: { kilometrajeActual: dto.kilometrajeOdometro },
-      });
+        // Actualizar el kilometraje actual en el Vehículo
+        await tx.vehiculo.update({
+          where: { id: dto.vehiculoId },
+          data: { kilometrajeActual: dto.kilometrajeOdometro },
+        });
 
-      return createdIntervention;
-    });
+        return createdIntervention;
+      },
+    );
 
     // 4. REQUERIMIENTO CRÍTICO: Lanzar evento de dominio IntervencionRegistrada
-    console.log(`[Evento Dominio] IntervencionRegistrada disparado para ID: ${intervention.id}`);
+    console.log(
+      `[Evento Dominio] IntervencionRegistrada disparado para ID: ${intervention.id}`,
+    );
 
     return {
       mensaje: 'Servicio registrado exitosamente',

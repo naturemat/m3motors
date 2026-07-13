@@ -44,7 +44,7 @@ export class ActivationController {
     @Query('status') status?: string,
     @Query('skip') skip?: string,
     @Query('take') take?: string,
-    @Query('orderBy') orderBy?: string
+    @Query('orderBy') orderBy?: string,
   ) {
     const { userId } = (req as any).auth;
 
@@ -88,14 +88,14 @@ export class ActivationController {
     }
 
     const total = await this.prisma.client$.preRegisteredCustomer.count({
-      where: whereClause
+      where: whereClause,
     });
 
     const customers = await this.prisma.client$.preRegisteredCustomer.findMany({
       where: whereClause,
       skip: skipNum,
       take: takeNum,
-      orderBy: orderByClause
+      orderBy: orderByClause,
     });
 
     return {
@@ -103,8 +103,8 @@ export class ActivationController {
       meta: {
         total,
         skip: skipNum,
-        take: takeNum
-      }
+        take: takeNum,
+      },
     };
   }
 

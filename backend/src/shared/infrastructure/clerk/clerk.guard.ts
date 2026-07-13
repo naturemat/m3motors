@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   CanActivate,
@@ -44,7 +46,6 @@ export class ClerkAuthGuard implements CanActivate {
       };
       return true;
     } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       console.error('[ClerkGuard] Token verification failed:', error.message);
       throw new UnauthorizedException('Token inválido o expirado');
     }

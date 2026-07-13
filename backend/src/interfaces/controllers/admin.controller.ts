@@ -36,19 +36,10 @@ import { UpdateWorkshopDTO } from '../../application/dto/UpdateWorkshopDTO';
 export class AdminController {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async findWorkshopForUser(userId: string) {
-    const byOwner = await this.prisma.client$.workshop.findFirst({
+  private async findWorkshopForAdmin(userId: string) {
+    return this.prisma.client$.workshop.findFirst({
       where: { ownerId: userId },
     });
-    if (byOwner) return byOwner;
-
-    const byMechanic = await this.prisma.client$.mechanic.findFirst({
-      where: { clerkId: userId },
-      include: { workshop: true },
-    });
-    if (byMechanic?.workshop) return byMechanic.workshop;
-
-    return null;
   }
 
   @Get('kpis')
@@ -57,7 +48,7 @@ export class AdminController {
   async getKpis(@Req() req: Request) {
     const { userId } = (req as any).auth;
 
-    const workshop = await this.findWorkshopForUser(userId);
+    const workshop = await this.findWorkshopForAdmin(userId);
     if (!workshop) {
       return {
         kpis: {
@@ -137,7 +128,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Datos del taller' })
   async getWorkshop(@Req() req: Request) {
     const { userId } = (req as any).auth;
-    const workshop = await this.findWorkshopForUser(userId);
+    const workshop = await this.findWorkshopForAdmin(userId);
 
     if (!workshop) {
       return { workshop: null };
@@ -160,7 +151,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Taller actualizado' })
   async updateWorkshop(@Req() req: Request, @Body() dto: UpdateWorkshopDTO) {
     const { userId } = (req as any).auth;
-    const workshop = await this.findWorkshopForUser(userId);
+    const workshop = await this.findWorkshopForAdmin(userId);
 
     if (!workshop) {
       return { error: 'Taller no encontrado' };
@@ -183,7 +174,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Lista de mecánicos' })
   async getMechanics(@Req() req: Request) {
     const { userId } = (req as any).auth;
-    const workshop = await this.findWorkshopForUser(userId);
+    const workshop = await this.findWorkshopForAdmin(userId);
     if (!workshop) return { mechanics: [] };
 
     const mechanics = await this.prisma.client$.mechanic.findMany({
@@ -198,7 +189,7 @@ export class AdminController {
   @ApiResponse({ status: 201, description: 'Mecánico creado' })
   async createMechanic(@Req() req: Request, @Body() dto: CreateMechanicDTO) {
     const { userId } = (req as any).auth;
-    const workshop = await this.findWorkshopForUser(userId);
+    const workshop = await this.findWorkshopForAdmin(userId);
     if (!workshop) return { error: 'Taller no encontrado' };
 
     const mechanic = await this.prisma.client$.mechanic.create({
@@ -223,7 +214,7 @@ export class AdminController {
     @Req() req: Request,
   ) {
     const { userId } = (req as any).auth;
-    const workshop = await this.findWorkshopForUser(userId);
+    const workshop = await this.findWorkshopForAdmin(userId);
     if (!workshop) return { error: 'Taller no encontrado' };
 
     await this.prisma.client$.mechanic.deleteMany({
@@ -237,7 +228,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Lista de servicios' })
   async getServices(@Req() req: Request) {
     const { userId } = (req as any).auth;
-    const workshop = await this.findWorkshopForUser(userId);
+    const workshop = await this.findWorkshopForAdmin(userId);
     if (!workshop) return { services: [] };
 
     const services = await this.prisma.client$.serviceCatalog.findMany({
@@ -252,7 +243,7 @@ export class AdminController {
   @ApiResponse({ status: 201, description: 'Servicio creado' })
   async createService(@Req() req: Request, @Body() dto: CreateServiceDTO) {
     const { userId } = (req as any).auth;
-    const workshop = await this.findWorkshopForUser(userId);
+    const workshop = await this.findWorkshopForAdmin(userId);
     if (!workshop) return { error: 'Taller no encontrado' };
 
     const service = await this.prisma.client$.serviceCatalog.create({
@@ -272,7 +263,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Clientes listados' })
   async getCustomers(@Req() req: Request) {
     const { userId } = (req as any).auth;
-    const workshop = await this.findWorkshopForUser(userId);
+    const workshop = await this.findWorkshopForAdmin(userId);
     if (!workshop) return { activeClients: [], preRegistered: [] };
 
     const full = await this.prisma.client$.workshop.findFirst({
@@ -300,7 +291,7 @@ export class AdminController {
     @Req() req: Request,
   ) {
     const { userId } = (req as any).auth;
-    const workshop = await this.findWorkshopForUser(userId);
+    const workshop = await this.findWorkshopForAdmin(userId);
     if (!workshop) return { error: 'Taller no encontrado' };
 
     const full = await this.prisma.client$.workshop.findFirst({

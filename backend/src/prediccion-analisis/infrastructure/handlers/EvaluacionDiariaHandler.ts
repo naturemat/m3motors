@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Inject, Injectable, Logger } from '@nestjs/common';
+
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.service';
 import { GenerarPrediccion } from '../../application/use-cases/GenerarPrediccion';
@@ -51,7 +51,7 @@ export class EvaluacionDiariaHandler {
         await this.evaluarVehiculo(vehiculo);
       } catch (error) {
         this.logger.error(
-          `Error evaluando vehículo ${vehiculo.id}: ${error}`,
+          `Error evaluando vehículo ${vehiculo.id}: ${String(error)}`,
         );
       }
     }
@@ -97,7 +97,8 @@ export class EvaluacionDiariaHandler {
     fechaUltimaIntervencion: Date,
   ): number {
     const ahora = new Date();
-    const diffMs = ahora.getTime() - new Date(fechaUltimaIntervencion).getTime();
+    const diffMs =
+      ahora.getTime() - new Date(fechaUltimaIntervencion).getTime();
     const semanasTranscurridas = diffMs / (1000 * 60 * 60 * 24 * 7);
     return Math.round(ultimoKm + kmPorSemana * semanasTranscurridas);
   }

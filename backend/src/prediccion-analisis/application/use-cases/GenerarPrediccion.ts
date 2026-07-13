@@ -88,7 +88,7 @@ export class GenerarPrediccion {
         `Alerta generada: ${prediccion.componenteAfectado} — ${prediccion.severidad} (${prediccion.semanasEstimadas} sem)`,
       );
     } catch (error) {
-      this.logger.error(`Error generando predicción: ${error}`);
+      this.logger.error(`Error generando predicción: ${String(error)}`);
     }
   }
 }

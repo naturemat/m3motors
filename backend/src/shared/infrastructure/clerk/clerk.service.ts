@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Injectable, Logger } from '@nestjs/common';
 import { createClerkClient } from '@clerk/clerk-sdk-node';
 
@@ -39,24 +43,20 @@ export class ClerkService {
   }
 
   getUser(userId: string) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     return this.getClient().users.getUser(userId);
   }
 
   getOrganizationMemberships(userId: string) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     return this.getClient().users.getOrganizationMembershipList({ userId });
   }
 
   getOrganization(orgId: string) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     return this.getClient().organizations.getOrganization({
       organizationId: orgId,
     });
   }
 
   addMemberToOrganization(orgId: string, userId: string, role: string) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     return this.getClient().organizations.createOrganizationMembership({
       organizationId: orgId,
       userId,
@@ -65,7 +65,6 @@ export class ClerkService {
   }
 
   getOrganizationMembers(orgId: string) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     return this.getClient().organizations.getOrganizationMembershipList({
       organizationId: orgId,
     });

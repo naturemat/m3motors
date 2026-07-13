@@ -1,7 +1,9 @@
 import { PrediccionLLMService } from '../../../../src/prediccion-analisis/infrastructure/PrediccionLLMService';
 import { ContextoVehiculo } from '../../../../src/prediccion-analisis/domain/domain-services/ServicioPrediccionLLM';
 
-function crearContexto(overrides?: Partial<ContextoVehiculo>): ContextoVehiculo {
+function crearContexto(
+  overrides?: Partial<ContextoVehiculo>,
+): ContextoVehiculo {
   return {
     vehicleId: '1',
     placa: 'ABC-1234',

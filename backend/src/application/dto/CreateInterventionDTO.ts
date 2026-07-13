@@ -27,7 +27,10 @@ export class CreateDetalleDTO {
   @IsString()
   tipoServicio!: string;
 
-  @ApiPropertyOptional({ example: 1, description: 'ID del repuesto del catálogo' })
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'ID del repuesto del catálogo',
+  })
   @IsOptional()
   @IsNumber()
   partsCatalogId?: number;
@@ -51,7 +54,10 @@ export class CreateDetalleDTO {
   @IsString()
   observaciones?: string;
 
-  @ApiPropertyOptional({ example: 365, description: 'Vida útil estimada en días' })
+  @ApiPropertyOptional({
+    example: 365,
+    description: 'Vida útil estimada en días',
+  })
   @IsOptional()
   @IsNumber()
   @Min(0)

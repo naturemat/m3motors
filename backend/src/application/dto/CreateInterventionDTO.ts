@@ -5,6 +5,7 @@ import {
   IsArray,
   ValidateNested,
   Min,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -25,6 +26,36 @@ export class CreateDetalleDTO {
   @ApiProperty({ example: 'Mantenimiento preventivo' })
   @IsString()
   tipoServicio!: string;
+
+  @ApiPropertyOptional({ example: 1, description: 'ID del repuesto del catálogo' })
+  @IsOptional()
+  @IsNumber()
+  partsCatalogId?: number;
+
+  @ApiPropertyOptional({ example: 'Bosch' })
+  @IsOptional()
+  @IsString()
+  marcaRepuesto?: string;
+
+  @ApiPropertyOptional({
+    example: 'ORIGINAL',
+    enum: ['ORIGINAL', 'ALTERNATIVO', 'REACONDICIONADO'],
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn(['ORIGINAL', 'ALTERNATIVO', 'REACONDICIONADO'])
+  calidadRepuesto?: string;
+
+  @ApiPropertyOptional({ example: 'Sin observaciones' })
+  @IsOptional()
+  @IsString()
+  observaciones?: string;
+
+  @ApiPropertyOptional({ example: 365, description: 'Vida útil estimada en días' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  vidaUtilDiasEstimada?: number;
 }
 
 export class CreateInterventionDTO {
@@ -72,6 +103,16 @@ export class CreateInterventionDTO {
   @IsNumber()
   @Min(0)
   manoDeObra?: number;
+
+  @ApiPropertyOptional({
+    example: 'PREVENTIVO',
+    enum: ['PREVENTIVO', 'CORRECTIVO', 'PREDICTIVO'],
+    description: 'Tipo de intervención',
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn(['PREVENTIVO', 'CORRECTIVO', 'PREDICTIVO'])
+  tipoIntervencion?: string;
 
   @ApiPropertyOptional({ type: [CreateDetalleDTO] })
   @IsOptional()

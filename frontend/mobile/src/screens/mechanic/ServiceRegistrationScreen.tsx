@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { InterventionService } from '../services/intervention.service'; // Ajusta tu ruta
-import { CreateInterventionDTO, VehiculoInfo, DetalleComponenteDTO } from '../types/intervention.types'; // Ajusta tu ruta
+import { InterventionService } from '../../services/intervention.service';
+import { CreateInterventionDTO, VehiculoInfo, DetalleComponenteDTO } from '../../types/intervention.types';
 
 export const ServiceRegistrationScreen = ({ route, navigation }: any) => {
   // --- ESTADOS DEL FORMULARIO ---

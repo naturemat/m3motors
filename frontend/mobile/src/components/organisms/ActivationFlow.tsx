@@ -2,7 +2,8 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, ScrollView, SafeAreaView, Alert} from 'react-native';
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {useCameraPermission} from 'react-native-vision-camera';
+import {useCameraPermissions} from 'expo-camera';
+import * as FileSystem from 'expo-file-system';
 import {AppBar} from '../molecules';
 import {Button, LoadingSpinner} from '../atoms';
 import StepIndicator from '../atoms/StepIndicator';
@@ -40,7 +41,7 @@ export default function ActivationFlow() {
 
   const [currentStep, setCurrentStep] = useState<FlowStep>('confirmation');
   const [photos, setPhotos] = useState<(string | null)[]>([null, null, null]);
-  const {hasPermission, requestPermission} = useCameraPermission();
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [isProcessingOCR, setIsProcessingOCR] = useState(false);
   const [recognizedPlate, setRecognizedPlate] = useState<string | null>(null);
   const [ocrError, setOcrError] = useState<string | null>(null);
@@ -53,8 +54,10 @@ export default function ActivationFlow() {
   } | null>(null);
 
   useEffect(() => {
-    requestPermission();
-  }, [requestPermission]);
+    if (!cameraPermission?.granted) {
+      requestCameraPermission();
+    }
+  }, [cameraPermission, requestCameraPermission]);
 
   const getStepIndex = (step: FlowStep): number => {
     if (step.startsWith('photo-')) {
@@ -102,24 +105,19 @@ export default function ActivationFlow() {
         throw new Error('No hay foto de placa disponible');
       }
 
-      const response = await fetch(platePhoto);
-      const blob = await response.blob();
-      const reader = new FileReader();
+      const base64 = await FileSystem.readAsStringAsync(platePhoto, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
 
-      reader.onload = async () => {
-        const base64 = (reader.result as string).split(',')[1];
-        try {
-          const result = await recognizePlate(base64);
-          setRecognizedPlate(result.placa);
-        } catch {
-          setOcrError(
-            'No se pudo reconocer la placa automaticamente. Ingrese la placa manualmente.',
-          );
-        }
-        setIsProcessingOCR(false);
-      };
-
-      reader.readAsDataURL(blob);
+      try {
+        const result = await recognizePlate(base64);
+        setRecognizedPlate(result.placa);
+      } catch {
+        setOcrError(
+          'No se pudo reconocer la placa automaticamente. Ingrese la placa manualmente.',
+        );
+      }
+      setIsProcessingOCR(false);
     } catch {
       setOcrError(
         'No se pudo reconocer la placa automaticamente. Ingrese la placa manualmente.',
@@ -138,43 +136,12 @@ export default function ActivationFlow() {
         {tipo: 'placa' as const, base64: ''},
       ];
 
-      if (photos[0]) {
-        const response = await fetch(photos[0]);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        reader.onload = () => {
-          fotos[0].base64 = (reader.result as string).split(',')[1];
-        };
-        await new Promise<void>(resolve => {
-          reader.onloadend = () => resolve();
-          reader.readAsDataURL(blob);
-        });
-      }
-
-      if (photos[1]) {
-        const response = await fetch(photos[1]);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        reader.onload = () => {
-          fotos[1].base64 = (reader.result as string).split(',')[1];
-        };
-        await new Promise<void>(resolve => {
-          reader.onloadend = () => resolve();
-          reader.readAsDataURL(blob);
-        });
-      }
-
-      if (photos[2]) {
-        const response = await fetch(photos[2]);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        reader.onload = () => {
-          fotos[2].base64 = (reader.result as string).split(',')[1];
-        };
-        await new Promise<void>(resolve => {
-          reader.onloadend = () => resolve();
-          reader.readAsDataURL(blob);
-        });
+      for (let i = 0; i < 3; i++) {
+        if (photos[i]) {
+          fotos[i].base64 = await FileSystem.readAsStringAsync(photos[i]!, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+        }
       }
 
       await activateClient({
@@ -238,7 +205,7 @@ export default function ActivationFlow() {
         imageUri={photos[stepIndex]}
         onCapture={handleCapturePhoto}
         onRetake={handleRetakePhoto}
-        hasPermission={hasPermission}
+        hasPermission={cameraPermission?.granted ?? false}
       />
       {photos[stepIndex] && (
         <View style={styles.photoStepActions}>

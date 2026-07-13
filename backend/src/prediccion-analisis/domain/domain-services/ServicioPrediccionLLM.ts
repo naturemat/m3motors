@@ -5,6 +5,7 @@ export interface ContextoVehiculo {
   modelo: string;
   anio: number;
   kilometrajeActual: number;
+  kmPorSemana: number;
   componentesCriticos: {
     nombre: string;
     kilometrajeInstalacion: number;

@@ -2,6 +2,10 @@ import { IntervencionId } from '../value-objects/IntervencionId';
 import { DiagnosticoTecnico } from '../value-objects/DiagnosticoTecnico';
 import { ComponenteCritico } from '../value-objects/ComponenteCritico';
 import { MecanicoId } from '../value-objects/MecanicoId';
+import {
+  TipoIntervencion,
+  esTipoIntervencionValido,
+} from '../value-objects/TipoIntervencion';
 
 export class Intervencion {
   private estado: 'PENDIENTE' | 'FINALIZADO';
@@ -14,9 +18,15 @@ export class Intervencion {
     private readonly diagnostico: DiagnosticoTecnico,
     private readonly manoDeObra: number,
     private readonly mecanicoId: MecanicoId,
+    private readonly tipoIntervencion: TipoIntervencion = 'PREVENTIVO',
   ) {
     this.validarFecha(fecha);
     this.validarManoDeObra(manoDeObra);
+    if (!esTipoIntervencionValido(tipoIntervencion)) {
+      throw new Error(
+        `Tipo de intervención inválido. Valores: PREVENTIVO, CORRECTIVO, PREDICTIVO`,
+      );
+    }
     this.estado = 'PENDIENTE';
     this.componentesSustituidos = [];
     this.serviciosRealizados = [];
@@ -62,6 +72,10 @@ export class Intervencion {
 
   getMecanicoId(): MecanicoId {
     return this.mecanicoId;
+  }
+
+  getTipoIntervencion(): TipoIntervencion {
+    return this.tipoIntervencion;
   }
 
   getEstado(): 'PENDIENTE' | 'FINALIZADO' {

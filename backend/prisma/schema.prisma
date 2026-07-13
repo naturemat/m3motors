@@ -24,6 +24,7 @@ model Workshop {
   mecanicos              Mechanic[]
   servicios              ServiceCatalog[]
   preRegisteredCustomers PreRegisteredCustomer[]
+  partsCatalog           PartsCatalog[]
 
   @@map("workshop")
 }
@@ -122,6 +123,10 @@ model Vehicle {
   fechaActivacion   DateTime? @map("fecha_activacion")
   idMecanicoActivo  Int      @map("id_mecanico_activo")
   ultimoKilometraje Int      @default(0) @map("ultimo_kilometraje")
+  tasaDesgasteKmSem Int      @default(0) @map("tasa_desgaste_km_sem")
+  metodoCalculo     String?  @map("metodo_calculo") @db.VarChar(30)
+  confianzaTasa     Float?   @map("confianza_tasa")
+  fechaCalculoTasa  DateTime? @map("fecha_calculo_tasa")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @default(now()) @map("updated_at") @updatedAt
 
@@ -195,6 +200,32 @@ model ServiceCatalog {
 }
 
 // =============================================================================
+// PARTS_CATALOG — Catálogo global de repuestos automotrices
+// =============================================================================
+model PartsCatalog {
+  id              Int      @id @default(autoincrement())
+  workshopId      Int?     @map("id_workshop")
+  categoria       String   @db.VarChar(50)
+  subcategoria    String   @db.VarChar(100)
+  nombre          String   @db.VarChar(150)
+  vidaUtilKm      Int      @map("vida_util_km")
+  vidaUtilDias    Int?     @map("vida_util_dias")
+  marcasComunes   String?  @map("marcas_comunes") @db.VarChar(255)
+  notas           String?
+  activo          Boolean  @default(true)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @map("updated_at") @updatedAt
+
+  workshop             Workshop?              @relation(fields: [workshopId], references: [id])
+  detallesIntervencion DetalleIntervencion[]
+
+  @@index([categoria])
+  @@index([subcategoria])
+  @@index([workshopId])
+  @@map("parts_catalog")
+}
+
+// =============================================================================
 // INTERVENCION — Orden de servicio
 // =============================================================================
 model Intervention {
@@ -209,6 +240,7 @@ model Intervention {
   severidad           String?   @db.VarChar(20)
   manoDeObra          Decimal?  @map("mano_de_obra") @db.Decimal(10, 2)
   estado              String    @default("BORRADOR") @db.VarChar(20)
+  tipoIntervencion    String    @default("PREVENTIVO") @map("tipo_intervencion") @db.VarChar(20)
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @default(now()) @map("updated_at") @updatedAt
 
@@ -229,14 +261,20 @@ model Intervention {
 model DetalleIntervencion {
   id                    Int      @id @default(autoincrement())
   intervencionId        Int      @map("id_intervencion")
+  partsCatalogId        Int?     @map("id_parts_catalog")
   componenteReemplazado String   @map("componente_reemplazado") @db.VarChar(100)
   kilometrajeInstalacion Int     @map("kilometraje_instalacion")
   limiteKilometraje     Int      @map("limite_kilometraje")
   tipoServicio          String   @map("tipo_servicio") @db.VarChar(50)
+  marcaRepuesto         String?  @map("marca_repuesto") @db.VarChar(100)
+  calidadRepuesto       String?  @map("calidad_repuesto") @db.VarChar(20)
+  observaciones         String?  @db.VarChar(500)
+  vidaUtilDiasEstimada  Int?     @map("vida_util_dias_estimada")
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @default(now()) @map("updated_at") @updatedAt
 
-  intervencion Intervention @relation(fields: [intervencionId], references: [id])
+  intervencion Intervention    @relation(fields: [intervencionId], references: [id])
+  partsCatalog PartsCatalog?   @relation(fields: [partsCatalogId], references: [id])
 
   @@index([intervencionId])
   @@map("detalle_intervencion")

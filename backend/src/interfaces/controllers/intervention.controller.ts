@@ -73,7 +73,7 @@ export class InterventionController {
       orderBy: { fecha: 'desc' },
       include: {
         vehiculo: { select: { placa: true, marca: true, modelo: true } },
-        detalles: true,
+        detalles: { include: { partsCatalog: true } },
       },
     });
 
@@ -125,19 +125,25 @@ export class InterventionController {
           observaciones: dto.observaciones,
           severidad: dto.severidad,
           manoDeObra: dto.manoDeObra,
-          estado: 'FINALIZADO', // Cambiado a FINALIZADO al guardarse exitosamente
+          estado: 'FINALIZADO',
+          tipoIntervencion: dto.tipoIntervencion ?? 'PREVENTIVO',
           detalles: dto.detalles
             ? {
                 create: dto.detalles.map((d) => ({
                   componenteReemplazado: d.componenteReemplazado,
-                  kilometrajeInstalacion: dto.kilometrajeOdometro, // Autocompletado del kilometraje actual
+                  kilometrajeInstalacion: dto.kilometrajeOdometro,
                   limiteKilometraje: d.limiteKilometraje,
                   tipoServicio: d.tipoServicio,
+                  partsCatalogId: d.partsCatalogId ?? null,
+                  marcaRepuesto: d.marcaRepuesto ?? null,
+                  calidadRepuesto: d.calidadRepuesto ?? null,
+                  observaciones: d.observaciones ?? null,
+                  vidaUtilDiasEstimada: d.vidaUtilDiasEstimada ?? null,
                 })),
               }
             : undefined,
         },
-        include: { detalles: true },
+        include: { detalles: { include: { partsCatalog: true } } },
       });
 
       // Actualizar el kilometraje actual en el Vehículo

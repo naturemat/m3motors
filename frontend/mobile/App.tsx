@@ -4,7 +4,6 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {NavigationContainer} from '@react-navigation/native';
 import {ClerkProvider, useAuth} from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
-import Config from 'react-native-config';
 import {RootNavigator} from './src/navigation';
 import {useAuthStore} from './src/store/authStore';
 import {LoadingSpinner} from './src/components/atoms';
@@ -40,7 +39,7 @@ const tokenCache = {
   },
 };
 
-const clerkPubKey = Config.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
+const clerkPubKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
 
 function AuthLoader() {
   const {isLoaded, isSignedIn, userId} = useAuth();
@@ -65,7 +64,11 @@ function AuthLoader() {
     }
   }, [isLoaded, isSignedIn, userId, setUser, setLoading]);
 
-  return <LoadingSpinner />;
+  if (!isLoaded) {
+    return <LoadingSpinner />;
+  }
+
+  return null;
 }
 
 function AppContent() {

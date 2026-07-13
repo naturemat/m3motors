@@ -14,6 +14,7 @@ import { AlertController } from './interfaces/controllers/alert.controller';
 import { AdminController } from './interfaces/controllers/admin.controller';
 import { ActivationController } from './interfaces/controllers/activation.controller';
 import { PublicController } from './interfaces/controllers/public.controller';
+import { PartsCatalogController } from './interfaces/controllers/parts-catalog.controller';
 import { GeminiOCRService } from './registro-seguimiento/infrastructure/external-services/GeminiOCRService';
 import { EcuadorVehicleDataProvider } from './registro-seguimiento/infrastructure/external-services/EcuadorVehicleDataProvider';
 import { GroqEngineInfoService } from './registro-seguimiento/infrastructure/external-services/GroqEngineInfoService';
@@ -48,6 +49,7 @@ import {
     AdminController,
     ActivationController,
     PublicController,
+    PartsCatalogController,
   ],
   providers: [
     AppService,

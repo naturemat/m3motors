@@ -1,11 +1,6 @@
 import React, {useRef} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
-import {
-  Camera,
-  CameraRef,
-  usePhotoOutput,
-  useCameraDevice,
-} from 'react-native-vision-camera';
+import {CameraView} from 'expo-camera';
 import {colors} from '../../theme';
 import CameraButton from '../atoms/CameraButton';
 
@@ -20,17 +15,19 @@ export default function CameraCapture({
   hasPermission,
   instruction,
 }: CameraCaptureProps) {
-  const cameraRef = useRef<CameraRef>(null);
-  const device = useCameraDevice('back');
-  const photoOutput = usePhotoOutput();
+  const cameraRef = useRef<React.ElementRef<typeof CameraView>>(null);
 
   const handleCapture = async () => {
-    if (!photoOutput) {
+    if (!cameraRef.current) {
       return;
     }
     try {
-      const photoFile = await photoOutput.capturePhotoToFile({}, {});
-      onCapture(`file://${photoFile.filePath}`);
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.7,
+      });
+      if (photo?.uri) {
+        onCapture(photo.uri);
+      }
     } catch {
       // capture failed
     }
@@ -46,25 +43,9 @@ export default function CameraCapture({
     );
   }
 
-  if (!device) {
-    return (
-      <View style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>
-          No se encontro dispositivo de camara
-        </Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <Camera
-        ref={cameraRef}
-        style={styles.camera}
-        device={device}
-        outputs={photoOutput ? [photoOutput] : []}
-        isActive={true}
-      />
+      <CameraView ref={cameraRef} style={styles.camera} facing="back" />
       <View style={styles.instructionContainer}>
         <Text style={styles.instruction}>{instruction}</Text>
       </View>

@@ -7,6 +7,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
 import PanelCliente from './pages/PanelCliente'
+import WorkshopDashboard from './pages/WorkshopDashboard'
 import PublicLanding from './pages/PublicLanding'
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -33,8 +34,11 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/workshop/:id" element={<PublicLanding />} />
 
-          {/* Protected */}
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          {/* Protected — main dashboard (old workshop panel) */}
+          <Route path="/dashboard" element={<ProtectedRoute><WorkshopDashboard /></ProtectedRoute>} />
+
+          {/* Protected — Clerk-based dashboards */}
+          <Route path="/dashboard/perfil" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
           <Route path="/dashboard/cliente" element={<ProtectedRoute><PanelCliente /></ProtectedRoute>} />
 

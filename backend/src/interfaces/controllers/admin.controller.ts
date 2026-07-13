@@ -36,14 +36,42 @@ import { UpdateWorkshopDTO } from '../../application/dto/UpdateWorkshopDTO';
 export class AdminController {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async findWorkshopForUser(userId: string) {
+    const byOwner = await this.prisma.client$.workshop.findFirst({
+      where: { ownerId: userId },
+    });
+    if (byOwner) return byOwner;
+
+    const byMechanic = await this.prisma.client$.mechanic.findFirst({
+      where: { clerkId: userId },
+      include: { workshop: true },
+    });
+    if (byMechanic?.workshop) return byMechanic.workshop;
+
+    return null;
+  }
+
   @Get('kpis')
   @ApiOperation({ summary: 'KPI del taller' })
   @ApiResponse({ status: 200, description: 'Métricas clave del taller' })
   async getKpis(@Req() req: Request) {
     const { userId } = (req as any).auth;
 
-    const workshop = await this.prisma.client$.workshop.findFirst({
-      where: { ownerId: userId },
+    const workshop = await this.findWorkshopForUser(userId);
+    if (!workshop) {
+      return {
+        kpis: {
+          totalVehicles: 0,
+          totalClientsActive: 0,
+          monthlyRevenue: 0,
+          avgMechanicRating: 0,
+          servicesCount: 0,
+        },
+      };
+    }
+
+    const fullWorkshop = await this.prisma.client$.workshop.findFirst({
+      where: { id: workshop.id },
       include: {
         mecanicos: true,
         servicios: true,
@@ -65,32 +93,32 @@ export class AdminController {
 
     const clientsActive = await this.prisma.client$.cliente.count({
       where: {
-        idMecanicoActivo: { in: workshop.mecanicos.map((m: any) => m.id) },
+        idMecanicoActivo: { in: fullWorkshop.mecanicos.map((m: any) => m.id) },
         status: 'ACTIVATED',
       },
     });
 
     const vehicleCount = await this.prisma.client$.vehicle.count({
       where: {
-        idMecanicoActivo: { in: workshop.mecanicos.map((m: any) => m.id) },
+        idMecanicoActivo: { in: fullWorkshop.mecanicos.map((m: any) => m.id) },
       },
     });
 
     const monthlyRevenue = await this.prisma.client$.intervention.aggregate({
       _sum: { manoDeObra: true },
       where: {
-        mecanicoId: { in: workshop.mecanicos.map((m: any) => m.id) },
+        mecanicoId: { in: fullWorkshop.mecanicos.map((m: any) => m.id) },
         createdAt: {
           gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
         },
       },
     });
 
-    const avgMechanicRating = workshop.mecanicos.length
-      ? workshop.mecanicos.reduce(
+    const avgMechanicRating = fullWorkshop.mecanicos.length
+      ? fullWorkshop.mecanicos.reduce(
           (sum: number, mech: any) => sum + (mech.rating ?? 0),
           0,
-        ) / workshop.mecanicos.length
+        ) / fullWorkshop.mecanicos.length
       : 0;
 
     return {
@@ -99,7 +127,7 @@ export class AdminController {
         totalClientsActive: clientsActive,
         monthlyRevenue: Number(monthlyRevenue._sum.manoDeObra ?? 0),
         avgMechanicRating: Number(avgMechanicRating.toFixed(2)),
-        servicesCount: workshop.servicios.length,
+        servicesCount: fullWorkshop.servicios.length,
       },
     };
   }
@@ -109,8 +137,14 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Datos del taller' })
   async getWorkshop(@Req() req: Request) {
     const { userId } = (req as any).auth;
-    const workshop = await this.prisma.client$.workshop.findFirst({
-      where: { ownerId: userId },
+    const workshop = await this.findWorkshopForUser(userId);
+
+    if (!workshop) {
+      return { workshop: null };
+    }
+
+    const full = await this.prisma.client$.workshop.findFirst({
+      where: { id: workshop.id },
       include: {
         mecanicos: true,
         servicios: true,
@@ -118,11 +152,7 @@ export class AdminController {
       },
     });
 
-    if (!workshop) {
-      return { workshop: null };
-    }
-
-    return { workshop };
+    return { workshop: full };
   }
 
   @Put('workshop')
@@ -130,9 +160,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Taller actualizado' })
   async updateWorkshop(@Req() req: Request, @Body() dto: UpdateWorkshopDTO) {
     const { userId } = (req as any).auth;
-    const workshop = await this.prisma.client$.workshop.findFirst({
-      where: { ownerId: userId },
-    });
+    const workshop = await this.findWorkshopForUser(userId);
 
     if (!workshop) {
       return { error: 'Taller no encontrado' };
@@ -155,9 +183,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Lista de mecánicos' })
   async getMechanics(@Req() req: Request) {
     const { userId } = (req as any).auth;
-    const workshop = await this.prisma.client$.workshop.findFirst({
-      where: { ownerId: userId },
-    });
+    const workshop = await this.findWorkshopForUser(userId);
     if (!workshop) return { mechanics: [] };
 
     const mechanics = await this.prisma.client$.mechanic.findMany({
@@ -172,9 +198,7 @@ export class AdminController {
   @ApiResponse({ status: 201, description: 'Mecánico creado' })
   async createMechanic(@Req() req: Request, @Body() dto: CreateMechanicDTO) {
     const { userId } = (req as any).auth;
-    const workshop = await this.prisma.client$.workshop.findFirst({
-      where: { ownerId: userId },
-    });
+    const workshop = await this.findWorkshopForUser(userId);
     if (!workshop) return { error: 'Taller no encontrado' };
 
     const mechanic = await this.prisma.client$.mechanic.create({
@@ -199,9 +223,7 @@ export class AdminController {
     @Req() req: Request,
   ) {
     const { userId } = (req as any).auth;
-    const workshop = await this.prisma.client$.workshop.findFirst({
-      where: { ownerId: userId },
-    });
+    const workshop = await this.findWorkshopForUser(userId);
     if (!workshop) return { error: 'Taller no encontrado' };
 
     await this.prisma.client$.mechanic.deleteMany({
@@ -215,9 +237,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Lista de servicios' })
   async getServices(@Req() req: Request) {
     const { userId } = (req as any).auth;
-    const workshop = await this.prisma.client$.workshop.findFirst({
-      where: { ownerId: userId },
-    });
+    const workshop = await this.findWorkshopForUser(userId);
     if (!workshop) return { services: [] };
 
     const services = await this.prisma.client$.serviceCatalog.findMany({
@@ -232,9 +252,7 @@ export class AdminController {
   @ApiResponse({ status: 201, description: 'Servicio creado' })
   async createService(@Req() req: Request, @Body() dto: CreateServiceDTO) {
     const { userId } = (req as any).auth;
-    const workshop = await this.prisma.client$.workshop.findFirst({
-      where: { ownerId: userId },
-    });
+    const workshop = await this.findWorkshopForUser(userId);
     if (!workshop) return { error: 'Taller no encontrado' };
 
     const service = await this.prisma.client$.serviceCatalog.create({
@@ -254,21 +272,23 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Clientes listados' })
   async getCustomers(@Req() req: Request) {
     const { userId } = (req as any).auth;
-    const workshop = await this.prisma.client$.workshop.findFirst({
-      where: { ownerId: userId },
+    const workshop = await this.findWorkshopForUser(userId);
+    if (!workshop) return { activeClients: [], preRegistered: [] };
+
+    const full = await this.prisma.client$.workshop.findFirst({
+      where: { id: workshop.id },
       include: { preRegisteredCustomers: true, mecanicos: true },
     });
-    if (!workshop) return { activeClients: [], preRegistered: [] };
 
     const activeClients = await this.prisma.client$.cliente.findMany({
       where: {
         idMecanicoActivo: {
-          in: workshop.mecanicos?.map((m: any) => m.id) ?? [],
+          in: full?.mecanicos?.map((m: any) => m.id) ?? [],
         },
       },
     });
 
-    return { activeClients, preRegistered: workshop.preRegisteredCustomers };
+    return { activeClients, preRegistered: full?.preRegisteredCustomers ?? [] };
   }
 
   @Post('customers/:id/activate')
@@ -280,11 +300,13 @@ export class AdminController {
     @Req() req: Request,
   ) {
     const { userId } = (req as any).auth;
-    const workshop = await this.prisma.client$.workshop.findFirst({
-      where: { ownerId: userId },
+    const workshop = await this.findWorkshopForUser(userId);
+    if (!workshop) return { error: 'Taller no encontrado' };
+
+    const full = await this.prisma.client$.workshop.findFirst({
+      where: { id: workshop.id },
       include: { mecanicos: true },
     });
-    if (!workshop) return { error: 'Taller no encontrado' };
 
     const preClient = await this.prisma.client$.preRegisteredCustomer.findFirst(
       {
@@ -293,7 +315,7 @@ export class AdminController {
     );
     if (!preClient) return { error: 'Cliente no encontrado o ya activado' };
 
-    const mechanicId = workshop.mecanicos?.[0]?.id;
+    const mechanicId = full?.mecanicos?.[0]?.id;
     if (!mechanicId) return { error: 'No hay mecánico activo disponible' };
 
     const cliente = await this.prisma.client$.cliente.create({

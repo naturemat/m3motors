@@ -1,12 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import type { Client, Mechanic, ServiceOrder } from '../types';
-import {
-  INITIAL_CLIENTS,
-  INITIAL_MECHANICS,
-  INITIAL_ORDERS
-} from '../data';
 
 import Sidebar from '../components/Sidebar';
 import DashboardView from '../components/DashboardView';
@@ -18,64 +14,107 @@ import SettingsView from '../components/SettingsView';
 
 import { Menu } from 'lucide-react';
 
+const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+
 export default function WorkshopDashboard() {
-  const { signOut } = useAuth();
+  const { signOut, getToken } = useAuth();
   const { user } = useUser();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<string>(() => {
-    return localStorage.getItem('m3_active_tab') || 'dashboard';
-  });
-
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const [clients, setClients] = useState<Client[]>(() => {
-    const stored = localStorage.getItem('m3_clients');
-    return stored ? JSON.parse(stored) : INITIAL_CLIENTS;
-  });
+  const [clients, setClients] = useState<Client[]>([]);
+  const [mechanics, setMechanics] = useState<Mechanic[]>([]);
+  const [orders, setOrders] = useState<ServiceOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [mechanics, setMechanics] = useState<Mechanic[]>(() => {
-    const stored = localStorage.getItem('m3_mechanics');
-    return stored ? JSON.parse(stored) : INITIAL_MECHANICS;
-  });
+  const authHeaders = useCallback(async () => {
+    const token = await getToken();
+    return { Authorization: `Bearer ${token}` };
+  }, [getToken]);
 
-  const [orders, setOrders] = useState<ServiceOrder[]>(() => {
-    const stored = localStorage.getItem('m3_orders');
-    return stored ? JSON.parse(stored) : INITIAL_ORDERS;
-  });
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const headers = await authHeaders();
+
+      const [mechanicsRes, customersRes, servicesRes] = await Promise.all([
+        axios.get(`${apiUrl}/admin/mechanics`, { headers }),
+        axios.get(`${apiUrl}/admin/customers`, { headers }),
+        axios.get(`${apiUrl}/admin/services`, { headers }),
+      ]);
+
+      const rawMechanics: any[] = mechanicsRes.data.mechanics ?? [];
+      setMechanics(
+        rawMechanics.map((m) => ({
+          id: String(m.id),
+          idCard: `MEC-${String(m.id).padStart(3, '0')}`,
+          name: m.nombre,
+          specialty: m.especialidad ?? 'General',
+          workload: m.rating ?? 0,
+          status: m.activo ? 'Activo' : 'Inactivo',
+        })),
+      );
+
+      const rawClients: any[] = customersRes.data.activeClients ?? [];
+      setClients(
+        rawClients.map((c) => ({
+          id: String(c.id),
+          idCard: `CLI-${String(c.id).padStart(4, '0')}`,
+          name: c.nombre,
+          email: c.email,
+          phone: c.telefono,
+          plate: '',
+          lastService: '',
+          status: c.status === 'ACTIVATED' ? 'Activo' : 'Pendiente',
+          vehicleModel: '',
+        })),
+      );
+
+      const rawServices: any[] = servicesRes.data.services ?? [];
+      setOrders(
+        rawServices.map((s) => ({
+          id: String(s.id),
+          clientName: '',
+          clientInitials: '',
+          vehicle: '',
+          serviceName: s.nombre,
+          status: 'PENDIENTE' as const,
+          total: s.precioReferencia ?? 0,
+          date: '',
+        })),
+      );
+
+      setError(null);
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.response?.data?.message ?? 'Error cargando datos del taller');
+    } finally {
+      setLoading(false);
+    }
+  }, [authHeaders]);
 
   useEffect(() => {
-    localStorage.setItem('m3_active_tab', activeTab);
-  }, [activeTab]);
-
-  useEffect(() => {
-    localStorage.setItem('m3_clients', JSON.stringify(clients));
-  }, [clients]);
-
-  useEffect(() => {
-    localStorage.setItem('m3_mechanics', JSON.stringify(mechanics));
-  }, [mechanics]);
-
-  useEffect(() => {
-    localStorage.setItem('m3_orders', JSON.stringify(orders));
-  }, [orders]);
+    void fetchData();
+  }, [fetchData]);
 
   const handleLogout = async () => {
-    localStorage.removeItem('m3_active_tab');
     await signOut();
     navigate('/');
   };
 
   const handleResetData = () => {
-    setClients(INITIAL_CLIENTS);
-    setMechanics(INITIAL_MECHANICS);
-    setOrders(INITIAL_ORDERS);
+    setClients([]);
+    setMechanics([]);
+    setOrders([]);
   };
 
   const handleAddOrder = (newOrder: Omit<ServiceOrder, 'id' | 'clientInitials' | 'date'>) => {
     const initials = newOrder.clientName
       .split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .substring(0, 2)
       .toUpperCase();
@@ -91,7 +130,7 @@ export default function WorkshopDashboard() {
   };
 
   const handleUpdateOrderStatus = (id: string, status: 'PENDIENTE' | 'EN PROGRESO' | 'COMPLETADO') => {
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
+    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
   };
 
   const handleAddClient = (newClient: Omit<Client, 'id' | 'idCard'>) => {
@@ -100,29 +139,39 @@ export default function WorkshopDashboard() {
       id: String(clients.length + 1),
       idCard: `CLI-${String(942 + clients.length).padStart(4, '0')}`,
     };
-
     setClients([client, ...clients]);
   };
 
   const handleDeleteClient = (id: string) => {
-    setClients(prev => prev.filter(c => c.id !== id));
+    setClients((prev) => prev.filter((c) => c.id !== id));
   };
 
-  const handleAddMechanic = (newMechanic: Omit<Mechanic, 'id' | 'idCard'>) => {
-    const m: Mechanic = {
-      ...newMechanic,
-      id: String(mechanics.length + 1),
-      idCard: `MEC-${String(1 + mechanics.length).padStart(3, '0')}`,
-    };
-    setMechanics([...mechanics, m]);
+  const handleAddMechanic = async (newMechanic: Omit<Mechanic, 'id' | 'idCard'>) => {
+    try {
+      const headers = await authHeaders();
+      await axios.post(
+        `${apiUrl}/admin/mechanics`,
+        { nombre: newMechanic.name, especialidad: newMechanic.specialty },
+        { headers },
+      );
+      await fetchData();
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? 'No se pudo agregar el mecánico');
+    }
   };
 
   const handleUpdateWorkload = (id: string, workload: number) => {
-    setMechanics(prev => prev.map(m => m.id === id ? { ...m, workload } : m));
+    setMechanics((prev) => prev.map((m) => (m.id === id ? { ...m, workload } : m)));
   };
 
-  const handleDeleteMechanic = (id: string) => {
-    setMechanics(prev => prev.filter(m => m.id !== id));
+  const handleDeleteMechanic = async (id: string) => {
+    try {
+      const headers = await authHeaders();
+      await axios.delete(`${apiUrl}/admin/mechanics/${id}`, { headers });
+      await fetchData();
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? 'No se pudo eliminar el mecánico');
+    }
   };
 
   const renderView = () => {
@@ -180,6 +229,14 @@ export default function WorkshopDashboard() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f8fafb] flex items-center justify-center">
+        <p className="text-slate-600">Cargando taller...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-[#f8fafb] font-sans antialiased">
       <Sidebar
@@ -212,6 +269,12 @@ export default function WorkshopDashboard() {
 
         {/* Content */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+          {error && (
+            <div className="mx-6 mt-4 rounded-lg bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700">
+              {error}
+            </div>
+          )}
+
           {renderView()}
 
           <footer className="py-6 text-center border-t border-slate-100 bg-[#f2f4f5] shrink-0 mt-12 text-[11px] font-semibold text-slate-400/80 uppercase tracking-wider print:hidden">

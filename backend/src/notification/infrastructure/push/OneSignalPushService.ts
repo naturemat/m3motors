@@ -35,7 +35,7 @@ export class OneSignalPushService implements IPushService {
         app_id: this.appId,
         contents: { en: params.content },
         headings: { en: params.heading },
-        external_user_ids: [params.externalId],
+        include_player_ids: [params.externalId],
         data: params.data || {},
       };
 

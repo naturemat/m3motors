@@ -125,8 +125,8 @@ jobs:
   # ===========================================================================
   deploy:
     name: Deploy to Droplet
-    needs: [detect-changes, build-backend, build-frontend-web]
-    if: always() && needs.build-backend.result != 'failure' && needs.build-frontend-web.result != 'failure' && (needs.build-backend.result == 'success' || needs.build-frontend-web.result == 'success')
+    needs: [detect-changes, build-backend, build-frontend-web, build-frontend-mobile]
+    if: always() && needs.build-backend.result != 'failure' && needs.build-frontend-web.result != 'failure'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -236,6 +236,26 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key ${{ env.DO_USERNAME }}@${{ env.DO_HOST }} "mkdir -p ${{ env.DEPLOY_PATH }}/apk"
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ./apk/*.apk ${{ env.DO_USERNAME }}@${{ env.DO_HOST }}:${{ env.DEPLOY_PATH }}/apk/
+
+      - name: Create APK download page
+        if: needs.build-frontend-mobile.result == 'success'
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DO_USERNAME }}@${{ env.DO_HOST }} <<'APK_PAGE'
+          cd /opt/m3motors/apk
+          APK_FILE=$(ls -t *.apk 2>/dev/null | head -1)
+          if [ -n "$APK_FILE" ]; then
+            cat > index.html <<EOF
+          <!DOCTYPE html>
+          <html>
+          <head><meta charset="utf-8"><title>M3Motors APK</title>
+          <style>body{font-family:sans-serif;max-width:600px;margin:50px auto;text-align:center}
+          a{display:inline-block;padding:15px 30px;background:#003b5a;color:white;text-decoration:none;border-radius:8px;font-size:18px}
+          a:hover{background:#004d77}</style></head>
+          <body><h1>M3Motors Mobile</h1><p>Version: $(date +%Y-%m-%d)</p>
+          <a href="$APK_FILE">Download APK</a></body></html>
+          EOF
+          fi
+          APK_PAGE
 
       - name: Cleanup SSH key
         if: always()

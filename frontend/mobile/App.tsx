@@ -4,9 +4,12 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {NavigationContainer} from '@react-navigation/native';
 import {ClerkProvider, useAuth} from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
+import {initOneSignal, oneSignalLogin, oneSignalLogout} from './src/services/oneSignal';
 import {RootNavigator} from './src/navigation';
 import {useAuthStore} from './src/store/authStore';
 import {LoadingSpinner} from './src/components/atoms';
+
+initOneSignal();
 
 const tokenCache = {
   async getToken(key: string) {
@@ -52,6 +55,7 @@ function AuthLoader() {
     }
 
     if (isSignedIn && userId) {
+      oneSignalLogin(userId);
       setUser({
         id: userId,
         email: '',
@@ -60,6 +64,7 @@ function AuthLoader() {
         role: 'mechanic',
       });
     } else {
+      oneSignalLogout();
       setUser(null);
     }
   }, [isLoaded, isSignedIn, userId, setUser, setLoading]);

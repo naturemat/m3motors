@@ -3,7 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 @Injectable()
@@ -16,7 +21,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
 
     const databaseUrl = process.env.DATABASE_URL;
     if (!databaseUrl) {
-      this.logger.error('DATABASE_URL no está configurado. La aplicación no podrá conectarse a la base de datos.');
+      this.logger.error(
+        'DATABASE_URL no está configurado. La aplicación no podrá conectarse a la base de datos.',
+      );
       throw new Error('DATABASE_URL no está configurado');
     }
 

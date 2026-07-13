@@ -16,10 +16,7 @@ describe('CalculoDesgasteService', () => {
 
   describe('calcularTasaSemanal', () => {
     it('debería retornar tasa 0 con menos de 3 registros', () => {
-      const registros = [
-        crearRegistro(80000, 90),
-        crearRegistro(90000, 30),
-      ];
+      const registros = [crearRegistro(80000, 90), crearRegistro(90000, 30)];
 
       const tasa = service.calcularTasaSemanal(registros);
 

@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Native builds
+ios/
+android/
+*.apk
+*.aab
+*.ipa
+
+# Metro
+.metro-health-check*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# MiMoCode
+.mimocode/

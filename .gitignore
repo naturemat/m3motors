@@ -1,0 +1,97 @@
+# ============================
+# Dependencies
+# ============================
+node_modules/
+.pnp
+.pnp.js
+
+# ============================
+# Build output
+# ============================
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# ============================
+# Environment variables
+# ============================
+.env
+.env.*
+!.env.example
+
+# ============================
+# IDE / Editor
+# ============================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ============================
+# OS files
+# ============================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================
+# MiMoCode
+# ============================
+.mimocode/
+
+# ============================
+# GoogleAI (experimental folder)
+# ============================
+GoogleAI/
+
+# ============================
+# Project docs (not for repo)
+# ============================
+AGENTS.md
+
+# ============================
+# Expo / React Native
+# ============================
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# ============================
+# Mobile builds
+# ============================
+*.apk
+*.aab
+*.ipa
+
+# ============================
+# Logs
+# ============================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ============================
+# Testing / Coverage
+# ============================
+coverage/
+.nyc_output/
+
+# ============================
+# Misc
+# ============================
+*.local
+.cache/
+.temp/

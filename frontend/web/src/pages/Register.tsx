@@ -8,6 +8,7 @@ export default function Register() {
         <SignUp
           routing="path"
           path="/register"
+          afterSignUpUrl="/dashboard"
           appearance={{
             elements: {
               rootBox: 'mx-auto',

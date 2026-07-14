@@ -12,6 +12,24 @@ import PublicLanding from './pages/PublicLanding'
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
+const clerkAppearance = {
+  variables: {
+    colorPrimary: '#1A5276',
+    colorText: '#2C3E50',
+    colorBackground: '#FFFFFF',
+    colorInputBackground: '#FFFFFF',
+    colorInputText: '#2C3E50',
+  },
+  elements: {
+    formButtonPrimary: 'bg-[#1A5276] hover:bg-[#154360] text-white transition-colors shadow-md',
+    socialButtonsBlockButton: 'border-[#E2E8F0] text-[#2C3E50] hover:bg-[#F4F6F7]',
+    footerActionLink: 'text-[#2E86C1] hover:text-[#1A5276]',
+    card: 'shadow-lg rounded-xl border border-[#E2E8F0]/60',
+    headerTitle: 'text-[#2C3E50]',
+    headerSubtitle: 'text-[#5D6D7E]',
+  },
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return (
     <>
@@ -25,7 +43,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <ClerkProvider publishableKey={clerkPubKey}>
+    <ClerkProvider publishableKey={clerkPubKey} afterSignOutUrl="/" appearance={clerkAppearance}>
       <BrowserRouter>
         <Routes>
           {/* Public */}

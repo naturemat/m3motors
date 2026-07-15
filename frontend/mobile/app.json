@@ -22,9 +22,11 @@
         "backgroundColor": "#1A5276"
       },
       "package": "com.m3motors.app",
-      "permissions": ["CAMERA"]
+      "permissions": ["CAMERA"],
+      "scheme": "m3motors"
     },
     "plugins": [
+      "expo-dev-client",
       "expo-secure-store",
       "expo-local-authentication",
       [

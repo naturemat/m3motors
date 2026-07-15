@@ -43,7 +43,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <ClerkProvider publishableKey={clerkPubKey} afterSignOutUrl="/" appearance={clerkAppearance}>
+    <ClerkProvider
+      publishableKey={clerkPubKey}
+      afterSignOutUrl="/"
+      appearance={clerkAppearance}
+      taskUrls={{
+        'choose-organization': '/dashboard',
+      }}
+    >
       <BrowserRouter>
         <Routes>
           {/* Public */}

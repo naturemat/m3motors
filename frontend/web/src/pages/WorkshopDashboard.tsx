@@ -3,6 +3,7 @@ import { useUser, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import type { Client, Mechanic, ServiceOrder } from '../types';
+import { INITIAL_CLIENTS, INITIAL_MECHANICS, INITIAL_ORDERS } from '../data';
 
 import Sidebar from '../components/Sidebar';
 import DashboardView from '../components/DashboardView';
@@ -88,9 +89,12 @@ export default function WorkshopDashboard() {
       );
 
       setError(null);
-    } catch (err: any) {
-      console.error(err);
-      setError(err?.response?.data?.message ?? 'Error cargando datos del taller');
+    } catch {
+      // API no disponible, usar datos mock
+      setClients(INITIAL_CLIENTS);
+      setMechanics(INITIAL_MECHANICS);
+      setOrders(INITIAL_ORDERS);
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -245,6 +249,7 @@ export default function WorkshopDashboard() {
         onLogout={handleLogout}
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
+        user={user}
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">

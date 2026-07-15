@@ -7,6 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 import {RootNavigator} from './src/navigation';
 import {useAuthStore} from './src/store/authStore';
 import {LoadingSpinner} from './src/components/atoms';
+import {authService} from './src/services/auth';
 
 const tokenCache = {
   async getToken(key: string) {
@@ -42,7 +43,7 @@ const tokenCache = {
 const clerkPubKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
 
 function AuthLoader() {
-  const {isLoaded, isSignedIn, userId} = useAuth();
+  const {isLoaded, isSignedIn} = useAuth();
   const {setUser, setLoading} = useAuthStore();
 
   useEffect(() => {
@@ -51,18 +52,34 @@ function AuthLoader() {
       return;
     }
 
-    if (isSignedIn && userId) {
-      setUser({
-        id: userId,
-        email: '',
-        firstName: '',
-        lastName: '',
-        role: 'mechanic',
-      });
+    if (isSignedIn) {
+      setLoading(true);
+      authService
+        .getMe()
+        .then(userData => {
+          setUser({
+            id: String(userData.id),
+            email: userData.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            role: userData.role || 'client',
+          });
+        })
+        .catch(() => {
+          setUser({
+            id: '',
+            email: '',
+            firstName: '',
+            lastName: '',
+            role: 'client',
+          });
+        })
+        .finally(() => setLoading(false));
     } else {
       setUser(null);
+      setLoading(false);
     }
-  }, [isLoaded, isSignedIn, userId, setUser, setLoading]);
+  }, [isLoaded, isSignedIn, setUser, setLoading]);
 
   if (!isLoaded) {
     return <LoadingSpinner />;

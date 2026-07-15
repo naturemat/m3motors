@@ -24,6 +24,7 @@ export default function MechanicDashboard() {
   const navigation = useNavigation<Nav>();
   const {signOut} = useAuth();
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [pendingCustomers, setPendingCustomers] = useState<Customer[]>([]);
   const [recentCustomers, setRecentCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);

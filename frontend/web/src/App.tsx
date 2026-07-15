@@ -1,4 +1,4 @@
-import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react'
+import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import Landing from './pages/Landing'
@@ -12,20 +12,55 @@ import PublicLanding from './pages/PublicLanding'
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
+const clerkAppearance = {
+  variables: {
+    colorPrimary: '#1A5276',
+    colorText: '#2C3E50',
+    colorBackground: '#FFFFFF',
+    colorInputBackground: '#FFFFFF',
+    colorInputText: '#2C3E50',
+  },
+  elements: {
+    formButtonPrimary: 'bg-[#1A5276] hover:bg-[#154360] text-white transition-colors shadow-md',
+    socialButtonsBlockButton: 'border-[#E2E8F0] text-[#2C3E50] hover:bg-[#F4F6F7]',
+    footerActionLink: 'text-[#2E86C1] hover:text-[#1A5276]',
+    card: 'shadow-lg rounded-xl border border-[#E2E8F0]/60',
+    headerTitle: 'text-[#2C3E50]',
+    headerSubtitle: 'text-[#5D6D7E]',
+  },
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <SignedIn>{children}</SignedIn>
-      <SignedOut>
-        <Navigate to="/login" replace />
-      </SignedOut>
-    </>
-  )
+  const { isLoaded, isSignedIn } = useAuth()
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-[#F4F6F7] flex items-center justify-center">
+        <div className="text-center">
+          <img src="/Logo_M3Motors.png" alt="M3Motors" className="w-12 h-12 mx-auto mb-4 animate-pulse" />
+          <p className="text-[#5D6D7E] text-sm">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isSignedIn) {
+    return <Navigate to="/login" replace />
+  }
+
+  return <>{children}</>
 }
 
 export default function App() {
   return (
-    <ClerkProvider publishableKey={clerkPubKey}>
+    <ClerkProvider
+      publishableKey={clerkPubKey}
+      afterSignOutUrl="/"
+      appearance={clerkAppearance}
+      taskUrls={{
+        'choose-organization': '/dashboard',
+      }}
+    >
       <BrowserRouter>
         <Routes>
           {/* Public */}

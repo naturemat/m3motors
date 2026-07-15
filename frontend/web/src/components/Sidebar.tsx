@@ -6,9 +6,10 @@ interface SidebarProps {
   onLogout: () => void;
   mobileOpen?: boolean;
   setMobileOpen?: (open: boolean) => void;
+  user?: { firstName?: string | null; lastName?: string | null; emailAddresses?: { emailAddress: string }[] } | null;
 }
 
-export default function Sidebar({ activeTab, setActiveTab, onLogout, mobileOpen, setMobileOpen }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, onLogout, mobileOpen, setMobileOpen, user }: SidebarProps) {
   const menuItems = [
     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
     { id: 'clients', name: 'Clientes', icon: Users },
@@ -17,6 +18,10 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, mobileOpen,
     { id: 'reports', name: 'Reportes', icon: BarChart3 },
     { id: 'settings', name: 'Ajustes', icon: Settings },
   ];
+
+  const userName = user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'Admin User' : 'Admin User';
+  const userInitials = user ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() || 'AD' : 'AD';
+  const userEmail = user?.emailAddresses?.[0]?.emailAddress ?? 'admin@m3motors.com';
 
   const content = (
     <div className="flex flex-col h-full bg-[#003b5a] text-white">
@@ -62,12 +67,12 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, mobileOpen,
       <div className="p-4 border-t border-white/10 bg-black/15 flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-[#1a5276] flex items-center justify-center shrink-0">
-            <span className="text-sm font-bold text-white">AD</span>
+            <span className="text-sm font-bold text-white">{userInitials}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate text-white leading-none mb-1">Admin User</p>
+            <p className="text-sm font-semibold truncate text-white leading-none mb-1">{userName}</p>
             <span className="text-[10px] text-sky-200/75 uppercase font-medium tracking-wider">
-              Owner Access
+              {userEmail}
             </span>
           </div>
         </div>

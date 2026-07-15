@@ -2,12 +2,13 @@ import React, {useEffect} from 'react';
 import {StatusBar} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {NavigationContainer} from '@react-navigation/native';
-import {ClerkProvider, useAuth} from '@clerk/clerk-expo';
+import {ClerkProvider, useAuth, useUser} from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
 import {RootNavigator} from './src/navigation';
 import {useAuthStore} from './src/store/authStore';
 import {LoadingSpinner} from './src/components/atoms';
 import {authService} from './src/services/auth';
+import {UserRole} from './src/types';
 
 const tokenCache = {
   async getToken(key: string) {
@@ -44,6 +45,7 @@ const clerkPubKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
 
 function AuthLoader() {
   const {isLoaded, isSignedIn} = useAuth();
+  const {user: clerkUser} = useUser();
   const {setUser, setLoading} = useAuthStore();
 
   useEffect(() => {
@@ -52,8 +54,12 @@ function AuthLoader() {
       return;
     }
 
-    if (isSignedIn) {
+    if (isSignedIn && clerkUser) {
       setLoading(true);
+
+      // Get role from Clerk publicMetadata first, fallback to API
+      const clerkRole = clerkUser.publicMetadata?.role as UserRole | undefined;
+
       authService
         .getMe()
         .then(userData => {
@@ -62,16 +68,17 @@ function AuthLoader() {
             email: userData.email,
             firstName: userData.firstName,
             lastName: userData.lastName,
-            role: userData.role || 'client',
+            role: clerkRole || userData.role || 'client',
           });
         })
         .catch(() => {
+          // If API fails, use Clerk metadata or default to client
           setUser({
-            id: '',
-            email: '',
-            firstName: '',
-            lastName: '',
-            role: 'client',
+            id: clerkUser.id,
+            email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
+            firstName: clerkUser.firstName || '',
+            lastName: clerkUser.lastName || '',
+            role: clerkRole || 'client',
           });
         })
         .finally(() => setLoading(false));
@@ -79,7 +86,7 @@ function AuthLoader() {
       setUser(null);
       setLoading(false);
     }
-  }, [isLoaded, isSignedIn, setUser, setLoading]);
+  }, [isLoaded, isSignedIn, clerkUser, setUser, setLoading]);
 
   if (!isLoaded) {
     return <LoadingSpinner />;

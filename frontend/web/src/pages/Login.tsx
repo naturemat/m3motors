@@ -22,7 +22,7 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-[#F4F6F7] flex items-center justify-center">
       <div className="w-full max-w-md">
-        <img src="/logo.svg" alt="M3Motors" className="h-10 mx-auto mb-6" />
+        <img src="/Logo_M3Motors.png" alt="M3Motors" className="h-12 mx-auto mb-6" />
         <SignIn
           routing="path"
           path="/login"

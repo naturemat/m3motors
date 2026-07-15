@@ -13,7 +13,7 @@ export default function Landing() {
           {/* Header */}
           <header className="bg-[#1A5276] text-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-              <img src="/logo.svg" alt="M3Motors" className="h-8" />
+              <img src="/Logo_M3Motors.png" alt="M3Motors" className="h-10" />
               <div className="space-x-4">
                 <Link to="/login" className="text-white hover:text-[#D6EAF8] transition-colors font-medium">
                   Iniciar Sesión
@@ -121,7 +121,7 @@ export default function Landing() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col md:flex-row justify-between items-center">
                 <div className="mb-4 md:mb-0">
-                  <img src="/logo.svg" alt="M3Motors" className="h-8 brightness-0 invert" />
+                  <img src="/Logo_M3Motors.png" alt="M3Motors" className="h-10 brightness-0 invert" />
                   <p className="text-[#95A5A6] mt-2 text-sm">
                     Gestión inteligente para talleres mecánicos
                   </p>

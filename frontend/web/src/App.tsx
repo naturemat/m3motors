@@ -1,4 +1,4 @@
-import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react'
+import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import Landing from './pages/Landing'
@@ -31,14 +31,24 @@ const clerkAppearance = {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <SignedIn>{children}</SignedIn>
-      <SignedOut>
-        <Navigate to="/login" replace />
-      </SignedOut>
-    </>
-  )
+  const { isLoaded, isSignedIn } = useAuth()
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-[#F4F6F7] flex items-center justify-center">
+        <div className="text-center">
+          <img src="/Logo_M3Motors.png" alt="M3Motors" className="w-12 h-12 mx-auto mb-4 animate-pulse" />
+          <p className="text-[#5D6D7E] text-sm">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isSignedIn) {
+    return <Navigate to="/login" replace />
+  }
+
+  return <>{children}</>
 }
 
 export default function App() {

@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import {Platform} from 'react-native';
 import {StatusBar} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {NavigationContainer} from '@react-navigation/native';
@@ -10,18 +9,6 @@ import {useAuthStore} from './src/store/authStore';
 import {LoadingSpinner} from './src/components/atoms';
 import {authService} from './src/services/auth';
 import {UserRole} from './src/types';
-
-// Workaround for react-native-web CSS parsing issue with pseudo-elements
-if (Platform.OS === 'web') {
-  const originalInsertRule = CSSStyleSheet.prototype.insertRule;
-  CSSStyleSheet.prototype.insertRule = function (rule: string, index?: number) {
-    try {
-      return originalInsertRule.call(this, rule, index);
-    } catch {
-      return index ?? 0;
-    }
-  };
-}
 
 const tokenCache = {
   async getToken(key: string) {

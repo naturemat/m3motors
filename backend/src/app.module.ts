@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ClerkModule } from './shared/infrastructure/clerk/clerk.module';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 import { EventPublisherModule } from './shared/infrastructure/events/EventPublisherModule';
+import { StorageModule } from './shared/infrastructure/storage/storage.module';
 import { NotificationModule } from './notification/notification.module';
 import { RegistroSeguimientoModule } from './registro-seguimiento/registro-seguimiento.module';
 import { PrediccionAnalisisModule } from './prediccion-analisis/prediccion-analisis.module';
@@ -36,6 +37,7 @@ import {
     ClerkModule,
     PrismaModule,
     EventPublisherModule,
+    StorageModule,
     RegistroSeguimientoModule,
     PrediccionAnalisisModule,
     NotificationModule,

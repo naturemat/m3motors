@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import {
   Controller,
@@ -21,6 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { Request } from 'express';
 import { ClerkAuthGuard } from '../../shared/infrastructure/clerk/clerk.guard';
+import { ClerkService } from '../../shared/infrastructure/clerk/clerk.service';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { ActivacionClienteService } from '../../registro-seguimiento/infrastructure/external-services/ActivacionClienteService';
 import { ActivateClientDTO } from '../../application/dto/ActivateClientDTO';
@@ -33,6 +35,7 @@ export class ActivationController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly activacionService: ActivacionClienteService,
+    private readonly clerkService: ClerkService,
   ) {}
 
   @Get('pre-registered')
@@ -177,6 +180,61 @@ export class ActivationController {
       },
     });
 
+    // Associate client with workshop in Clerk
+    let clerkUserId: string | null = null;
+    let tempPassword: string | undefined;
+
+    try {
+      const workshop = await this.prisma.client$.workshop.findFirst({
+        where: { id: dto.workshopId },
+      });
+
+      if (workshop?.clerkOrgId) {
+        // Check if client already has a Clerk account (e.g., registered with Google)
+        const existingUser = await this.clerkService.getUserByEmail(
+          preRegisteredCustomer.email,
+        );
+
+        if (existingUser) {
+          // Client already has Clerk account (e.g., registered with Google)
+          clerkUserId = existingUser.id;
+
+          // Update publicMetadata with role
+          await this.clerkService.updateUserMetadata(existingUser.id, {
+            role: 'client',
+          });
+
+          // Add to organization
+          await this.clerkService.addMemberToOrganization(
+            workshop.clerkOrgId,
+            existingUser.id,
+            'org:member',
+          );
+        } else {
+          // Client doesn't have Clerk account - create one
+          tempPassword = this.generateTempPassword();
+          const clerkUser = await this.clerkService.createUser({
+            email: preRegisteredCustomer.email,
+            password: tempPassword,
+            firstName: preRegisteredCustomer.nombre,
+            publicMetadata: { role: 'client' },
+          });
+
+          clerkUserId = clerkUser.id;
+
+          // Add to organization as member
+          await this.clerkService.addMemberToOrganization(
+            workshop.clerkOrgId,
+            clerkUser.id,
+            'org:member',
+          );
+        }
+      }
+    } catch (error) {
+      // Log error but don't fail the activation
+      console.error('[Activation] Error associating Clerk user:', error);
+    }
+
     return {
       success: true,
       vehicleId: resultado.vehicleId,
@@ -185,6 +243,18 @@ export class ActivationController {
         codigo: resultado.qr.getCodigo(),
         url: resultado.qr.getUrl(),
       },
+      tempPassword,
+      clerkUserId,
     };
+  }
+
+  private generateTempPassword(): string {
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
   }
 }

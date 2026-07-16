@@ -12,6 +12,7 @@ import {
   Query,
   HttpCode,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,6 +24,7 @@ import {
 import { Request } from 'express';
 import { ClerkAuthGuard } from '../../shared/infrastructure/clerk/clerk.guard';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
+import { SupabaseStorageService } from '../../shared/infrastructure/storage/supabase-storage.service';
 import { CreateInterventionDTO } from '../../application/dto/CreateInterventionDTO';
 
 @ApiTags('Interventions')
@@ -30,7 +32,12 @@ import { CreateInterventionDTO } from '../../application/dto/CreateInterventionD
 @Controller('interventions')
 @UseGuards(ClerkAuthGuard)
 export class InterventionController {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(InterventionController.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storageService: SupabaseStorageService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Listar intervenciones con filtros' })
@@ -74,6 +81,7 @@ export class InterventionController {
       include: {
         vehiculo: { select: { placa: true, marca: true, modelo: true } },
         detalles: { include: { partsCatalog: true } },
+        fotos: true,
       },
     });
 
@@ -144,7 +152,10 @@ export class InterventionController {
                 }
               : undefined,
           },
-          include: { detalles: { include: { partsCatalog: true } } },
+          include: {
+            detalles: { include: { partsCatalog: true } },
+            fotos: true,
+          },
         });
 
         // Actualizar el kilometraje actual en el Vehículo
@@ -156,6 +167,51 @@ export class InterventionController {
         return createdIntervention;
       },
     );
+
+    // 4. Subir fotos a Supabase Storage si existen
+    if (dto.fotos && dto.fotos.length > 0) {
+      const maxPhotos = 10;
+      const photosToUpload = dto.fotos.slice(0, maxPhotos);
+
+      const photoPromises = photosToUpload.map(async (foto) => {
+        try {
+          const url = await this.storageService.uploadImage(
+            foto.base64,
+            foto.mimeType,
+            `interventions/${intervention.id}`,
+          );
+
+          return this.prisma.client$.interventionPhoto.create({
+            data: {
+              intervencionId: intervention.id,
+              url,
+              tipo: foto.tipo,
+              descripcion: foto.descripcion ?? null,
+            },
+          });
+        } catch (error) {
+          this.logger.error(`Error uploading photo: ${String(error)}`);
+          return null;
+        }
+      });
+
+      await Promise.allSettled(photoPromises);
+
+      // Fetch intervention with photos
+      const interventionWithPhotos =
+        await this.prisma.client$.intervention.findUnique({
+          where: { id: intervention.id },
+          include: {
+            detalles: { include: { partsCatalog: true } },
+            fotos: true,
+          },
+        });
+
+      return {
+        mensaje: 'Servicio registrado exitosamente',
+        intervention: interventionWithPhotos,
+      };
+    }
 
     // 4. REQUERIMIENTO CRÍTICO: Lanzar evento de dominio IntervencionRegistrada
     console.log(

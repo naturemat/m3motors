@@ -119,8 +119,8 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build APK (Preview)
-        run: eas build -p android --profile preview --non-interactive
+      - name: Build APK (Development)
+        run: eas build -p android --profile development --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 

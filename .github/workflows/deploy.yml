@@ -94,7 +94,6 @@ jobs:
   build-frontend-mobile:
     name: Build Frontend Mobile (APK)
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend-mobile == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:

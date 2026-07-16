@@ -93,67 +93,14 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ===========================================================================
-  # FRONTEND MOBILE — Build APK via EAS
-  # ===========================================================================
-  build-frontend-mobile:
-    name: Build Frontend Mobile (APK)
-    needs: detect-changes
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    defaults:
-      run:
-        working-directory: ./frontend/mobile
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: ./frontend/mobile/package-lock.json
-
-      - name: Install EAS CLI
-        run: npm install -g eas-cli
-
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Configure EAS project
-        run: eas init --non-interactive --force
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Build APK (Preview)
-        run: eas build -p android --profile preview --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Download APK from EAS
-        if: success()
-        run: |
-          eas build:list --limit 1 --platform android --json > build-info.json
-          BUILD_ID=$(node -e "const b=JSON.parse(require('fs').readFileSync('build-info.json','utf8')); console.log(b[0].id)")
-          eas build:download --id $BUILD_ID
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Upload APK artifact
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: m3motors-mobile-apk
-          path: ./frontend/mobile/apk/*.apk
-          retention-days: 30
-
-  # ===========================================================================
   # DEPLOY — SSH to DigitalOcean Droplet
   # ===========================================================================
   deploy:
     name: Deploy to Droplet
-    needs: [detect-changes, build-backend, build-frontend-web, build-frontend-mobile]
+    needs: [detect-changes, build-backend, build-frontend-web]
     if: always() && needs.build-backend.result != 'failure' && needs.build-frontend-web.result != 'failure' && (needs.build-backend.result == 'success' || needs.build-frontend-web.result == 'success')
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -234,39 +181,30 @@ jobs:
           set -e
           cd /opt/m3motors
 
-          echo "=== [1/5] Limpiar contenedores viejos ==="
+          echo "=== [1/6] Limpiar contenedores viejos ==="
           docker stop $(docker ps -aq --filter "name=m3motors-") 2>/dev/null || true
           docker rm $(docker ps -aq --filter "name=m3motors-") 2>/dev/null || true
 
-          echo "=== [2/5] Limpiar imagenes no utilizadas ==="
+          echo "=== [2/6] Limpiar imagenes no utilizadas ==="
           docker image prune -af --filter "until=72h" 2>/dev/null || true
 
-          echo "=== [3/5] Limpiar logs antiguos de contenedores ==="
+          echo "=== [3/6] Limpiar logs antiguos de contenedores ==="
           find /var/lib/docker/containers -name "*-json.log" -size +50M -delete 2>/dev/null || true
 
-          echo "=== [4/5] Descargar e iniciar servicios ==="
+          echo "=== [4/6] Descargar e iniciar servicios ==="
           docker compose -f docker-compose.prod.yml --env-file .env pull
           docker compose -f docker-compose.prod.yml --env-file .env up -d
 
-          echo "=== [5/5] Verificar estado ==="
+          echo "=== [5/6] Verificar estado ==="
           sleep 10
           docker compose -f docker-compose.prod.yml ps
 
+          echo "=== [6/6] Build APK local ==="
+          chmod +x /opt/m3motors/scripts/build-apk.sh
+          bash /opt/m3motors/scripts/build-apk.sh
+
           echo "=== Deploy completado ==="
           DEPLOY_SCRIPT
-
-      - name: Download APK artifact
-        if: needs.build-frontend-mobile.result == 'success'
-        uses: actions/download-artifact@v4
-        with:
-          name: m3motors-mobile-apk
-          path: ./apk
-
-      - name: Upload APK to Droplet
-        if: needs.build-frontend-mobile.result == 'success'
-        run: |
-          ssh -i ~/.ssh/deploy_key ${{ env.DO_USERNAME }}@${{ env.DO_HOST }} "mkdir -p ${{ env.DEPLOY_PATH }}/apk"
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ./apk/*.apk ${{ env.DO_USERNAME }}@${{ env.DO_HOST }}:${{ env.DEPLOY_PATH }}/apk/
 
       - name: Cleanup SSH key
         if: always()

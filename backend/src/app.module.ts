@@ -8,11 +8,11 @@ import { StorageModule } from './shared/infrastructure/storage/storage.module';
 import { NotificationModule } from './notification/notification.module';
 import { RegistroSeguimientoModule } from './registro-seguimiento/registro-seguimiento.module';
 import { PrediccionAnalisisModule } from './prediccion-analisis/prediccion-analisis.module';
+import { GestionVisualizacionModule } from './gestion-visualizacion/gestion-visualizacion.module';
 import { AuthController } from './shared/infrastructure/clerk/controllers/auth.controller';
 import { VehicleController } from './interfaces/controllers/vehicle.controller';
 import { InterventionController } from './interfaces/controllers/intervention.controller';
 import { AlertController } from './interfaces/controllers/alert.controller';
-import { AdminController } from './interfaces/controllers/admin.controller';
 import { ActivationController } from './interfaces/controllers/activation.controller';
 import { PublicController } from './interfaces/controllers/public.controller';
 import { PartsCatalogController } from './interfaces/controllers/parts-catalog.controller';
@@ -40,6 +40,7 @@ import {
     StorageModule,
     RegistroSeguimientoModule,
     PrediccionAnalisisModule,
+    GestionVisualizacionModule,
     NotificationModule,
   ],
   controllers: [
@@ -48,7 +49,6 @@ import {
     VehicleController,
     InterventionController,
     AlertController,
-    AdminController,
     ActivationController,
     PublicController,
     PartsCatalogController,

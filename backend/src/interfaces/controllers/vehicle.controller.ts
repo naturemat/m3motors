@@ -12,6 +12,7 @@ import {
   Req,
   ParseIntPipe,
   HttpCode,
+  Inject,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,6 +26,7 @@ import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service
 import { CreateVehicleDTO } from '../../application/dto/CreateVehicleDTO';
 import { ObtenerHistorialVehiculo } from '../../registro-seguimiento/application/use-cases/ObtenerHistorialVehiculo';
 import { QRServiceImpl } from '../../registro-seguimiento/infrastructure/external-services/QRServiceImpl';
+import { ISERVICIO_GENERACION_QR } from '../../shared/domain/ports/tokens';
 
 @ApiTags('Vehicles')
 @ApiBearerAuth()
@@ -34,7 +36,7 @@ export class VehicleController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly obtenerHistorial: ObtenerHistorialVehiculo,
-    private readonly qrService: QRServiceImpl,
+    @Inject(ISERVICIO_GENERACION_QR) private readonly qrService: QRServiceImpl,
   ) {}
 
   @Get()

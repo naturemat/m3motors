@@ -1,6 +1,6 @@
 import { Link, Navigate } from 'react-router-dom'
 import { SignedOut, SignedIn } from '@clerk/clerk-react'
-import { Shield, Bell, QrCode, ArrowRight } from 'lucide-react'
+import { Shield, Bell, QrCode, ArrowRight, Download, Smartphone } from 'lucide-react'
 
 export default function Landing() {
   return (
@@ -41,13 +41,23 @@ export default function Landing() {
                 Mantenimiento predictivo, historial vehicular y comunicación directa con tus clientes.
                 Todo en una sola plataforma.
               </p>
-              <Link
-                to="/register"
-                className="inline-flex items-center gap-2 bg-white text-[#1A5276] px-8 py-4 rounded-lg text-lg font-semibold hover:bg-[#EBF5FB] transition-colors shadow-lg"
-              >
-                Comenzar Gratis
-                <ArrowRight className="w-5 h-5" />
-              </Link>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link
+                  to="/register"
+                  className="inline-flex items-center gap-2 bg-white text-[#1A5276] px-8 py-4 rounded-lg text-lg font-semibold hover:bg-[#EBF5FB] transition-colors shadow-lg"
+                >
+                  Comenzar Gratis
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                <a
+                  href={`${window.location.origin}/apk/M3Motors.apk`}
+                  download
+                  className="inline-flex items-center gap-2 border-2 border-white/50 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white/10 transition-colors"
+                >
+                  <Download className="w-5 h-5" />
+                  Descargar APK
+                </a>
+              </div>
             </div>
           </section>
 

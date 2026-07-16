@@ -31,12 +31,10 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
   const [totalCost, setTotalCost] = useState('350');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const totalClients = 1278 + clients.length;
-  const activeVehicles = 448 + clients.filter(c => c.status === 'Activo').length;
-  const monthInterventions = 314 + orders.length;
-
-  const baseIncome = 40010;
-  const totalIncome = baseIncome + orders.reduce((sum, o) => sum + o.total, 0);
+  const totalClients = clients.length;
+  const activeVehicles = clients.filter(c => c.status === 'Activo').length;
+  const monthInterventions = orders.length;
+  const totalIncome = orders.reduce((sum, o) => sum + o.total, 0);
 
   const filteredOrders = orders.filter(order => {
     const q = searchQuery.toLowerCase();

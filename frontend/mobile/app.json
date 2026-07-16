@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#003b5a"
+      "backgroundColor": "#1A5276"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -19,12 +19,14 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#003b5a"
+        "backgroundColor": "#1A5276"
       },
       "package": "com.m3motors.app",
-      "permissions": ["CAMERA"]
+      "permissions": ["CAMERA"],
+      "scheme": "m3motors"
     },
     "plugins": [
+      "expo-dev-client",
       "expo-secure-store",
       "expo-local-authentication",
       [
@@ -34,10 +36,6 @@
         }
       ]
     ],
-    "extra": {
-      "eas": {
-        "projectId": "3ed23a20-01f7-4e26-8778-a8948d8d0bf7"
-      }
-    }
+    "extra": {}
   }
 }

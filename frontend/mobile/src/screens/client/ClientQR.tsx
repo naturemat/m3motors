@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   successBanner: {
     backgroundColor: colors.accent.bg,
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: colors.accent.light,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 16,

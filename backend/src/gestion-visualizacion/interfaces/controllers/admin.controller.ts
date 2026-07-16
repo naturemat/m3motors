@@ -1,10 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/require-await */
-
 import {
   Controller,
   Get,
@@ -18,7 +11,6 @@ import {
   ParseIntPipe,
   HttpCode,
 } from '@nestjs/common';
-import crypto from 'crypto';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -26,12 +18,13 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { Request } from 'express';
-import { ClerkAuthGuard } from '../../shared/infrastructure/clerk/clerk.guard';
-import { ClerkService } from '../../shared/infrastructure/clerk/clerk.service';
-import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
-import { CreateMechanicDTO } from '../../application/dto/CreateMechanicDTO';
-import { CreateServiceDTO } from '../../application/dto/CreateServiceDTO';
-import { UpdateWorkshopDTO } from '../../application/dto/UpdateWorkshopDTO';
+import { ClerkAuthGuard } from '../../../shared/infrastructure/clerk/clerk.guard';
+import { ClerkService } from '../../../shared/infrastructure/clerk/clerk.service';
+import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.service';
+import { ObtenerKPIsTaller } from '../../application/use-cases/ObtenerKPIsTaller';
+import { CreateMechanicDTO } from '../../../application/dto/CreateMechanicDTO';
+import { CreateServiceDTO } from '../../../application/dto/CreateServiceDTO';
+import { UpdateWorkshopDTO } from '../../../application/dto/UpdateWorkshopDTO';
 
 @ApiTags('Admin')
 @ApiBearerAuth()
@@ -41,6 +34,7 @@ export class AdminController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly clerkService: ClerkService,
+    private readonly obtenerKPIs: ObtenerKPIsTaller,
   ) {}
 
   private async findWorkshopForAdmin(userId: string) {
@@ -54,115 +48,31 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Métricas clave del taller' })
   async getKpis(@Req() req: Request) {
     const { userId } = (req as any).auth;
-
     const workshop = await this.findWorkshopForAdmin(userId);
-    if (!workshop) {
-      return {
-        kpis: {
-          totalVehicles: 0,
-          totalClientsActive: 0,
-          monthlyRevenue: 0,
-          avgMechanicRating: 0,
-          servicesCount: 0,
-        },
-      };
-    }
-
-    const fullWorkshop = await this.prisma.client$.workshop.findFirst({
-      where: { id: workshop.id },
-      include: {
-        mecanicos: true,
-        servicios: true,
-        preRegisteredCustomers: true,
-      },
-    });
-
-    if (!workshop) {
-      return {
-        kpis: {
-          totalVehicles: 0,
-          totalClientsActive: 0,
-          monthlyRevenue: 0,
-          avgMechanicRating: 0,
-          servicesCount: 0,
-        },
-      };
-    }
-
-    const clientsActive = await this.prisma.client$.cliente.count({
-      where: {
-        idMecanicoActivo: { in: fullWorkshop.mecanicos.map((m: any) => m.id) },
-        status: 'ACTIVATED',
-      },
-    });
-
-    const vehicleCount = await this.prisma.client$.vehicle.count({
-      where: {
-        idMecanicoActivo: { in: fullWorkshop.mecanicos.map((m: any) => m.id) },
-      },
-    });
-
-    const monthlyRevenue = await this.prisma.client$.intervention.aggregate({
-      _sum: { manoDeObra: true },
-      where: {
-        mecanicoId: { in: fullWorkshop.mecanicos.map((m: any) => m.id) },
-        createdAt: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-        },
-      },
-    });
-
-    const avgMechanicRating = fullWorkshop.mecanicos.length
-      ? fullWorkshop.mecanicos.reduce(
-          (sum: number, mech: any) => sum + (mech.rating ?? 0),
-          0,
-        ) / fullWorkshop.mecanicos.length
-      : 0;
-
-    return {
-      kpis: {
-        totalVehicles: vehicleCount,
-        totalClientsActive: clientsActive,
-        monthlyRevenue: Number(monthlyRevenue._sum.manoDeObra ?? 0),
-        avgMechanicRating: Number(avgMechanicRating.toFixed(2)),
-        servicesCount: fullWorkshop.servicios.length,
-      },
-    };
+    if (!workshop) return { kpis: null };
+    return this.obtenerKPIs.ejecutar(workshop.id);
   }
 
   @Get('workshop')
   @ApiOperation({ summary: 'Obtener configuración del taller' })
-  @ApiResponse({ status: 200, description: 'Datos del taller' })
   async getWorkshop(@Req() req: Request) {
     const { userId } = (req as any).auth;
     const workshop = await this.findWorkshopForAdmin(userId);
-
-    if (!workshop) {
-      return { workshop: null };
-    }
+    if (!workshop) return { workshop: null };
 
     const full = await this.prisma.client$.workshop.findFirst({
       where: { id: workshop.id },
-      include: {
-        mecanicos: true,
-        servicios: true,
-        preRegisteredCustomers: true,
-      },
+      include: { mecanicos: true, servicios: true, preRegisteredCustomers: true },
     });
-
     return { workshop: full };
   }
 
   @Put('workshop')
   @ApiOperation({ summary: 'Actualizar configuración del taller' })
-  @ApiResponse({ status: 200, description: 'Taller actualizado' })
   async updateWorkshop(@Req() req: Request, @Body() dto: UpdateWorkshopDTO) {
     const { userId } = (req as any).auth;
     const workshop = await this.findWorkshopForAdmin(userId);
-
-    if (!workshop) {
-      return { error: 'Taller no encontrado' };
-    }
+    if (!workshop) return { error: 'Taller no encontrado' };
 
     const updated = await this.prisma.client$.workshop.update({
       where: { id: workshop.id },
@@ -172,13 +82,11 @@ export class AdminController {
         horarios: dto.horarios ?? workshop.horarios,
       },
     });
-
     return { workshop: updated };
   }
 
   @Get('mechanics')
   @ApiOperation({ summary: 'Listar mecánicos del taller' })
-  @ApiResponse({ status: 200, description: 'Lista de mecánicos' })
   async getMechanics(@Req() req: Request) {
     const { userId } = (req as any).auth;
     const workshop = await this.findWorkshopForAdmin(userId);
@@ -193,28 +101,23 @@ export class AdminController {
   @Post('mechanics')
   @HttpCode(201)
   @ApiOperation({ summary: 'Agregar nuevo mecánico' })
-  @ApiResponse({ status: 201, description: 'Mecánico creado' })
   async createMechanic(@Req() req: Request, @Body() dto: CreateMechanicDTO) {
     const { userId } = (req as any).auth;
     const workshop = await this.findWorkshopForAdmin(userId);
     if (!workshop) return { error: 'Taller no encontrado' };
 
-    // Generate temp password for the mechanic
     const tempPassword = this.generateTempPassword();
     let clerkUserId: string | null = null;
 
     try {
-      // Create Clerk user for the mechanic
       const clerkUser = await this.clerkService.createUser({
         email: `${dto.nombre.toLowerCase().replace(/\s/g, '.')}@m3motors.local`,
         password: tempPassword,
         firstName: dto.nombre,
         publicMetadata: { role: 'mechanic' },
       });
-
       clerkUserId = clerkUser.id;
 
-      // Add to workshop organization
       if (workshop.clerkOrgId) {
         await this.clerkService.addMemberToOrganization(
           workshop.clerkOrgId,
@@ -223,7 +126,7 @@ export class AdminController {
         );
       }
     } catch (error) {
-      console.error('[Admin] Error creating Clerk user for mechanic:', error);
+      console.error('[Admin] Error creating Clerk user:', error);
     }
 
     const mechanic = await this.prisma.client$.mechanic.create({
@@ -240,24 +143,11 @@ export class AdminController {
     return {
       mechanic,
       tempPassword: clerkUserId ? tempPassword : undefined,
-      message: clerkUserId
-        ? 'Mecánico creado. Use la contraseña temporal para iniciar sesión.'
-        : 'Mecánico creado (sin cuenta Clerk)',
     };
-  }
-
-  private generateTempPassword(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
-    let password = '';
-    for (let i = 0; i < 12; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return password;
   }
 
   @Delete('mechanics/:id')
   @ApiOperation({ summary: 'Eliminar mecánico' })
-  @ApiResponse({ status: 200, description: 'Mecánico eliminado' })
   async deleteMechanic(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
@@ -274,7 +164,6 @@ export class AdminController {
 
   @Get('services')
   @ApiOperation({ summary: 'Listar servicios del taller' })
-  @ApiResponse({ status: 200, description: 'Lista de servicios' })
   async getServices(@Req() req: Request) {
     const { userId } = (req as any).auth;
     const workshop = await this.findWorkshopForAdmin(userId);
@@ -289,7 +178,6 @@ export class AdminController {
   @Post('services')
   @HttpCode(201)
   @ApiOperation({ summary: 'Agregar servicio al catálogo' })
-  @ApiResponse({ status: 201, description: 'Servicio creado' })
   async createService(@Req() req: Request, @Body() dto: CreateServiceDTO) {
     const { userId } = (req as any).auth;
     const workshop = await this.findWorkshopForAdmin(userId);
@@ -309,7 +197,6 @@ export class AdminController {
 
   @Get('customers')
   @ApiOperation({ summary: 'Listar clientes y pre-registrados' })
-  @ApiResponse({ status: 200, description: 'Clientes listados' })
   async getCustomers(@Req() req: Request) {
     const { userId } = (req as any).auth;
     const workshop = await this.findWorkshopForAdmin(userId);
@@ -322,9 +209,7 @@ export class AdminController {
 
     const activeClients = await this.prisma.client$.cliente.findMany({
       where: {
-        idMecanicoActivo: {
-          in: full?.mecanicos?.map((m: any) => m.id) ?? [],
-        },
+        idMecanicoActivo: { in: full?.mecanicos?.map((m: any) => m.id) ?? [] },
       },
     });
 
@@ -334,7 +219,6 @@ export class AdminController {
   @Post('customers/:id/activate')
   @HttpCode(200)
   @ApiOperation({ summary: 'Activar cliente pre-registrado' })
-  @ApiResponse({ status: 200, description: 'Cliente activado' })
   async activateCustomer(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
@@ -348,11 +232,9 @@ export class AdminController {
       include: { mecanicos: true },
     });
 
-    const preClient = await this.prisma.client$.preRegisteredCustomer.findFirst(
-      {
-        where: { id, workshopId: workshop.id, status: 'PENDING' },
-      },
-    );
+    const preClient = await this.prisma.client$.preRegisteredCustomer.findFirst({
+      where: { id, workshopId: workshop.id, status: 'PENDING' },
+    });
     if (!preClient) return { error: 'Cliente no encontrado o ya activado' };
 
     const mechanicId = full?.mecanicos?.[0]?.id;
@@ -379,5 +261,14 @@ export class AdminController {
     });
 
     return { cliente };
+  }
+
+  private generateTempPassword(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
   }
 }

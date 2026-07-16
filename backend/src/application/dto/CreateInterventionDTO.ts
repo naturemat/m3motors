@@ -6,6 +6,7 @@ import {
   ValidateNested,
   Min,
   IsIn,
+  MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -62,6 +63,38 @@ export class CreateDetalleDTO {
   @IsNumber()
   @Min(0)
   vidaUtilDiasEstimada?: number;
+}
+
+export class InterventionPhotoDTO {
+  @ApiProperty({
+    example: 'data:image/jpeg;base64,/9j/4AAQSkZJRg...',
+    description: 'Foto en base64 (con o sin prefijo data:image)',
+  })
+  @IsString()
+  base64!: string;
+
+  @ApiProperty({
+    example: 'image/jpeg',
+    description: 'MIME type de la imagen',
+  })
+  @IsString()
+  @IsIn(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'])
+  mimeType!: string;
+
+  @ApiProperty({
+    example: 'ANTES',
+    enum: ['ANTES', 'DURANTE', 'DESPUES', 'DETALLE'],
+    description: 'Momento de la foto en la intervención',
+  })
+  @IsString()
+  @IsIn(['ANTES', 'DURANTE', 'DESPUES', 'DETALLE'])
+  tipo!: string;
+
+  @ApiPropertyOptional({ example: 'Estado inicial del filtro de aceite' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  descripcion?: string;
 }
 
 export class CreateInterventionDTO {
@@ -126,4 +159,14 @@ export class CreateInterventionDTO {
   @ValidateNested({ each: true })
   @Type(() => CreateDetalleDTO)
   detalles?: CreateDetalleDTO[];
+
+  @ApiPropertyOptional({
+    type: [InterventionPhotoDTO],
+    description: 'Fotos de la intervención (máx. 10)',
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => InterventionPhotoDTO)
+  fotos?: InterventionPhotoDTO[];
 }

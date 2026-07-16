@@ -69,4 +69,40 @@ export class ClerkService {
       organizationId: orgId,
     });
   }
+
+  async createUser(params: {
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+    publicMetadata?: Record<string, unknown>;
+  }) {
+    return this.getClient().users.createUser({
+      emailAddress: [params.email],
+      password: params.password,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      publicMetadata: params.publicMetadata ?? {},
+    });
+  }
+
+  async getUserByEmail(email: string) {
+    try {
+      const users = await this.getClient().users.getUserList({
+        emailAddress: [email],
+      });
+      return users.data?.[0] ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  async updateUserMetadata(
+    userId: string,
+    publicMetadata: Record<string, unknown>,
+  ) {
+    return this.getClient().users.updateUser(userId, {
+      publicMetadata,
+    });
+  }
 }

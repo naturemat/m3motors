@@ -1,0 +1,69 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.service';
+import { KPIsTaller } from '../../domain/entities/KPIsTaller';
+
+@Injectable()
+export class ObtenerKPIsTaller {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async ejecutar(workshopId: number): Promise<KPIsTaller> {
+    const now = new Date();
+    const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [
+      totalVehiculos,
+      totalClientesActivos,
+      ingresosMes,
+      totalServicios,
+      totalMecanicos,
+      totalAlertasActivas,
+      intervencionesMes,
+    ] = await Promise.all([
+      this.prisma.client$.vehicle.count({
+        where: { mecanicoActivo: { workshopId } },
+      }),
+      this.prisma.client$.cliente.count({
+        where: {
+          mecanicoActivo: { workshopId },
+          status: 'ACTIVATED',
+        },
+      }),
+      this.prisma.client$.intervention.aggregate({
+        _sum: { manoDeObra: true },
+        where: {
+          mecanico: { workshopId },
+          fecha: { gte: inicioMes },
+        },
+      }),
+      this.prisma.client$.serviceCatalog.count({
+        where: { workshopId, activo: true },
+      }),
+      this.prisma.client$.mechanic.count({
+        where: { workshopId, activo: true },
+      }),
+      this.prisma.client$.alertaPredictiva.count({
+        where: {
+          vehiculo: { mecanicoActivo: { workshopId } },
+          estadoAlerta: { in: ['ACTIVA', 'PENDIENTE'] },
+        },
+      }),
+      this.prisma.client$.intervention.count({
+        where: {
+          mecanico: { workshopId },
+          fecha: { gte: inicioMes },
+        },
+      }),
+    ]);
+
+    return {
+      totalVehiculos,
+      totalClientesActivos,
+      ingresosMes: Number(ingresosMes._sum.manoDeObra ?? 0),
+      calificacionPromedio: 0,
+      totalServicios,
+      totalMecanicos,
+      totalAlertasActivas,
+      intervencionesMes,
+    };
+  }
+}

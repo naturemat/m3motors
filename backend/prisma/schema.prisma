@@ -249,10 +249,28 @@ model Intervention {
   serviceCatalog ServiceCatalog?      @relation(fields: [serviceCatalogId], references: [id])
   detalles       DetalleIntervencion[]
   alertas        AlertaPredictiva[]
+  fotos          InterventionPhoto[]
 
   @@index([vehiculoId])
   @@index([fecha])
   @@map("intervencion")
+}
+
+// =============================================================================
+// INTERVENTION_PHOTO — Fotos de la intervención mecánica
+// =============================================================================
+model InterventionPhoto {
+  id              Int      @id @default(autoincrement())
+  intervencionId  Int      @map("id_intervencion")
+  url             String   @db.VarChar(500)
+  tipo            String   @db.VarChar(30)  // ANTES, DURANTE, DESPUES, DETALLE
+  descripcion     String?  @db.VarChar(255)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  intervencion Intervention @relation(fields: [intervencionId], references: [id], onDelete: Cascade)
+
+  @@index([intervencionId])
+  @@map("intervention_photo")
 }
 
 // =============================================================================

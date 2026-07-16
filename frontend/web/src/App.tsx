@@ -1,4 +1,4 @@
-import { ClerkProvider, useAuth } from '@clerk/clerk-react'
+import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import Landing from './pages/Landing'
@@ -30,8 +30,17 @@ const clerkAppearance = {
   },
 }
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+type UserRole = 'admin' | 'mechanic' | 'client'
+
+function ProtectedRoute({
+  children,
+  allowedRoles,
+}: {
+  children: React.ReactNode
+  allowedRoles?: UserRole[]
+}) {
   const { isLoaded, isSignedIn } = useAuth()
+  const { user } = useUser()
 
   if (!isLoaded) {
     return (
@@ -46,6 +55,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!isSignedIn) {
     return <Navigate to="/login" replace />
+  }
+
+  const userRole = (user?.publicMetadata?.role as UserRole) || 'client'
+
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/dashboard" replace />
   }
 
   return <>{children}</>
@@ -74,8 +89,8 @@ export default function App() {
 
           {/* Protected — Clerk-based dashboards */}
           <Route path="/dashboard/perfil" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/dashboard/cliente" element={<ProtectedRoute><PanelCliente /></ProtectedRoute>} />
+          <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/cliente" element={<ProtectedRoute allowedRoles={['client']}><PanelCliente /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

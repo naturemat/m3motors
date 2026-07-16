@@ -7,9 +7,6 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      },
       "env": {
         "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsubTNtb3RvcnMubWUk"
       }
@@ -18,6 +15,9 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsubTNtb3RvcnMubWUk"
       }
     },
     "production": {

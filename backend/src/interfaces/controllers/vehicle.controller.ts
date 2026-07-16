@@ -12,6 +12,7 @@ import {
   Req,
   ParseIntPipe,
   HttpCode,
+  Res,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,11 +20,12 @@ import {
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { ClerkAuthGuard } from '../../shared/infrastructure/clerk/clerk.guard';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { CreateVehicleDTO } from '../../application/dto/CreateVehicleDTO';
 import { ObtenerHistorialVehiculo } from '../../registro-seguimiento/application/use-cases/ObtenerHistorialVehiculo';
+import { QRServiceImpl } from '../../registro-seguimiento/infrastructure/external-services/QRServiceImpl';
 
 @ApiTags('Vehicles')
 @ApiBearerAuth()
@@ -33,6 +35,7 @@ export class VehicleController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly obtenerHistorial: ObtenerHistorialVehiculo,
+    private readonly qrService: QRServiceImpl,
   ) {}
 
   @Get()
@@ -95,6 +98,30 @@ export class VehicleController {
     }
 
     return historial;
+  }
+
+  @Get(':id/qr-image')
+  @ApiOperation({ summary: 'Obtener imagen QR del vehículo' })
+  @ApiResponse({ status: 200, description: 'Imagen QR en base64' })
+  @ApiResponse({ status: 404, description: 'Vehículo sin QR' })
+  async getQrImage(@Param('id', ParseIntPipe) id: number) {
+    const vehicle = await this.prisma.client$.vehicle.findUnique({
+      where: { id },
+      include: { qr: true },
+    });
+
+    if (!vehicle?.qr) {
+      return { error: 'Vehículo no tiene código QR generado' };
+    }
+
+    const imagen = await this.qrService.generarImagenQR(vehicle.qr.codigo);
+
+    return {
+      vehicleId: id,
+      qrCode: vehicle.qr.codigo,
+      qrUrl: vehicle.qr.url,
+      qrImage: imagen,
+    };
   }
 
   @Post()

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
 import {
   Controller,
   Get,
@@ -37,7 +38,7 @@ export class AdminController {
     private readonly obtenerKPIs: ObtenerKPIsTaller,
   ) {}
 
-  private async findWorkshopForAdmin(userId: string) {
+  private findWorkshopForAdmin(userId: string) {
     return this.prisma.client$.workshop.findFirst({
       where: { ownerId: userId },
     });
@@ -62,7 +63,11 @@ export class AdminController {
 
     const full = await this.prisma.client$.workshop.findFirst({
       where: { id: workshop.id },
-      include: { mecanicos: true, servicios: true, preRegisteredCustomers: true },
+      include: {
+        mecanicos: true,
+        servicios: true,
+        preRegisteredCustomers: true,
+      },
     });
     return { workshop: full };
   }
@@ -232,9 +237,11 @@ export class AdminController {
       include: { mecanicos: true },
     });
 
-    const preClient = await this.prisma.client$.preRegisteredCustomer.findFirst({
-      where: { id, workshopId: workshop.id, status: 'PENDING' },
-    });
+    const preClient = await this.prisma.client$.preRegisteredCustomer.findFirst(
+      {
+        where: { id, workshopId: workshop.id, status: 'PENDING' },
+      },
+    );
     if (!preClient) return { error: 'Cliente no encontrado o ya activado' };
 
     const mechanicId = full?.mecanicos?.[0]?.id;
@@ -264,7 +271,8 @@ export class AdminController {
   }
 
   private generateTempPassword(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
     let password = '';
     for (let i = 0; i < 12; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));

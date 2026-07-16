@@ -12,15 +12,7 @@ import { ObtenerKPIsCliente } from './application/use-cases/ObtenerKPIsCliente';
     MechanicDashboardController,
     ClientDashboardController,
   ],
-  providers: [
-    ObtenerKPIsTaller,
-    ObtenerKPIsMecanico,
-    ObtenerKPIsCliente,
-  ],
-  exports: [
-    ObtenerKPIsTaller,
-    ObtenerKPIsMecanico,
-    ObtenerKPIsCliente,
-  ],
+  providers: [ObtenerKPIsTaller, ObtenerKPIsMecanico, ObtenerKPIsCliente],
+  exports: [ObtenerKPIsTaller, ObtenerKPIsMecanico, ObtenerKPIsCliente],
 })
 export class GestionVisualizacionModule {}

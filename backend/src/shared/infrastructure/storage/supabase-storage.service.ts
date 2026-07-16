@@ -85,7 +85,7 @@ export class SupabaseStorageService {
       method: 'POST',
       headers: {
         'Content-Type': mimeType,
-        'Authorization': `Bearer ${this.supabaseKey}`,
+        Authorization: `Bearer ${this.supabaseKey}`,
         'x-upsert': 'true',
       },
       body: buffer,
@@ -113,7 +113,7 @@ export class SupabaseStorageService {
     const response = await fetch(url, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${this.supabaseKey}`,
+        Authorization: `Bearer ${this.supabaseKey}`,
       },
     });
 

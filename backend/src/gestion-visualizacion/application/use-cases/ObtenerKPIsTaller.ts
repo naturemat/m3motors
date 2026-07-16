@@ -15,6 +15,7 @@ export class ObtenerKPIsTaller {
       totalVehiculos,
       totalClientesActivos,
       ingresosMes,
+      ingresosTotales,
       totalServicios,
       totalMecanicos,
       totalAlertasActivas,
@@ -34,6 +35,12 @@ export class ObtenerKPIsTaller {
         where: {
           mecanico: { workshopId },
           fecha: { gte: inicioMes },
+        },
+      }),
+      this.prisma.client$.intervention.aggregate({
+        _sum: { manoDeObra: true },
+        where: {
+          mecanico: { workshopId },
         },
       }),
       this.prisma.client$.serviceCatalog.count({
@@ -60,6 +67,7 @@ export class ObtenerKPIsTaller {
       totalVehiculos,
       totalClientesActivos,
       ingresosMes: Number(ingresosMes._sum.manoDeObra ?? 0),
+      ingresosTotales: Number(ingresosTotales._sum.manoDeObra ?? 0),
       calificacionPromedio: 0,
       totalServicios,
       totalMecanicos,

@@ -2,6 +2,7 @@ export interface KPIsTaller {
   totalVehiculos: number;
   totalClientesActivos: number;
   ingresosMes: number;
+  ingresosTotales: number;
   calificacionPromedio: number;
   totalServicios: number;
   totalMecanicos: number;

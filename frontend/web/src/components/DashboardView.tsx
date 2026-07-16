@@ -35,7 +35,7 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
   const totalClients = kpis?.totalClientesActivos ?? clients.length;
   const activeVehicles = kpis?.totalVehiculos ?? clients.filter(c => c.status === 'Activo').length;
   const monthInterventions = kpis?.intervencionesMes ?? orders.length;
-  const totalIncome = kpis?.ingresosMes ?? orders.reduce((sum, o) => sum + o.total, 0);
+  const totalIncome = kpis?.ingresosTotales ?? orders.reduce((sum, o) => sum + o.total, 0);
 
   const filteredOrders = orders.filter(order => {
     const q = searchQuery.toLowerCase();

@@ -64,7 +64,7 @@ export default function ReportsView({ kpis, clients: _clients, mechanics, orders
           <div className="bg-white p-6 rounded-xl border border-slate-200/60 shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Ticket Promedio</span>
             <h3 className="text-3xl font-extrabold text-[#003b5a] tracking-tight">
-              ${kpis && kpis.totalServicios > 0 ? (kpis.ingresosMes / kpis.totalServicios).toFixed(2) : '0.00'}
+              ${kpis && kpis.totalServicios > 0 ? (kpis.ingresosTotales / kpis.totalServicios).toFixed(2) : '0.00'}
             </h3>
             <span className="text-[10px] text-green-600 font-semibold flex items-center gap-0.5 mt-2">
               <ArrowUpRight className="w-3.5 h-3.5" /> Ingresos mes / servicios activos

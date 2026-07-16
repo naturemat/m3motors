@@ -70,7 +70,7 @@ export class ClerkService {
     });
   }
 
-  createUser(params: {
+  async createUser(params: {
     email: string;
     password: string;
     firstName?: string;

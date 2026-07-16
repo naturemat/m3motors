@@ -107,7 +107,7 @@ function AppContent() {
 
 function App() {
   return (
-    <ClerkProvider tokenCache={tokenCache} publishableKey={clerkPubKey}>
+    <ClerkProvider tokenCache={tokenCache} publishableKey={clerkPubKey} frontendApi="clerk.m3motors.me">
       <SafeAreaProvider>
         <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
         <NavigationContainer>

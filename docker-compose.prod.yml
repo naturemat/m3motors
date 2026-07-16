@@ -71,6 +71,8 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    volumes:
+      - /opt/m3motors/apk:/usr/share/nginx/html/apk:ro
     depends_on:
       backend:
         condition: service_healthy

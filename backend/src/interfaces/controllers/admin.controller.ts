@@ -27,6 +27,7 @@ import {
 } from '@nestjs/swagger';
 import { Request } from 'express';
 import { ClerkAuthGuard } from '../../shared/infrastructure/clerk/clerk.guard';
+import { ClerkService } from '../../shared/infrastructure/clerk/clerk.service';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { CreateMechanicDTO } from '../../application/dto/CreateMechanicDTO';
 import { CreateServiceDTO } from '../../application/dto/CreateServiceDTO';
@@ -37,7 +38,10 @@ import { UpdateWorkshopDTO } from '../../application/dto/UpdateWorkshopDTO';
 @Controller('admin')
 @UseGuards(ClerkAuthGuard)
 export class AdminController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly clerkService: ClerkService,
+  ) {}
 
   private async findWorkshopForAdmin(userId: string) {
     return this.prisma.client$.workshop.findFirst({
@@ -195,10 +199,37 @@ export class AdminController {
     const workshop = await this.findWorkshopForAdmin(userId);
     if (!workshop) return { error: 'Taller no encontrado' };
 
+    // Generate temp password for the mechanic
+    const tempPassword = this.generateTempPassword();
+    let clerkUserId: string | null = null;
+
+    try {
+      // Create Clerk user for the mechanic
+      const clerkUser = await this.clerkService.createUser({
+        email: `${dto.nombre.toLowerCase().replace(/\s/g, '.')}@m3motors.local`,
+        password: tempPassword,
+        firstName: dto.nombre,
+        publicMetadata: { role: 'mechanic' },
+      });
+
+      clerkUserId = clerkUser.id;
+
+      // Add to workshop organization
+      if (workshop.clerkOrgId) {
+        await this.clerkService.addMemberToOrganization(
+          workshop.clerkOrgId,
+          clerkUser.id,
+          'org:member',
+        );
+      }
+    } catch (error) {
+      console.error('[Admin] Error creating Clerk user for mechanic:', error);
+    }
+
     const mechanic = await this.prisma.client$.mechanic.create({
       data: {
         workshopId: workshop.id,
-        clerkId: crypto.randomUUID(),
+        clerkId: clerkUserId ?? crypto.randomUUID(),
         nombre: dto.nombre,
         especialidad: dto.especialidad ?? null,
         activo: true,
@@ -206,7 +237,22 @@ export class AdminController {
       },
     });
 
-    return { mechanic };
+    return {
+      mechanic,
+      tempPassword: clerkUserId ? tempPassword : undefined,
+      message: clerkUserId
+        ? 'Mecánico creado. Use la contraseña temporal para iniciar sesión.'
+        : 'Mecánico creado (sin cuenta Clerk)',
+    };
+  }
+
+  private generateTempPassword(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
   }
 
   @Delete('mechanics/:id')

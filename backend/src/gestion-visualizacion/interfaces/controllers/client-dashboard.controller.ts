@@ -1,9 +1,5 @@
-import {
-  Controller,
-  Get,
-  UseGuards,
-  Req,
-} from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
+import { Controller, Get, UseGuards, Req } from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,

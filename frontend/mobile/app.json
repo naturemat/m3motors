@@ -2,6 +2,7 @@
   "expo": {
     "name": "M3Motors",
     "slug": "m3motors",
+    "scheme": "m3motors",
     "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

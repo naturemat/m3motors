@@ -190,7 +190,7 @@ export class InterventionController {
             },
           });
         } catch (error) {
-          this.logger.error(`Error uploading photo: ${error}`);
+          this.logger.error(`Error uploading photo: ${String(error)}`);
           return null;
         }
       });
@@ -198,13 +198,14 @@ export class InterventionController {
       await Promise.allSettled(photoPromises);
 
       // Fetch intervention with photos
-      const interventionWithPhotos = await this.prisma.client$.intervention.findUnique({
-        where: { id: intervention.id },
-        include: {
-          detalles: { include: { partsCatalog: true } },
-          fotos: true,
-        },
-      });
+      const interventionWithPhotos =
+        await this.prisma.client$.intervention.findUnique({
+          where: { id: intervention.id },
+          include: {
+            detalles: { include: { partsCatalog: true } },
+            fotos: true,
+          },
+        });
 
       return {
         mensaje: 'Servicio registrado exitosamente',

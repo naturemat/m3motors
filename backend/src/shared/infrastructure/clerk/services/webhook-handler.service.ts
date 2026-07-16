@@ -61,7 +61,8 @@ export class WebhookHandlerService {
     const orgId = data?.organization?.id;
     const role = data?.role;
     const email = data?.public_user_data?.identifier ?? '';
-    const memberRole = (data?.public_metadata?.role as string | undefined) ?? 'mechanic';
+    const memberRole =
+      (data?.public_metadata?.role as string | undefined) ?? 'mechanic';
 
     if (!userId || !orgId || !role) {
       this.logger.warn('Invalid webhook data structure');

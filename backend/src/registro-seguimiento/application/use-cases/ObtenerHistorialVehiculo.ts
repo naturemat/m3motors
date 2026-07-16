@@ -73,7 +73,12 @@ export class ObtenerHistorialVehiculo {
       .getKilometrosSemanales();
     const proximoMantenimiento = vehiculo.obtenerProximoMantenimiento();
 
-    let cliente: { id: string; nombre: string; telefono: string; email: string } | null = null;
+    let cliente: {
+      id: string;
+      nombre: string;
+      telefono: string;
+      email: string;
+    } | null = null;
     try {
       const { ClienteId } =
         await import('../../domain/value-objects/ClienteId');

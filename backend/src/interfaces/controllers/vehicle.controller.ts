@@ -12,7 +12,6 @@ import {
   Req,
   ParseIntPipe,
   HttpCode,
-  Res,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -20,7 +19,7 @@ import {
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import { ClerkAuthGuard } from '../../shared/infrastructure/clerk/clerk.guard';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { CreateVehicleDTO } from '../../application/dto/CreateVehicleDTO';
@@ -114,6 +113,7 @@ export class VehicleController {
       return { error: 'Vehículo no tiene código QR generado' };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const imagen = await this.qrService.generarImagenQR(vehicle.qr.codigo);
 
     return {

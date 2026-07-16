@@ -70,7 +70,7 @@ export class ClerkService {
     });
   }
 
-  async createUser(params: {
+  createUser(params: {
     email: string;
     password: string;
     firstName?: string;
@@ -97,10 +97,7 @@ export class ClerkService {
     }
   }
 
-  async updateUserMetadata(
-    userId: string,
-    publicMetadata: Record<string, unknown>,
-  ) {
+  updateUserMetadata(userId: string, publicMetadata: Record<string, unknown>) {
     return this.getClient().users.updateUser(userId, {
       publicMetadata,
     });

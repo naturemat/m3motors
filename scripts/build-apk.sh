@@ -108,6 +108,11 @@ if [ ! -d "$MOBILE_DIR/android" ]; then
 fi
 log "  Prebuild completado"
 
+# Crear local.properties con sdk.dir para que Gradle encuentre el SDK
+log "  Configurando local.properties..."
+echo "sdk.dir=$ANDROID_HOME" > "$MOBILE_DIR/android/local.properties"
+log "  sdk.dir=$ANDROID_HOME"
+
 # 5. Construir APK
 log "[5/7] Construyendo APK (puede tomar 3-5 min)..."
 cd "$MOBILE_DIR/android"

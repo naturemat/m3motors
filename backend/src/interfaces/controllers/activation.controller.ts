@@ -179,9 +179,9 @@ export class ActivationController {
       },
     });
 
-    // Create Clerk user for the client
-    const tempPassword = this.generateTempPassword();
+    // Associate client with workshop in Clerk
     let clerkUserId: string | null = null;
+    let tempPassword: string | undefined;
 
     try {
       const workshop = await this.prisma.client$.workshop.findFirst({
@@ -189,25 +189,49 @@ export class ActivationController {
       });
 
       if (workshop?.clerkOrgId) {
-        const clerkUser = await this.clerkService.createUser({
-          email: preRegisteredCustomer.email,
-          password: tempPassword,
-          firstName: preRegisteredCustomer.nombre,
-          publicMetadata: { role: 'client' },
-        });
-
-        clerkUserId = clerkUser.id;
-
-        // Add to organization as member
-        await this.clerkService.addMemberToOrganization(
-          workshop.clerkOrgId,
-          clerkUser.id,
-          'org:member',
+        // Check if client already has a Clerk account (e.g., registered with Google)
+        const existingUser = await this.clerkService.getUserByEmail(
+          preRegisteredCustomer.email,
         );
+
+        if (existingUser) {
+          // Client already has Clerk account (e.g., registered with Google)
+          clerkUserId = existingUser.id;
+
+          // Update publicMetadata with role
+          await this.clerkService.updateUserMetadata(existingUser.id, {
+            role: 'client',
+          });
+
+          // Add to organization
+          await this.clerkService.addMemberToOrganization(
+            workshop.clerkOrgId,
+            existingUser.id,
+            'org:member',
+          );
+        } else {
+          // Client doesn't have Clerk account - create one
+          tempPassword = this.generateTempPassword();
+          const clerkUser = await this.clerkService.createUser({
+            email: preRegisteredCustomer.email,
+            password: tempPassword,
+            firstName: preRegisteredCustomer.nombre,
+            publicMetadata: { role: 'client' },
+          });
+
+          clerkUserId = clerkUser.id;
+
+          // Add to organization as member
+          await this.clerkService.addMemberToOrganization(
+            workshop.clerkOrgId,
+            clerkUser.id,
+            'org:member',
+          );
+        }
       }
     } catch (error) {
       // Log error but don't fail the activation
-      console.error('[Activation] Error creating Clerk user:', error);
+      console.error('[Activation] Error associating Clerk user:', error);
     }
 
     return {
@@ -218,7 +242,8 @@ export class ActivationController {
         codigo: resultado.qr.getCodigo(),
         url: resultado.qr.getUrl(),
       },
-      tempPassword: clerkUserId ? tempPassword : undefined,
+      tempPassword,
+      clerkUserId,
     };
   }
 

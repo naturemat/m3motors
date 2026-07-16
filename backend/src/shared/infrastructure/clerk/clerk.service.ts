@@ -85,4 +85,24 @@ export class ClerkService {
       publicMetadata: params.publicMetadata ?? {},
     });
   }
+
+  async getUserByEmail(email: string) {
+    try {
+      const users = await this.getClient().users.getUserList({
+        emailAddress: [email],
+      });
+      return users.data?.[0] ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  async updateUserMetadata(
+    userId: string,
+    publicMetadata: Record<string, unknown>,
+  ) {
+    return this.getClient().users.updateUser(userId, {
+      publicMetadata,
+    });
+  }
 }

@@ -181,27 +181,36 @@ jobs:
           set -e
           cd /opt/m3motors
 
-          echo "=== [1/6] Limpiar contenedores viejos ==="
-          docker stop $(docker ps -aq --filter "name=m3motors-") 2>/dev/null || true
-          docker rm $(docker ps -aq --filter "name=m3motors-") 2>/dev/null || true
+          echo "=== [1/7] Pull nuevas imagenes (ANTES de parar viejas) ==="
+          docker compose -f docker-compose.prod.yml --env-file .env pull
 
-          echo "=== [2/6] Limpiar imagenes no utilizadas ==="
-          docker image prune -af --filter "until=72h" 2>/dev/null || true
-
-          echo "=== [3/6] Limpiar logs antiguos de contenedores ==="
+          echo "=== [2/7] Limpiar logs antiguos de contenedores ==="
           find /var/lib/docker/containers -name "*-json.log" -size +50M -delete 2>/dev/null || true
 
-          echo "=== [4/6] Descargar e iniciar servicios ==="
-          docker compose -f docker-compose.prod.yml --env-file .env pull
-          docker compose -f docker-compose.prod.yml --env-file .env up -d
+          echo "=== [3/7] Detener y reemplazar contenedores ==="
+          docker compose -f docker-compose.prod.yml --env-file .env up -d --force-recreate
 
-          echo "=== [5/6] Verificar estado ==="
-          sleep 10
+          echo "=== [4/7] Verificar estado ==="
+          sleep 15
           docker compose -f docker-compose.prod.yml ps
 
-          echo "=== [6/6] Build APK local ==="
+          echo "=== [5/7] Verificar backend health ==="
+          for i in 1 2 3 4 5; do
+            if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
+              echo "  Backend healthy"
+              break
+            fi
+            echo "  Esperando backend... (intento $i/5)"
+            sleep 5
+          done
+
+          echo "=== [6/7] Build APK local ==="
+          mkdir -p /opt/m3motors/apk
           chmod +x /opt/m3motors/scripts/build-apk.sh
-          bash /opt/m3motors/scripts/build-apk.sh
+          bash /opt/m3motors/scripts/build-apk.sh || echo "  WARNING: APK build falló, servicios no afectados"
+
+          echo "=== [7/7] Limpiar imagenes no utilizadas ==="
+          docker image prune -af --filter "until=72h" 2>/dev/null || true
 
           echo "=== Deploy completado ==="
           DEPLOY_SCRIPT

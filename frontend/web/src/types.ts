@@ -34,6 +34,7 @@ export interface KPIs {
   totalVehiculos: number;
   totalClientesActivos: number;
   ingresosMes: number;
+  ingresosTotales: number;
   calificacionPromedio: number;
   totalServicios: number;
   totalMecanicos: number;

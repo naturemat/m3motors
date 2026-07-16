@@ -61,7 +61,7 @@ export class WebhookHandlerService {
     const orgId = data?.organization?.id;
     const role = data?.role;
     const email = data?.public_user_data?.identifier ?? '';
-    const memberType = data?.public_metadata?.type as string | undefined;
+    const memberRole = (data?.public_metadata?.role as string | undefined) ?? 'mechanic';
 
     if (!userId || !orgId || !role) {
       this.logger.warn('Invalid webhook data structure');
@@ -73,7 +73,7 @@ export class WebhookHandlerService {
         await this.syncAdmin(userId, orgId, email);
         break;
       case 'org:member':
-        if (memberType === 'client') {
+        if (memberRole === 'client') {
           await this.syncCliente(userId, orgId, email);
         } else {
           await this.syncMechanic(userId, orgId, email);

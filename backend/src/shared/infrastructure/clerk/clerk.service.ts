@@ -69,4 +69,20 @@ export class ClerkService {
       organizationId: orgId,
     });
   }
+
+  async createUser(params: {
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+    publicMetadata?: Record<string, unknown>;
+  }) {
+    return this.getClient().users.createUser({
+      emailAddress: [params.email],
+      password: params.password,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      publicMetadata: params.publicMetadata ?? {},
+    });
+  }
 }

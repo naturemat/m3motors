@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { Request } from 'express';
 import { ClerkAuthGuard } from '../../shared/infrastructure/clerk/clerk.guard';
+import { ClerkService } from '../../shared/infrastructure/clerk/clerk.service';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { ActivacionClienteService } from '../../registro-seguimiento/infrastructure/external-services/ActivacionClienteService';
 import { ActivateClientDTO } from '../../application/dto/ActivateClientDTO';
@@ -33,6 +34,7 @@ export class ActivationController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly activacionService: ActivacionClienteService,
+    private readonly clerkService: ClerkService,
   ) {}
 
   @Get('pre-registered')
@@ -177,6 +179,37 @@ export class ActivationController {
       },
     });
 
+    // Create Clerk user for the client
+    const tempPassword = this.generateTempPassword();
+    let clerkUserId: string | null = null;
+
+    try {
+      const workshop = await this.prisma.client$.workshop.findFirst({
+        where: { id: dto.workshopId },
+      });
+
+      if (workshop?.clerkOrgId) {
+        const clerkUser = await this.clerkService.createUser({
+          email: preRegisteredCustomer.email,
+          password: tempPassword,
+          firstName: preRegisteredCustomer.nombre,
+          publicMetadata: { role: 'client' },
+        });
+
+        clerkUserId = clerkUser.id;
+
+        // Add to organization as member
+        await this.clerkService.addMemberToOrganization(
+          workshop.clerkOrgId,
+          clerkUser.id,
+          'org:member',
+        );
+      }
+    } catch (error) {
+      // Log error but don't fail the activation
+      console.error('[Activation] Error creating Clerk user:', error);
+    }
+
     return {
       success: true,
       vehicleId: resultado.vehicleId,
@@ -185,6 +218,16 @@ export class ActivationController {
         codigo: resultado.qr.getCodigo(),
         url: resultado.qr.getUrl(),
       },
+      tempPassword: clerkUserId ? tempPassword : undefined,
     };
+  }
+
+  private generateTempPassword(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
   }
 }

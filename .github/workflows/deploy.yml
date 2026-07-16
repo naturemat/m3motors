@@ -125,12 +125,29 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
+      - name: Download APK from EAS
+        if: success()
+        run: |
+          eas build:list --limit 1 --platform android --json > build-info.json
+          BUILD_ID=$(node -e "const b=JSON.parse(require('fs').readFileSync('build-info.json','utf8')); console.log(b[0].id)")
+          eas build:download --id $BUILD_ID --path ./apk
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Upload APK artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m3motors-mobile-apk
+          path: ./frontend/mobile/apk/*.apk
+          retention-days: 30
+
   # ===========================================================================
   # DEPLOY — SSH to DigitalOcean Droplet
   # ===========================================================================
   deploy:
     name: Deploy to Droplet
-    needs: [detect-changes, build-backend, build-frontend-web]
+    needs: [detect-changes, build-backend, build-frontend-web, build-frontend-mobile]
     if: always() && needs.build-backend.result != 'failure' && needs.build-frontend-web.result != 'failure' && (needs.build-backend.result == 'success' || needs.build-frontend-web.result == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 10

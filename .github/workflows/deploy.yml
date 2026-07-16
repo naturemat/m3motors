@@ -195,12 +195,12 @@ jobs:
           docker compose -f docker-compose.prod.yml ps
 
           echo "=== [5/7] Verificar backend health ==="
-          for i in 1 2 3 4 5; do
+          for i in 1 2 3; do
             if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
               echo "  Backend healthy"
               break
             fi
-            echo "  Esperando backend... (intento $i/5)"
+            echo "  Esperando backend... (intento $i/3)"
             sleep 5
           done
 

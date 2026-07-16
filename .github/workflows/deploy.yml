@@ -115,11 +115,6 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Login to Expo
-        run: eas login --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
       - name: Build APK (Preview)
         run: eas build -p android --profile preview --non-interactive
         env:
@@ -130,7 +125,7 @@ jobs:
         run: |
           eas build:list --limit 1 --platform android --json > build-info.json
           BUILD_ID=$(node -e "const b=JSON.parse(require('fs').readFileSync('build-info.json','utf8')); console.log(b[0].id)")
-          eas build:download --id $BUILD_ID --path ./apk
+          eas build:download --id $BUILD_ID
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 

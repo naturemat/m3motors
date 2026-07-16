@@ -36,7 +36,7 @@ jobs:
   backend-lint:
     name: Backend Lint
     needs: detect-changes
-    if: needs.detect-changes.outputs.backend == 'true'
+    if: github.event_name == 'push' && needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -55,7 +55,7 @@ jobs:
   frontend-web-lint:
     name: Frontend Web Lint
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend-web == 'true'
+    if: github.event_name == 'push' && needs.detect-changes.outputs.frontend-web == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -74,7 +74,7 @@ jobs:
   frontend-mobile-lint:
     name: Frontend Mobile Lint
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend-mobile == 'true'
+    if: github.event_name == 'push' && needs.detect-changes.outputs.frontend-mobile == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -96,7 +96,7 @@ jobs:
   backend-test:
     name: Backend Tests
     needs: detect-changes
-    if: needs.detect-changes.outputs.backend == 'true'
+    if: github.event_name == 'pull_request' && needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -115,7 +115,7 @@ jobs:
   frontend-web-test:
     name: Frontend Web Tests
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend-web == 'true'
+    if: github.event_name == 'pull_request' && needs.detect-changes.outputs.frontend-web == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -134,7 +134,7 @@ jobs:
   frontend-mobile-test:
     name: Frontend Mobile Tests
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend-mobile == 'true'
+    if: github.event_name == 'pull_request' && needs.detect-changes.outputs.frontend-mobile == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:

@@ -1,6 +1,6 @@
 import { Link, Navigate } from 'react-router-dom'
 import { SignedOut, SignedIn } from '@clerk/clerk-react'
-import { Shield, Bell, QrCode, ArrowRight, Download, Smartphone } from 'lucide-react'
+import { Shield, Bell, QrCode, ArrowRight, Download } from 'lucide-react'
 
 export default function Landing() {
   return (

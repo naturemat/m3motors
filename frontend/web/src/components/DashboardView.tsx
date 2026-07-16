@@ -13,17 +13,18 @@ import {
   Clock,
   AlertTriangle
 } from 'lucide-react';
-import type { Client, Mechanic, ServiceOrder } from '../types';
+import type { Client, Mechanic, ServiceOrder, KPIs } from '../types';
 
 interface DashboardViewProps {
   clients: Client[];
   mechanics: Mechanic[];
   orders: ServiceOrder[];
+  kpis: KPIs | null;
   addOrder: (order: Omit<ServiceOrder, 'id' | 'clientInitials' | 'date'>) => void;
   setActiveTab: (tab: string) => void;
 }
 
-export default function DashboardView({ clients, mechanics: _mechanics, orders, addOrder, setActiveTab }: DashboardViewProps) {
+export default function DashboardView({ clients, mechanics: _mechanics, orders, kpis, addOrder, setActiveTab }: DashboardViewProps) {
   const [showNewOrderModal, setShowNewOrderModal] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState('');
   const [serviceName, setServiceName] = useState('Revisión de Motor');
@@ -31,10 +32,10 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
   const [totalCost, setTotalCost] = useState('350');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const totalClients = clients.length;
-  const activeVehicles = clients.filter(c => c.status === 'Activo').length;
-  const monthInterventions = orders.length;
-  const totalIncome = orders.reduce((sum, o) => sum + o.total, 0);
+  const totalClients = kpis?.totalClientesActivos ?? clients.length;
+  const activeVehicles = kpis?.totalVehiculos ?? clients.filter(c => c.status === 'Activo').length;
+  const monthInterventions = kpis?.intervencionesMes ?? orders.length;
+  const totalIncome = kpis?.ingresosMes ?? orders.reduce((sum, o) => sum + o.total, 0);
 
   const filteredOrders = orders.filter(order => {
     const q = searchQuery.toLowerCase();
@@ -65,23 +66,46 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
     setShowNewOrderModal(false);
   };
 
-  const incomeMonths = [
-    { month: 'Ene', amount: '$28.5K', pct: '40%' },
-    { month: 'Feb', amount: '$32.0K', pct: '55%' },
-    { month: 'Mar', amount: '$30.5K', pct: '45%' },
-    { month: 'Abr', amount: '$37.8K', pct: '70%' },
-    { month: 'May', amount: '$41.2K', pct: '85%' },
-    { month: 'Jun', amount: `$${(totalIncome / 1000).toFixed(1)}K`, pct: '95%', isHighlight: true },
-  ];
+  const incomeMonths = (() => {
+    const current = totalIncome;
+    const placeholder = [
+      { month: 'Ene', amount: Math.round(current * 0.7), pct: 40 },
+      { month: 'Feb', amount: Math.round(current * 0.8), pct: 55 },
+      { month: 'Mar', amount: Math.round(current * 0.75), pct: 45 },
+      { month: 'Abr', amount: Math.round(current * 0.92), pct: 70 },
+      { month: 'May', amount: Math.round(current * 0.95), pct: 85 },
+    ];
+    return [
+      ...placeholder.map((p) => ({
+        month: p.month,
+        amount: `$${(p.amount / 1000).toFixed(1)}K`,
+        pct: `${p.pct}%`,
+        isHighlight: false,
+      })),
+      {
+        month: 'Jun',
+        amount: `$${(current / 1000).toFixed(1)}K`,
+        pct: '95%',
+        isHighlight: true,
+      },
+    ];
+  })();
 
-  const points = [
-    { x: 30, y: 190, count: '950', month: 'Ene' },
-    { x: 110, y: 165, count: '1020', month: 'Feb' },
-    { x: 190, y: 175, count: '1080', month: 'Mar' },
-    { x: 270, y: 130, count: '1140', month: 'Abr' },
-    { x: 350, y: 90, count: '1210', month: 'May' },
-    { x: 430, y: 40, count: totalClients.toString(), month: 'Jun' },
-  ];
+  const points = (() => {
+    const current = totalClients;
+    const vals = [
+      Math.round(current * 0.78),
+      Math.round(current * 0.83),
+      Math.round(current * 0.88),
+      Math.round(current * 0.92),
+      Math.round(current * 0.97),
+      current,
+    ];
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'];
+    const xs = [30, 110, 190, 270, 350, 430];
+    const ys = vals.map((v) => Math.round(200 - ((v / (current || 1)) * 170)));
+    return xs.map((x, i) => ({ x, y: ys[i], count: vals[i].toString(), month: months[i] }));
+  })();
 
   const svgPath = `M ${points.map(p => `${p.x} ${p.y}`).join(' L ')}`;
 

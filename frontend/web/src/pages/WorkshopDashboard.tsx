@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import type { Client, Mechanic, ServiceOrder } from '../types';
+import type { Client, Mechanic, ServiceOrder, KPIs } from '../types';
 import { INITIAL_CLIENTS, INITIAL_MECHANICS, INITIAL_ORDERS } from '../data';
 
 import Sidebar from '../components/Sidebar';
@@ -28,6 +28,7 @@ export default function WorkshopDashboard() {
   const [clients, setClients] = useState<Client[]>([]);
   const [mechanics, setMechanics] = useState<Mechanic[]>([]);
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
+  const [kpis, setKpis] = useState<KPIs | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,11 +42,16 @@ export default function WorkshopDashboard() {
       setLoading(true);
       const headers = await authHeaders();
 
-      const [mechanicsRes, customersRes, servicesRes] = await Promise.all([
+      const [mechanicsRes, customersRes, servicesRes, kpisRes] = await Promise.all([
         axios.get(`${apiUrl}/admin/mechanics`, { headers }),
         axios.get(`${apiUrl}/admin/customers`, { headers }),
         axios.get(`${apiUrl}/admin/services`, { headers }),
+        axios.get(`${apiUrl}/admin/kpis`, { headers }),
       ]);
+
+      if (kpisRes.data?.kpis) {
+        setKpis(kpisRes.data.kpis);
+      }
 
       const rawMechanics: any[] = mechanicsRes.data.mechanics ?? [];
       setMechanics(
@@ -186,6 +192,7 @@ export default function WorkshopDashboard() {
             clients={clients}
             mechanics={mechanics}
             orders={orders}
+            kpis={kpis}
             addOrder={handleAddOrder}
             setActiveTab={setActiveTab}
           />
@@ -217,7 +224,7 @@ export default function WorkshopDashboard() {
           />
         );
       case 'reports':
-        return <ReportsView />;
+        return <ReportsView kpis={kpis} clients={clients} mechanics={mechanics} orders={orders} />;
       case 'settings':
         return <SettingsView onResetData={handleResetData} />;
       default:
@@ -226,6 +233,7 @@ export default function WorkshopDashboard() {
             clients={clients}
             mechanics={mechanics}
             orders={orders}
+            kpis={kpis}
             addOrder={handleAddOrder}
             setActiveTab={setActiveTab}
           />

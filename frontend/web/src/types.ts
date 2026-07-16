@@ -30,6 +30,17 @@ export interface ServiceOrder {
   date: string;
 }
 
+export interface KPIs {
+  totalVehiculos: number;
+  totalClientesActivos: number;
+  ingresosMes: number;
+  calificacionPromedio: number;
+  totalServicios: number;
+  totalMecanicos: number;
+  totalAlertasActivas: number;
+  intervencionesMes: number;
+}
+
 export interface MonthlyRevenue {
   month: string;
   amount: number;

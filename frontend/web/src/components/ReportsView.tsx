@@ -8,8 +8,16 @@ import {
   Award,
   Clock
 } from 'lucide-react';
+import type { KPIs, Client, Mechanic, ServiceOrder } from '../types';
 
-export default function ReportsView() {
+interface ReportsViewProps {
+  kpis: KPIs | null;
+  clients: Client[];
+  mechanics: Mechanic[];
+  orders: ServiceOrder[];
+}
+
+export default function ReportsView({ kpis, clients: _clients, mechanics, orders }: ReportsViewProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
 
@@ -55,30 +63,34 @@ export default function ReportsView() {
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-white p-6 rounded-xl border border-slate-200/60 shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Ticket Promedio</span>
-            <h3 className="text-3xl font-extrabold text-[#003b5a] tracking-tight">$728.50</h3>
+            <h3 className="text-3xl font-extrabold text-[#003b5a] tracking-tight">
+              ${kpis && kpis.totalServicios > 0 ? (kpis.ingresosMes / kpis.totalServicios).toFixed(2) : '0.00'}
+            </h3>
             <span className="text-[10px] text-green-600 font-semibold flex items-center gap-0.5 mt-2">
-              <ArrowUpRight className="w-3.5 h-3.5" /> +8.5% este mes
+              <ArrowUpRight className="w-3.5 h-3.5" /> Ingresos mes / servicios activos
             </span>
           </div>
           <div className="bg-white p-6 rounded-xl border border-slate-200/60 shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Lifetime Value (LTV)</span>
-            <h3 className="text-3xl font-extrabold text-[#003b5a] tracking-tight">$1,450.00</h3>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Intervenciones del Mes</span>
+            <h3 className="text-3xl font-extrabold text-[#003b5a] tracking-tight">{kpis?.intervencionesMes ?? orders.length}</h3>
             <span className="text-[10px] text-indigo-600 font-semibold flex items-center gap-0.5 mt-2">
-              <Activity className="w-3.5 h-3.5" /> Alta recurrencia
+              <Activity className="w-3.5 h-3.5" /> {orders.length} órdenes registradas
             </span>
           </div>
           <div className="bg-white p-6 rounded-xl border border-slate-200/60 shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Net Promoter Score</span>
-            <h3 className="text-3xl font-extrabold text-[#003b5a] tracking-tight">92 / 100</h3>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Alertas Activas</span>
+            <h3 className="text-3xl font-extrabold text-[#003b5a] tracking-tight">{kpis?.totalAlertasActivas ?? 0}</h3>
             <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-0.5 mt-2">
-              <Award className="w-3.5 h-3.5" /> Nivel Excelente
+              <Award className="w-3.5 h-3.5" /> Mantenimiento predictivo
             </span>
           </div>
           <div className="bg-white p-6 rounded-xl border border-slate-200/60 shadow-[0_4px_12px_rgba(0,0,0,0.02)] bg-gradient-to-br from-white to-slate-50">
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Eficiencia del Taller</span>
-            <h3 className="text-3xl font-extrabold text-[#003b5a] tracking-tight">94.8%</h3>
+            <h3 className="text-3xl font-extrabold text-[#003b5a] tracking-tight">
+              {kpis && kpis.totalMecanicos > 0 ? `${kpis.totalServicios} Servicios` : '0 Servicios'}
+            </h3>
             <span className="text-[10px] text-sky-700 font-semibold flex items-center gap-0.5 mt-2">
-              <CheckCircle className="w-3.5 h-3.5" /> Tiempo de entrega óptimo
+              <CheckCircle className="w-3.5 h-3.5" /> {kpis?.totalMecanicos ?? mechanics.length} mecánicos activos
             </span>
           </div>
         </section>
@@ -128,7 +140,7 @@ export default function ReportsView() {
               </div>
             </div>
             <div className="pt-4 border-t border-slate-100 mt-6 text-[11px] text-slate-400 text-center font-semibold">
-              Datos consolidados en base a las últimas 150 órdenes procesadas.
+              Datos consolidados en base a {orders.length} órdenes procesadas.
             </div>
           </div>
         </section>

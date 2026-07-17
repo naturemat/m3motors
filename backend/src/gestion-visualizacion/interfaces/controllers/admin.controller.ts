@@ -276,7 +276,8 @@ export class AdminController {
   @ApiResponse({ status: 201, description: 'Cliente creado exitosamente' })
   async createCustomer(
     @Req() req: Request,
-    @Body() body: { nombre: string; email: string; telefono: string; status?: string },
+    @Body()
+    body: { nombre: string; email: string; telefono: string; status?: string },
   ) {
     const { userId } = (req as any).auth;
     const workshop = await this.findWorkshopForAdmin(userId);
@@ -332,7 +333,10 @@ export class AdminController {
 
   @Get('orders')
   @ApiOperation({ summary: 'Listar órdenes de servicio (intervenciones)' })
-  @ApiResponse({ status: 200, description: 'Lista de intervenciones del taller' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de intervenciones del taller',
+  })
   async getOrders(@Req() req: Request) {
     const { userId } = (req as any).auth;
     const workshop = await this.findWorkshopForAdmin(userId);
@@ -357,7 +361,14 @@ export class AdminController {
   @ApiResponse({ status: 201, description: 'Orden creada exitosamente' })
   async createOrder(
     @Req() req: Request,
-    @Body() body: { clientName: string; vehicle: string; serviceName: string; status?: string; total?: number },
+    @Body()
+    body: {
+      clientName: string;
+      vehicle: string;
+      serviceName: string;
+      status?: string;
+      total?: number;
+    },
   ) {
     const { userId } = (req as any).auth;
     const workshop = await this.findWorkshopForAdmin(userId);

@@ -3,6 +3,9 @@ node_modules/
 .pnp
 .pnp.js
 
+# Expo
+.expo/
+
 # Project context (contains secrets)
 PROJECT_CONTEXT.md
 SUPABASE_SCHEMA.md

@@ -11,13 +11,26 @@ services:
       POSTGRES_DB: m3motors
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d m3motors"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 15s
+    networks:
+      - m3motors-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: m3motors-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - m3motors-network
 
@@ -41,6 +54,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - m3motors-network
 

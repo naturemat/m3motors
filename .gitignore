@@ -52,6 +52,11 @@ android/.gradle/
 android/build/
 android/local.properties
 
+# Capacitor
+frontend/mobile/dist/
+frontend/mobile/android/
+frontend/mobile/ios/
+
 # iOS
 ios/Pods/
 ios/build/

@@ -1,162 +1,120 @@
-import React, {useState} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {useAuth} from '@clerk/clerk-expo';
-import {AppBar, BottomNav} from '../../components/molecules';
-import {Input, Button} from '../../components/atoms';
-import {ClientStackParamList} from '../../navigation/types';
-import {colors} from '../../theme';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUser, useClerk } from '@clerk/clerk-react';
+import { useAuthStore } from '@/store/authStore';
 
-type Nav = NativeStackNavigationProp<ClientStackParamList, 'ClientProfile'>;
+export function ClientProfile() {
+  const navigate = useNavigate();
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const logout = useAuthStore((s) => s.logout);
+  const [name, setName] = useState(user?.firstName || '');
+  const [phone, setPhone] = useState('');
+  const [email] = useState(user?.emailAddresses?.[0]?.emailAddress || '');
+  const [saved, setSaved] = useState(false);
 
-export default function ClientProfile() {
-  const navigation = useNavigation<Nav>();
-  const {signOut} = useAuth();
-  const [name, setName] = useState('Carlos Perez');
-  const [phone, setPhone] = useState('+593 99 123 4567');
-  const [email, setEmail] = useState('carlos@email.com');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const userInitials = name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
-  const handleSave = async () => {
-    setIsLoading(true);
-    await new Promise<void>(r => setTimeout(r, 1000));
-    setIsLoading(false);
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
   const handleLogout = async () => {
     await signOut();
+    logout();
+    navigate('/');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <AppBar title="Mi Perfil" showBack onBack={() => navigation.goBack()} />
+    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <div style={{ background: 'var(--primary-500)', padding: '20px 16px' }}>
+        <button
+          onClick={() => navigate('/client')}
+          style={{ color: 'white', fontSize: 14, marginBottom: 8 }}
+        >
+          {'< '}Volver
+        </button>
+        <h1 style={{ color: 'white', fontSize: 20, fontWeight: 700 }}>
+          Mi Perfil
+        </h1>
+      </div>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.avatarSection}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{userInitials}</Text>
-          </View>
-          <Text style={styles.userName}>{name}</Text>
-          <Text style={styles.userEmail}>{email}</Text>
-        </View>
+      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{
+          background: 'white', borderRadius: 12, padding: 16,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+          display: 'flex', flexDirection: 'column', gap: 12,
+        }}>
+          <div>
+            <label style={{
+              fontSize: 12, color: 'var(--gray-500)', marginBottom: 4, display: 'block',
+            }}>
+              Nombre
+            </label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={{
+                width: '100%', padding: '10px 12px', border: '1px solid var(--gray-300)',
+                borderRadius: 8, fontSize: 14, outline: 'none',
+              }}
+            />
+          </div>
+          <div>
+            <label style={{
+              fontSize: 12, color: 'var(--gray-500)', marginBottom: 4, display: 'block',
+            }}>
+              Telefono
+            </label>
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="0999999999"
+              style={{
+                width: '100%', padding: '10px 12px', border: '1px solid var(--gray-300)',
+                borderRadius: 8, fontSize: 14, outline: 'none',
+              }}
+            />
+          </div>
+          <div>
+            <label style={{
+              fontSize: 12, color: 'var(--gray-500)', marginBottom: 4, display: 'block',
+            }}>
+              Correo
+            </label>
+            <input
+              value={email}
+              disabled
+              style={{
+                width: '100%', padding: '10px 12px', border: '1px solid var(--gray-200)',
+                borderRadius: 8, fontSize: 14, background: 'var(--gray-100)',
+                color: 'var(--gray-500)',
+              }}
+            />
+          </div>
+        </div>
 
-        <View style={styles.form}>
-          <Input
-            label="Nombre completo"
-            value={name}
-            onChangeText={setName}
-            placeholder="Tu nombre"
-          />
-          <Input
-            label="Telefono"
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="Tu telefono"
-            keyboardType="phone-pad"
-          />
-          <Input
-            label="Correo electronico"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Tu email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
+        <button
+          onClick={handleSave}
+          style={{
+            width: '100%', padding: 14, background: 'var(--primary-500)',
+            color: 'white', borderRadius: 8, fontSize: 15, fontWeight: 600,
+            border: 'none',
+          }}
+        >
+          {saved ? 'Guardado' : 'Guardar Cambios'}
+        </button>
 
-        <View style={styles.actions}>
-          <Button
-            title="Guardar Cambios"
-            variant="primary"
-            size="large"
-            fullWidth
-            onPress={handleSave}
-            loading={isLoading}
-          />
-          <Button
-            title="Cerrar Sesion"
-            variant="danger"
-            size="large"
-            fullWidth
-            onPress={handleLogout}
-          />
-        </View>
-      </ScrollView>
-
-      <BottomNav
-        active="perfil"
-        items={[
-          {key: 'inicio', label: 'Inicio', icon: 'home'},
-          {key: 'historial', label: 'Historial', icon: 'file-text'},
-          {key: 'qr', label: 'QR', icon: 'qrcode'},
-          {key: 'perfil', label: 'Perfil', icon: 'user'},
-        ]}
-        onPress={key => {
-          if (key === 'inicio') navigation.navigate('ClientDashboard');
-          else if (key === 'historial') navigation.navigate('ClientHistory');
-          else if (key === 'qr') navigation.navigate('ClientQR');
-        }}
-      />
-    </SafeAreaView>
+        <button
+          onClick={handleLogout}
+          style={{
+            width: '100%', padding: 14, background: 'white', color: 'var(--error)',
+            borderRadius: 8, fontSize: 15, fontWeight: 600,
+            border: '1px solid var(--error)',
+          }}
+        >
+          Cerrar Sesion
+        </button>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral[100],
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 80,
-  },
-  avatarSection: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primary[500],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: colors.neutral[0],
-  },
-  userName: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.neutral[900],
-    marginTop: 8,
-  },
-  userEmail: {
-    fontSize: 16,
-    color: colors.neutral[600],
-  },
-  form: {
-    gap: 16,
-    marginBottom: 24,
-  },
-  actions: {
-    gap: 8,
-  },
-});

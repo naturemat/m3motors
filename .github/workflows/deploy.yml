@@ -100,7 +100,7 @@ jobs:
     needs: [detect-changes, build-backend, build-frontend-web]
     if: always() && needs.build-backend.result != 'failure' && needs.build-frontend-web.result != 'failure' && (needs.build-backend.result == 'success' || needs.build-frontend-web.result == 'success')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -199,8 +199,9 @@ jobs:
           echo "=== [6/7] Build APK local ==="
           mkdir -p /opt/m3motors/apk
           chmod +x /opt/m3motors/scripts/build-apk.sh
-          export EXPO_PUBLIC_API_URL=https://m3motors.com/api
-          export EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_Y2xlcmsubTNtb3RvcnMubWUk
+          export VITE_API_URL=https://m3motors.com/api
+          export VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          export VITE_ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }}
           bash /opt/m3motors/scripts/build-apk.sh || echo "  WARNING: APK build falló, servicios no afectados"
 
           echo "=== [7/7] Limpiar imagenes no utilizadas ==="

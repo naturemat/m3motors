@@ -6,7 +6,7 @@
 # Requiere: Java 17+, Android SDK, Node.js 22+, ~2GB disco libre
 # =============================================================================
 
-WEB_DIR="/opt/m3motors/frontend/mobile"
+WEB_DIR="/opt/m3motors/frontend/web"
 APK_DIR="/opt/m3motors/apk"
 APK_NAME="M3Motors.apk"
 ANDROID_HOME="/opt/android-sdk"

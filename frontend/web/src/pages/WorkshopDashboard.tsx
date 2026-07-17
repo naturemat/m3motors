@@ -92,16 +92,21 @@ export default function WorkshopDashboard() {
 
       const rawServices: any[] = servicesRes.data.services ?? [];
       setOrders(
-        rawServices.map((s) => ({
-          id: String(s.id),
-          clientName: '',
-          clientInitials: '',
-          vehicle: '',
-          serviceName: s.nombre,
-          status: 'PENDIENTE' as const,
-          total: s.precioReferencia ?? 0,
-          date: '',
-        })),
+        rawServices.map((s) => {
+          const lastIntervention = s.intervenciones?.[0];
+          const cliente = lastIntervention?.vehiculo?.cliente;
+          const vehiculo = lastIntervention?.vehiculo;
+          return {
+            id: String(s.id),
+            clientName: cliente?.nombre ?? '',
+            clientInitials: cliente?.nombre ? cliente.nombre.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() : '',
+            vehicle: vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.placa})` : '',
+            serviceName: s.nombre,
+            status: s.activo ? 'COMPLETADO' as const : 'PENDIENTE' as const,
+            total: Number(s.precioReferencia) ?? 0,
+            date: '',
+          };
+        }),
       );
 
       setError(null);

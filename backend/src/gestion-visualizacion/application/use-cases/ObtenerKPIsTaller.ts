@@ -20,6 +20,7 @@ export class ObtenerKPIsTaller {
       totalMecanicos,
       totalAlertasActivas,
       intervencionesMes,
+      totalOrders,
     ] = await Promise.all([
       this.prisma.client$.vehicle.count({
         where: { mecanicoActivo: { workshopId } },
@@ -61,6 +62,11 @@ export class ObtenerKPIsTaller {
           fecha: { gte: inicioMes },
         },
       }),
+      this.prisma.client$.intervention.count({
+        where: {
+          mecanico: { workshopId },
+        },
+      }),
     ]);
 
     return {
@@ -73,6 +79,7 @@ export class ObtenerKPIsTaller {
       totalMecanicos,
       totalAlertasActivas,
       intervencionesMes,
+      totalOrders,
     };
   }
 }

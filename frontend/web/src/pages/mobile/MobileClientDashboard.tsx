@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useAuth, useUser } from '@clerk/clerk-react'
-import { Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
 import {
   Home,
@@ -25,32 +24,30 @@ interface Vehiculo {
 }
 
 export default function MobileClientDashboard() {
-  const { signOut, getToken } = useAuth()
-  const { user } = useUser()
+  const navigate = useNavigate()
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([])
   const [loading, setLoading] = useState(true)
+  const mobileUser = JSON.parse(localStorage.getItem('mobile_user') ?? '{}')
 
   const fetchData = useCallback(async () => {
     try {
-      const token = await getToken()
-      const headers = { Authorization: `Bearer ${token}` }
-
+      const headers = { Authorization: `Bearer ${mobileUser.token}` }
       const vehiculosRes = await axios.get(`${apiUrl}/client/dashboard/vehiculos`, { headers })
-
       setVehiculos(vehiculosRes.data.vehiculos ?? [])
     } catch (err) {
       console.error('[MobileClientDashboard] Error:', err)
     } finally {
       setLoading(false)
     }
-  }, [getToken])
+  }, [])
 
   useEffect(() => {
     void fetchData()
   }, [fetchData])
 
-  const handleLogout = async () => {
-    await signOut()
+  const handleLogout = () => {
+    localStorage.removeItem('mobile_user')
+    navigate('/')
   }
 
   if (loading) {
@@ -74,7 +71,7 @@ export default function MobileClientDashboard() {
           <div>
             <p className="text-[#D6EAF8] text-xs font-medium">Bienvenido,</p>
             <h1 className="text-lg font-bold">
-              {user?.firstName ?? 'Cliente'}
+              {mobileUser.name ?? 'Cliente'}
             </h1>
           </div>
           <button

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '@clerk/clerk-react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import { ArrowLeft, Car, Wrench, Calendar, AlertTriangle, QrCode } from 'lucide-react'
@@ -22,15 +21,14 @@ export default function MobileMechanicVehicleHistory() {
   const { id } = useParams()
   const [searchParams] = useSearchParams()
   const qrCode = searchParams.get('qr')
-  const { getToken } = useAuth()
+  const mobileUser = JSON.parse(localStorage.getItem('mobile_user') ?? '{}')
   const [vehicle, setVehicle] = useState<Vehiculo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     try {
-      const token = await getToken()
-      const headers = { Authorization: `Bearer ${token}` }
+      const headers = { Authorization: `Bearer ${mobileUser.token}` }
 
       if (qrCode) {
         // Search by QR code
@@ -56,7 +54,7 @@ export default function MobileMechanicVehicleHistory() {
     } finally {
       setLoading(false)
     }
-  }, [getToken, id, qrCode])
+  }, [id, qrCode])
 
   useEffect(() => {
     void fetchData()

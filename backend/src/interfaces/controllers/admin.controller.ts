@@ -232,6 +232,7 @@ export class AdminController {
         clerkId: clerkUserId ?? crypto.randomUUID(),
         nombre: dto.nombre,
         especialidad: dto.especialidad ?? null,
+        rating: dto.rating ?? 0,
         activo: true,
         creadoPor: workshop.id,
       },

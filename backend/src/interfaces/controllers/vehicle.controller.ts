@@ -22,7 +22,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { Request } from 'express';
-import { ClerkAuthGuard } from '../../shared/infrastructure/clerk/clerk.guard';
+import { UnifiedAuthGuard } from '../../shared/infrastructure/auth/unified-auth.guard';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { CreateVehicleDTO } from '../../application/dto/CreateVehicleDTO';
 import { ObtenerHistorialVehiculo } from '../../registro-seguimiento/application/use-cases/ObtenerHistorialVehiculo';
@@ -32,7 +32,7 @@ import { ISERVICIO_GENERACION_QR } from '../../shared/domain/ports/tokens';
 @ApiTags('Vehicles')
 @ApiBearerAuth()
 @Controller('vehicles')
-@UseGuards(ClerkAuthGuard)
+@UseGuards(UnifiedAuthGuard)
 export class VehicleController {
   constructor(
     private readonly prisma: PrismaService,

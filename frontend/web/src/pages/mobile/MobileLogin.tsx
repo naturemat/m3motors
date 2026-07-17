@@ -28,12 +28,14 @@ export default function MobileLogin() {
 
       if (result.data.success) {
         console.log('[MobileLogin] Login successful:', result.data)
-        // Guardar datos del usuario en localStorage
+        // Guardar datos del usuario y token en localStorage
+        const token = `mobile_${result.data.userId}_m3motors`
         localStorage.setItem('mobile_user', JSON.stringify({
           userId: result.data.userId,
           role: result.data.role,
           name: result.data.name,
           workshopId: result.data.workshopId,
+          token: token,
         }))
         // Redirigir segun rol
         if (result.data.role === 'mechanic') {

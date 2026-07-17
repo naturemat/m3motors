@@ -54,11 +54,23 @@ function ProtectedRoute({
   children: React.ReactNode
   allowedRoles?: UserRole[]
 }) {
-  const { isLoaded, isSignedIn, getToken } = useAuth()
+  const { isSignedIn, getToken } = useAuth()
   const [role, setRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Mobile: check localStorage
+    if (isNative) {
+      const mobileUser = localStorage.getItem('mobile_user')
+      if (mobileUser) {
+        const user = JSON.parse(mobileUser)
+        setRole(user.role)
+      }
+      setLoading(false)
+      return
+    }
+
+    // Web: use Clerk
     const fetchRole = async () => {
       if (!isSignedIn) {
         setLoading(false)
@@ -80,7 +92,7 @@ function ProtectedRoute({
     void fetchRole()
   }, [isSignedIn, getToken])
 
-  if (!isLoaded || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#F4F6F7] flex items-center justify-center">
         <div className="text-center">
@@ -91,8 +103,17 @@ function ProtectedRoute({
     )
   }
 
-  if (!isSignedIn) {
-    return <Navigate to="/login" replace />
+  // Mobile: check localStorage
+  if (isNative) {
+    const mobileUser = localStorage.getItem('mobile_user')
+    if (!mobileUser) {
+      return <Navigate to="/login" replace />
+    }
+  } else {
+    // Web: check Clerk
+    if (!isSignedIn) {
+      return <Navigate to="/login" replace />
+    }
   }
 
   if (allowedRoles && role && !allowedRoles.includes(role as UserRole)) {
@@ -103,33 +124,19 @@ function ProtectedRoute({
 }
 
 function MobileRoleRedirect() {
-  const { isLoaded, isSignedIn, getToken } = useAuth()
   const [role, setRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchRole = async () => {
-      if (!isSignedIn) {
-        setLoading(false)
-        return
-      }
-      try {
-        const token = await getToken()
-        const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
-        const res = await axios.get(`${apiUrl}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        setRole(res.data.role ?? 'client')
-      } catch {
-        setRole('client')
-      } finally {
-        setLoading(false)
-      }
+    const mobileUser = localStorage.getItem('mobile_user')
+    if (mobileUser) {
+      const user = JSON.parse(mobileUser)
+      setRole(user.role)
     }
-    void fetchRole()
-  }, [isSignedIn, getToken])
+    setLoading(false)
+  }, [])
 
-  if (!isLoaded || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#F4F6F7] flex items-center justify-center">
         <div className="text-center">
@@ -140,7 +147,7 @@ function MobileRoleRedirect() {
     )
   }
 
-  if (!isSignedIn) {
+  if (!role) {
     return <Navigate to="/" replace />
   }
 

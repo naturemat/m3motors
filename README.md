@@ -227,8 +227,6 @@ docker-compose logs -f backend
 | `RESEND_FROM_EMAIL` | Email remitente | `onboarding@resend.dev` |
 | `ONESIGNAL_APP_ID` | App ID de OneSignal (push) | UUID |
 | `ONESIGNAL_REST_API_KEY` | REST API key de OneSignal | UUID |
-| `TELEGRAM_BOT_TOKEN` | Token del bot de Telegram | `123456:ABC...` |
-| `TELEGRAM_BOT_USERNAME` | Username del bot | `m3motors_bot` |
 | `REDIS_HOST` | Host de Redis | `localhost` |
 | `REDIS_PORT` | Puerto de Redis | `6379` |
 | `LOG_LEVEL` | Nivel de logging | `debug` |
@@ -242,7 +240,6 @@ docker-compose logs -f backend
 |----------|-------------|---------|
 | `VITE_API_URL` | URL base del backend | `http://localhost:3000` |
 | `VITE_NODE_ENV` | Entorno de ejecucion | `development` |
-| `VITE_TELEGRAM_BOT_USERNAME` | Username del bot Telegram | `m3motors_bot` |
 
 ---
 
@@ -285,16 +282,12 @@ apt install docker-compose-plugin
 | `DB_PASSWORD` | Password de PostgreSQL |
 | `JWT_SECRET` | Secreto JWT (generar nuevo por entorno) |
 | `JWT_EXPIRES_IN` | `7d` |
-| `LLM_API_KEY` | API key de OpenAI/Gemini |
-| `LLM_MODEL` | `gpt-4` |
 | `GEMINI_API_KEY` | API key de Google AI Studio |
 | `GROQ_API_KEY` | API key de Groq |
 | `RESEND_API_KEY` | API key de Resend |
 | `RESEND_FROM_EMAIL` | `onboarding@resend.dev` |
 | `ONESIGNAL_APP_ID` | App ID de OneSignal |
 | `ONESIGNAL_REST_API_KEY` | REST API key de OneSignal |
-| `TELEGRAM_BOT_TOKEN` | Token del bot de Telegram |
-| `TELEGRAM_BOT_USERNAME` | `m3motors_bot` |
 | `LOG_LEVEL` | `info` |
 | `CORS_ORIGIN` | `https://m3motors.com` |
 
@@ -311,21 +304,14 @@ DATABASE_URL=postgresql://postgres:<PASSWORD>@<HOST>:5432/postgres
 DB_PASSWORD=<PASSWORD>
 JWT_SECRET=<SECRET>
 JWT_EXPIRES_IN=7d
-LLM_API_KEY=<KEY>
-LLM_MODEL=gpt-4
 GEMINI_API_KEY=<KEY>
 GROQ_API_KEY=<KEY>
 RESEND_API_KEY=<KEY>
 RESEND_FROM_EMAIL=onboarding@resend.dev
 ONESIGNAL_APP_ID=<ID>
 ONESIGNAL_REST_API_KEY=<KEY>
-TELEGRAM_BOT_TOKEN=<TOKEN>
-TELEGRAM_BOT_USERNAME=m3motors_bot
 REDIS_HOST=redis
 REDIS_PORT=6379
-NOTIFICATION_ENABLED=true
-NOTIFICATION_MAX_RETRIES=3
-NOTIFICATION_RETRY_DELAY_MS=5000
 LOG_LEVEL=info
 CORS_ORIGIN=https://m3motors.com
 DOCKERHUB_USERNAME=<USER>

@@ -112,8 +112,9 @@ echo "sdk.dir=$ANDROID_HOME" > "$WEB_DIR/android/local.properties"
 # 6. Construir APK con Gradle
 log "[7/7] Construyendo APK..."
 cd "$WEB_DIR/android"
-./gradlew assembleDebug --no-daemon 2>&1 | tail -20
-GRADLE_EXIT=$?
+chmod +x gradlew
+./gradlew assembleDebug --no-daemon 2>&1 | tee /tmp/gradle-output.log | tail -20
+GRADLE_EXIT=${PIPESTATUS[0]}
 if [ $GRADLE_EXIT -ne 0 ]; then
   log "  ERROR: Gradle build falló (exit $GRADLE_EXIT)"
   exit 1

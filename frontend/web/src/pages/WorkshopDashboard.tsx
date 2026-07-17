@@ -95,12 +95,15 @@ export default function WorkshopDashboard() {
       );
 
       setError(null);
-    } catch {
-      // API no disponible, usar datos mock
+    } catch (err: any) {
+      // API no disponible — mostrar error al usuario
+      const msg = err?.response?.data?.message ?? err?.message ?? 'Error desconocido';
+      console.error('[WorkshopDashboard] API error:', err);
+      setError(`Error al cargar datos del API: ${msg}. Usando datos de ejemplo.`);
+      // Usar datos mock como fallback temporal
       setClients(INITIAL_CLIENTS);
       setMechanics(INITIAL_MECHANICS);
       setOrders(INITIAL_ORDERS);
-      setError(null);
     } finally {
       setLoading(false);
     }

@@ -26,12 +26,18 @@ export default function MobileLogin() {
       })
 
       console.log('[MobileLogin] Sign-in result status:', result.status)
-      console.log('[MobileLogin] Sign-in result:', JSON.stringify(result, null, 2))
 
       if (result.status === 'complete') {
         console.log('[MobileLogin] Login successful, activating session...')
         await setActive({ session: result.createdSessionId })
         navigate('/')
+      } else if (result.status === 'needs_second_factor') {
+        console.log('[MobileLogin] 2FA required')
+        setError('Se requiere verificacion de dos factores. Contacta al administrador para desactivar 2FA.')
+      } else if (result.status === 'needs_identifier') {
+        setError('Email no registrado. Verifica tus credenciales.')
+      } else if (result.status === 'needs_new_password') {
+        setError('Debes cambiar tu contrasena. Contacta al administrador.')
       } else {
         console.log('[MobileLogin] Unexpected status:', result.status)
         setError(`Estado inesperado: ${result.status}`)

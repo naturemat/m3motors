@@ -24,7 +24,6 @@ jobs:
     outputs:
       backend: ${{ steps.changes.outputs.backend }}
       frontend-web: ${{ steps.changes.outputs.frontend-web }}
-      frontend-mobile: ${{ steps.changes.outputs.frontend-mobile }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -35,8 +34,6 @@ jobs:
               - 'backend/**'
             frontend-web:
               - 'frontend/web/**'
-            frontend-mobile:
-              - 'frontend/mobile/**'
 
   # ===========================================================================
   # BACKEND — Docker build + push
@@ -199,7 +196,7 @@ jobs:
           echo "=== [6/7] Build APK local ==="
           mkdir -p /opt/m3motors/apk
           chmod +x /opt/m3motors/scripts/build-apk.sh
-          export VITE_API_URL=https://m3motors.com/api
+          export VITE_API_URL=""
           export VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           export VITE_ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }}
           bash /opt/m3motors/scripts/build-apk.sh || echo "  WARNING: APK build falló, servicios no afectados"

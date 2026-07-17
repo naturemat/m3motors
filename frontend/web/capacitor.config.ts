@@ -6,6 +6,8 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     androidScheme: 'https',
+    url: 'https://m3motors.me',
+    cleartext: false,
   },
   plugins: {
     Camera: {

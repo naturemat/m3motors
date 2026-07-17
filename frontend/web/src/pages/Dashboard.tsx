@@ -29,7 +29,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-neutral-100">
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <img src="/logo.svg" alt="M3Motors" className="h-7" />
+          <img src="/Logo_M3Motors.png" alt="M3Motors" className="h-7" />
           <div className="flex items-center gap-4">
             <span className="text-neutral-600">{user?.firstName}</span>
             <UserButton />

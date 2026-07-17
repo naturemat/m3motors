@@ -9,7 +9,6 @@ import {
   Settings,
   LogOut,
   Car,
-  AlertTriangle,
   QrCode,
   Activity,
 } from 'lucide-react'

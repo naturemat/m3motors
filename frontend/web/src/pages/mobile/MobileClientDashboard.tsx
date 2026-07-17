@@ -9,7 +9,6 @@ import {
   User,
   Car,
   AlertTriangle,
-  ChevronRight,
   LogOut,
 } from 'lucide-react'
 
@@ -25,17 +24,10 @@ interface Vehiculo {
   alertas?: any[]
 }
 
-interface KPIs {
-  totalVehiculos: number
-  totalIntervenciones: number
-  alertasActivas: number
-}
-
 export default function MobileClientDashboard() {
   const { signOut, getToken } = useAuth()
   const { user } = useUser()
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([])
-  const [kpis, setKpis] = useState<KPIs | null>(null)
   const [loading, setLoading] = useState(true)
 
   const fetchData = useCallback(async () => {
@@ -43,13 +35,9 @@ export default function MobileClientDashboard() {
       const token = await getToken()
       const headers = { Authorization: `Bearer ${token}` }
 
-      const [vehiculosRes, kpisRes] = await Promise.all([
-        axios.get(`${apiUrl}/client/dashboard/vehiculos`, { headers }),
-        axios.get(`${apiUrl}/client/dashboard/kpis`, { headers }),
-      ])
+      const vehiculosRes = await axios.get(`${apiUrl}/client/dashboard/vehiculos`, { headers })
 
       setVehiculos(vehiculosRes.data.vehiculos ?? [])
-      if (kpisRes.data) setKpis(kpisRes.data)
     } catch (err) {
       console.error('[MobileClientDashboard] Error:', err)
     } finally {

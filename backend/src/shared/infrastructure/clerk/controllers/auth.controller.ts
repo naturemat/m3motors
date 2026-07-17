@@ -85,6 +85,7 @@ export class AuthController {
     // Determinar rol desde la BD
     let role = 'client';
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const mechanic = await this.prisma.client$.mechanic.findFirst({
         where: { clerkId: userId },
       });

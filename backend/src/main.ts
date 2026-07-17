@@ -14,9 +14,15 @@ async function bootstrap() {
     .filter(Boolean);
 
   app.enableCors({
-    origin: (origin, callback) => {
+    origin: (
+      origin: string,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       if (!origin) return callback(null, true);
-      if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      if (
+        origin.startsWith('http://localhost') ||
+        origin.startsWith('http://127.0.0.1')
+      ) {
         return callback(null, true);
       }
       if (allowedOrigins.includes(origin)) {

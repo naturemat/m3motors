@@ -1,5 +1,6 @@
 import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Capacitor } from '@capacitor/core'
 
 import Landing from './pages/Landing'
 import Login from './pages/Login'
@@ -11,6 +12,8 @@ import WorkshopDashboard from './pages/WorkshopDashboard'
 import PublicLanding from './pages/PublicLanding'
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+
+const isNative = Capacitor.isNativePlatform()
 
 const clerkAppearance = {
   variables: {
@@ -89,7 +92,9 @@ export default function App() {
 
           {/* Protected — Clerk-based dashboards */}
           <Route path="/dashboard/perfil" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+          {!isNative && (
+            <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+          )}
           <Route path="/dashboard/cliente" element={<ProtectedRoute allowedRoles={['client']}><PanelCliente /></ProtectedRoute>} />
 
           {/* Fallback */}

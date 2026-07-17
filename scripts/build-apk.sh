@@ -14,6 +14,10 @@ ANDROID_HOME="/opt/android-sdk"
 export ANDROID_HOME="$ANDROID_HOME"
 export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
 
+# Cleanup old build artifacts
+rm -rf "$WEB_DIR/android/app/build" 2>/dev/null || true
+rm -rf "$APK_DIR/$APK_NAME" 2>/dev/null || true
+
 log() {
   echo "[$(date '+%H:%M:%S')] $1"
 }
@@ -21,7 +25,7 @@ log() {
 log "=== M3Motors — Build APK (Capacitor) ==="
 
 # 1. Verificar dependencias del sistema
-log "[1/6] Verificando dependencias..."
+log "[1/7] Verificando dependencias..."
 
 # Java 17
 if command -v java &> /dev/null; then
@@ -56,7 +60,7 @@ fi
 
 # 2. Configurar Android SDK
 if [ ! -d "$ANDROID_HOME" ]; then
-  log "[2/6] Instalando Android SDK..."
+  log "[2/7] Instalando Android SDK..."
   mkdir -p "$ANDROID_HOME"
   cd /tmp
   wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdtools.zip
@@ -66,16 +70,16 @@ if [ ! -d "$ANDROID_HOME" ]; then
   sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools" > /dev/null 2>&1
   log "  Android SDK instalado"
 else
-  log "[2/6] Android SDK ya instalado"
+  log "[2/7] Android SDK ya instalado"
 fi
 
 # 3. Instalar dependencias y construir web
-log "[3/6] Instalando dependencias del web..."
+log "[3/7] Instalando dependencias del web..."
 cd "$WEB_DIR"
 npm install --legacy-peer-deps 2>&1 | grep -v "^$"
 log "  Dependencias instaladas"
 
-log "[4/6] Construyendo web..."
+log "[4/7] Construyendo web..."
 npm run build 2>&1 | grep -E "✓|error"
 BUILD_EXIT=$?
 if [ $BUILD_EXIT -ne 0 ]; then
@@ -113,10 +117,12 @@ echo "sdk.dir=$ANDROID_HOME" > "$WEB_DIR/android/local.properties"
 log "[7/7] Construyendo APK..."
 cd "$WEB_DIR/android"
 chmod +x gradlew
-./gradlew assembleDebug --no-daemon 2>&1 | tee /tmp/gradle-output.log | tail -20
+./gradlew assembleDebug --no-daemon --info 2>&1 | tee /tmp/gradle-output.log | tail -50
 GRADLE_EXIT=${PIPESTATUS[0]}
 if [ $GRADLE_EXIT -ne 0 ]; then
   log "  ERROR: Gradle build falló (exit $GRADLE_EXIT)"
+  log "  Últimas 30 líneas del log:"
+  tail -30 /tmp/gradle-output.log 2>/dev/null || true
   exit 1
 fi
 

@@ -25,15 +25,26 @@ export default function MobileLogin() {
         password,
       })
 
+      console.log('[MobileLogin] Sign-in result status:', result.status)
+      console.log('[MobileLogin] Sign-in result:', JSON.stringify(result, null, 2))
+
       if (result.status === 'complete') {
+        console.log('[MobileLogin] Login successful, activating session...')
         await setActive({ session: result.createdSessionId })
         navigate('/')
       } else {
-        setError('Error al iniciar sesion. Verifica tus credenciales.')
+        console.log('[MobileLogin] Unexpected status:', result.status)
+        setError(`Estado inesperado: ${result.status}`)
       }
     } catch (err: any) {
-      console.error('[MobileLogin] Error:', err)
-      setError(err?.errors?.[0]?.message ?? 'Credenciales incorrectas')
+      console.error('[MobileLogin] Full error:', JSON.stringify(err, null, 2))
+      const clerkError = err?.errors?.[0]
+      if (clerkError) {
+        console.error('[MobileLogin] Clerk error:', clerkError)
+        setError(`Error Clerk: ${clerkError.message ?? clerkError.code ?? 'Unknown'}`)
+      } else {
+        setError(`Error: ${err?.message ?? err?.toString() ?? 'Desconocido'}`)
+      }
     } finally {
       setLoading(false)
     }

@@ -66,48 +66,8 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
     setShowNewOrderModal(false);
   };
 
-  const incomeMonths = (() => {
-    const current = totalIncome;
-    const placeholder = [
-      { month: 'Ene', amount: Math.round(current * 0.7), pct: 40 },
-      { month: 'Feb', amount: Math.round(current * 0.8), pct: 55 },
-      { month: 'Mar', amount: Math.round(current * 0.75), pct: 45 },
-      { month: 'Abr', amount: Math.round(current * 0.92), pct: 70 },
-      { month: 'May', amount: Math.round(current * 0.95), pct: 85 },
-    ];
-    return [
-      ...placeholder.map((p) => ({
-        month: p.month,
-        amount: `$${(p.amount / 1000).toFixed(1)}K`,
-        pct: `${p.pct}%`,
-        isHighlight: false,
-      })),
-      {
-        month: 'Jun',
-        amount: `$${(current / 1000).toFixed(1)}K`,
-        pct: '95%',
-        isHighlight: true,
-      },
-    ];
-  })();
-
-  const points = (() => {
-    const current = totalClients;
-    const vals = [
-      Math.round(current * 0.78),
-      Math.round(current * 0.83),
-      Math.round(current * 0.88),
-      Math.round(current * 0.92),
-      Math.round(current * 0.97),
-      current,
-    ];
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'];
-    const xs = [30, 110, 190, 270, 350, 430];
-    const ys = vals.map((v) => Math.round(200 - ((v / (current || 1)) * 170)));
-    return xs.map((x, i) => ({ x, y: ys[i], count: vals[i].toString(), month: months[i] }));
-  })();
-
-  const svgPath = `M ${points.map(p => `${p.x} ${p.y}`).join(' L ')}`;
+  const currentMonthIncome = kpis?.ingresosMes ?? totalIncome;
+  const avgMonthlyIncome = kpis?.ingresosTotales ? kpis.ingresosTotales / 6 : 0;
 
   return (
     <div className="flex-1 min-w-0 bg-[#f8fafb]">
@@ -143,9 +103,6 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
               <div className="p-2.5 bg-sky-50 text-[#006397] rounded-lg group-hover:bg-sky-100 transition-colors">
                 <Users className="w-6 h-6" />
               </div>
-              <span className="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full flex items-center gap-1">
-                <ArrowUpRight className="w-3.5 h-3.5" /> +12%
-              </span>
             </div>
             <div>
               <p className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-1">Total Clientes</p>
@@ -158,9 +115,6 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
               <div className="p-2.5 bg-indigo-50 text-[#1a5276] rounded-lg">
                 <Car className="w-6 h-6" />
               </div>
-              <span className="text-xs font-semibold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full">
-                Estable
-              </span>
             </div>
             <div>
               <p className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-1">Vehículos Activos</p>
@@ -173,9 +127,6 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
               <div className="p-2.5 bg-teal-50 text-[#00527e] rounded-lg">
                 <Wrench className="w-6 h-6" />
               </div>
-              <span className="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full flex items-center gap-1">
-                <ArrowUpRight className="w-3.5 h-3.5" /> +5%
-              </span>
             </div>
             <div>
               <p className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-1">Intervenciones del Mes</p>
@@ -188,9 +139,6 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
               <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg">
                 <DollarSign className="w-6 h-6" />
               </div>
-              <span className="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full flex items-center gap-1">
-                <ArrowUpRight className="w-3.5 h-3.5" /> +24%
-              </span>
             </div>
             <div>
               <p className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-1">Ingresos Totales</p>
@@ -214,98 +162,46 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
               </div>
             </div>
 
-            <div className="h-64 flex items-end justify-between gap-3 px-2 border-b border-slate-200">
-              {incomeMonths.map((item, idx) => (
-                <div key={idx} className="flex-1 flex flex-col items-center group relative cursor-pointer">
-                  <div className="absolute -top-12 opacity-0 group-hover:opacity-100 bg-[#003b5a] text-white text-[11px] font-bold px-2 py-1 rounded shadow-lg transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    {item.amount}
-                  </div>
-                  <div
-                    className={`w-full rounded-t transition-all duration-700 ease-out ${
-                      item.isHighlight
-                        ? 'bg-gradient-to-t from-[#003b5a] to-[#1a5276] shadow-md shadow-[#003b5a]/10'
-                        : 'bg-slate-200 hover:bg-slate-300'
-                    }`}
-                    style={{ height: item.pct }}
-                  />
-                  <span className={`text-[11px] font-semibold mt-2.5 ${item.isHighlight ? 'text-[#003b5a] font-bold' : 'text-slate-400'}`}>
-                    {item.month}
-                  </span>
+            <div className="h-64 flex items-end justify-center gap-16 px-4 border-b border-slate-200">
+              <div className="flex flex-col items-center group relative cursor-pointer w-24">
+                <div className="absolute -top-10 opacity-0 group-hover:opacity-100 bg-[#003b5a] text-white text-[11px] font-bold px-2 py-1 rounded shadow-lg transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                  ${currentMonthIncome.toLocaleString()}
                 </div>
-              ))}
+                <div
+                  className="w-full rounded-t bg-gradient-to-t from-[#003b5a] to-[#1a5276] shadow-md shadow-[#003b5a]/10 transition-all duration-700 ease-out"
+                  style={{ height: currentMonthIncome > 0 ? '80%' : '4px' }}
+                />
+                <span className="text-[11px] font-bold text-[#003b5a] mt-2.5">Este Mes</span>
+              </div>
+              <div className="flex flex-col items-center group relative cursor-pointer w-24">
+                <div className="absolute -top-10 opacity-0 group-hover:opacity-100 bg-[#003b5a] text-white text-[11px] font-bold px-2 py-1 rounded shadow-lg transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                  ${avgMonthlyIncome.toLocaleString()}
+                </div>
+                <div
+                  className="w-full rounded-t bg-slate-200 hover:bg-slate-300 transition-all duration-700 ease-out"
+                  style={{ height: avgMonthlyIncome > 0 ? `${Math.min((avgMonthlyIncome / (currentMonthIncome || 1)) * 80, 80)}%` : '4px' }}
+                />
+                <span className="text-[11px] font-semibold text-slate-400 mt-2.5">Promedio</span>
+              </div>
             </div>
           </div>
 
           <div className="bg-white p-6 rounded-xl border border-slate-200/60 shadow-[0_4px_12px_rgba(0,0,0,0.04)]">
-            <div className="flex justify-between items-center mb-6">
+            <div className="mb-6">
               <h4 className="font-bold text-slate-800 text-base flex items-center gap-2">
                 <Users className="w-4 h-4 text-[#003b5a]" />
-                Evolución de Clientes
+                Resumen del Taller
               </h4>
-              <select className="text-xs font-semibold bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-500 hover:border-slate-300 outline-none cursor-pointer">
-                <option>Últimos 6 meses</option>
-                <option>Año completo</option>
-              </select>
             </div>
 
-            <div className="relative h-64 border-b border-l border-slate-200/50">
-              <svg className="w-full h-full overflow-visible" viewBox="0 0 460 210" preserveAspectRatio="none">
-                <line x1="0" y1="190" x2="460" y2="190" stroke="#f1f5f9" strokeWidth="1" />
-                <line x1="0" y1="130" x2="460" y2="130" stroke="#f1f5f9" strokeWidth="1" />
-                <line x1="0" y1="90" x2="460" y2="90" stroke="#f1f5f9" strokeWidth="1" />
-                <line x1="0" y1="40" x2="460" y2="40" stroke="#f1f5f9" strokeWidth="1" />
-
-                <path
-                  d={`${svgPath} L 430 210 L 30 210 Z`}
-                  fill="url(#gradient-blue)"
-                  opacity="0.1"
-                />
-
-                <path
-                  d={svgPath}
-                  fill="none"
-                  stroke="#003b5a"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                />
-
-                <defs>
-                  <linearGradient id="gradient-blue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#003b5a" />
-                    <stop offset="100%" stopColor="#ffffff" />
-                  </linearGradient>
-                </defs>
-
-                {points.map((point, idx) => (
-                  <g key={idx} className="group/node cursor-pointer">
-                    <circle
-                      cx={point.x}
-                      cy={point.y}
-                      r="5"
-                      fill="#ffffff"
-                      stroke="#003b5a"
-                      strokeWidth="3"
-                      className="transition-all duration-200 hover:r-7"
-                    />
-                    <foreignObject
-                      x={point.x - 35}
-                      y={point.y - 35}
-                      width="70"
-                      height="26"
-                      className="opacity-0 group-hover/node:opacity-100 transition-opacity duration-200 pointer-events-none"
-                    >
-                      <div className="bg-[#003b5a] text-white text-[10px] font-bold text-center py-0.5 rounded shadow">
-                        {point.count}
-                      </div>
-                    </foreignObject>
-                  </g>
-                ))}
-              </svg>
-
-              <div className="absolute -bottom-6 left-0 right-0 flex justify-between px-3 text-[11px] font-semibold text-slate-400 pointer-events-none">
-                {points.map((p, idx) => (
-                  <span key={idx}>{p.month}</span>
-                ))}
+            <div className="grid grid-cols-2 gap-4 h-56 items-center">
+              <div className="flex flex-col items-center p-4 bg-sky-50 rounded-xl">
+                <span className="text-4xl font-extrabold text-[#003b5a]">{totalClients}</span>
+                <span className="text-xs font-semibold text-slate-500 mt-2 text-center">Clientes Activos</span>
+              </div>
+              <div className="flex flex-col items-center p-4 bg-indigo-50 rounded-xl">
+                <span className="text-4xl font-extrabold text-[#1a5276]">{activeVehicles}</span>
+                <span className="text-xs font-semibold text-slate-500 mt-2 text-center">Vehículos Registrados</span>
               </div>
             </div>
           </div>
@@ -424,12 +320,10 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
                   onChange={(e) => setServiceName(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-[#1a5276] focus:bg-white transition-all cursor-pointer"
                 >
-                  <option value="Revisión de Motor">Revisión de Motor</option>
-                  <option value="Cambio de Aceite">Cambio de Aceite</option>
-                  <option value="Frenos y Suspensión">Frenos y Suspensión</option>
-                  <option value="Diagnóstico Electrónico">Diagnóstico Electrónico</option>
-                  <option value="Alineación y Balanceo">Alineación y Balanceo</option>
-                  <option value="Servicio General Express">Servicio General Express</option>
+                  {[...new Set(orders.map(o => o.serviceName))].map(name => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                  {orders.length === 0 && <option value="Revisión de Motor">Revisión de Motor</option>}
                 </select>
               </div>
 

@@ -3,16 +3,15 @@ import {
   Users,
   Search,
   Plus,
-  Download,
   ChevronLeft,
   ChevronRight,
   CheckCircle,
   Clock,
   Car,
-  TrendingUp,
-  Award
 } from 'lucide-react';
 import type { Client } from '../types';
+
+const ITEMS_PER_PAGE = 10;
 
 interface ClientsViewProps {
   clients: Client[];
@@ -24,6 +23,7 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [page, setPage] = useState(1);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -32,10 +32,9 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
   const [vehicleModel, setVehicleModel] = useState('');
   const [status, setStatus] = useState<'Activo' | 'Pendiente'>('Activo');
 
-  const totalCount = 1278 + clients.length;
-  const activeThisMonth = 936 + clients.filter(c => c.status === 'Activo').length;
-  const pendingReviews = 15 + clients.filter(c => c.status === 'Pendiente').length;
-  const retentionRate = 87.4;
+  const totalCount = clients.length;
+  const activeThisMonth = clients.filter(c => c.status === 'Activo').length;
+  const pendingReviews = clients.filter(c => c.status === 'Pendiente').length;
 
   const filteredClients = clients.filter(client => {
     const query = searchQuery.toLowerCase();
@@ -49,6 +48,10 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
       client.status.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredClients.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+  const pagedClients = filteredClients.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
 
   const handleCreateClient = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,10 +67,6 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
     });
     setName(''); setEmail(''); setPhone(''); setPlate(''); setVehicleModel(''); setStatus('Activo');
     setShowAddModal(false);
-  };
-
-  const handleExport = () => {
-    alert('¡Listado de clientes exportado exitosamente a formato CSV/Excel!');
   };
 
   const handleRemoveClient = (id: string, name: string) => {
@@ -131,12 +130,6 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
             >
               <Plus className="w-4 h-4" /> Nuevo Cliente
             </button>
-            <button
-              onClick={handleExport}
-              className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 bg-sky-100 hover:bg-sky-200 text-[#006397] rounded-lg text-sm font-bold transition-all active:scale-95 cursor-pointer"
-            >
-              <Download className="w-4 h-4" /> Exportar
-            </button>
           </div>
         </section>
 
@@ -144,12 +137,20 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
           <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
             <h3 className="font-bold text-slate-800 text-sm">Listado Maestro de Clientes</h3>
             <div className="flex items-center gap-2 text-xs text-slate-400 font-semibold">
-              <span>Mostrando 1-{filteredClients.length} de {filteredClients.length}</span>
+              <span>Mostrando {filteredClients.length > 0 ? (safePage - 1) * ITEMS_PER_PAGE + 1 : 0}-{Math.min(safePage * ITEMS_PER_PAGE, filteredClients.length)} de {filteredClients.length}</span>
               <div className="flex items-center gap-1 ml-2">
-                <button className="p-1 hover:bg-slate-200 rounded text-slate-400 disabled:opacity-40 cursor-pointer" disabled>
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  className="p-1 hover:bg-slate-200 rounded text-slate-400 disabled:opacity-40 cursor-pointer"
+                  disabled={safePage <= 1}
+                >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <button className="p-1 hover:bg-slate-200 rounded text-slate-400 disabled:opacity-40 cursor-pointer" disabled>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  className="p-1 hover:bg-slate-200 rounded text-slate-400 disabled:opacity-40 cursor-pointer"
+                  disabled={safePage >= totalPages}
+                >
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
@@ -170,14 +171,14 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredClients.length === 0 ? (
+                {pagedClients.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-slate-400 text-sm">
                       No se encontraron clientes registrados que coincidan con la búsqueda.
                     </td>
                   </tr>
                 ) : (
-                  filteredClients.map((client) => {
+                  pagedClients.map((client) => {
                     const initials = client.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
                     return (
                       <tr key={client.id} className="hover:bg-slate-50/50 transition-colors">
@@ -230,7 +231,7 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
           </div>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between">
             <div className="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">
               <span>Total Clientes</span>
@@ -238,9 +239,6 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
             </div>
             <div>
               <h3 className="text-2xl font-bold text-[#003b5a]">{totalCount.toLocaleString()}</h3>
-              <p className="text-[10px] text-green-600 font-semibold flex items-center gap-0.5 mt-1">
-                <TrendingUp className="w-3 h-3" /> +12% respecto al mes anterior
-              </p>
             </div>
           </div>
 
@@ -263,19 +261,6 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
             <div>
               <h3 className="text-2xl font-bold text-[#003b5a]">{pendingReviews}</h3>
               <p className="text-[10px] text-slate-400 font-medium mt-1">Órdenes en espera o diagnóstico</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between bg-gradient-to-br from-white to-slate-50">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">
-              <span>Tasa de Retención</span>
-              <Award className="w-4 h-4 text-[#003b5a]" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-[#003b5a]">{retentionRate}%</h3>
-              <div className="w-full bg-slate-200 h-2 rounded-full mt-2.5 overflow-hidden">
-                <div className="bg-[#003b5a] h-full rounded-full" style={{ width: `${retentionRate}%` }} />
-              </div>
             </div>
           </div>
         </section>

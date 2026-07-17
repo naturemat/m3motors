@@ -3,7 +3,6 @@ import { useUser, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import type { Client, Mechanic, ServiceOrder, KPIs } from '../types';
-import { INITIAL_CLIENTS, INITIAL_MECHANICS, INITIAL_ORDERS } from '../data';
 
 import Sidebar from '../components/Sidebar';
 import DashboardView from '../components/DashboardView';
@@ -96,14 +95,9 @@ export default function WorkshopDashboard() {
 
       setError(null);
     } catch (err: any) {
-      // API no disponible — mostrar error al usuario
       const msg = err?.response?.data?.message ?? err?.message ?? 'Error desconocido';
       console.error('[WorkshopDashboard] API error:', err);
-      setError(`Error al cargar datos del API: ${msg}. Usando datos de ejemplo.`);
-      // Usar datos mock como fallback temporal
-      setClients(INITIAL_CLIENTS);
-      setMechanics(INITIAL_MECHANICS);
-      setOrders(INITIAL_ORDERS);
+      setError(`Error al cargar datos del API: ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -227,7 +221,7 @@ export default function WorkshopDashboard() {
           />
         );
       case 'reports':
-        return <ReportsView kpis={kpis} clients={clients} mechanics={mechanics} orders={orders} />;
+        return <ReportsView kpis={kpis} mechanics={mechanics} orders={orders} />;
       case 'settings':
         return <SettingsView onResetData={handleResetData} />;
       default:

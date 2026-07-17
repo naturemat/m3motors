@@ -170,8 +170,6 @@ jobs:
           SUPABASE_STORAGE_BUCKET=${{ secrets.SUPABASE_STORAGE_BUCKET }}
           RECAPTCHA_SECRET=${{ secrets.RECAPTCHA_SECRET }}
           QR_BASE_URL=${{ secrets.QR_BASE_URL }}
-          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_BOT_USERNAME=${{ secrets.TELEGRAM_BOT_USERNAME }}
           MCP_SERVER_URL=${{ secrets.MCP_SERVER_URL }}
           ENVEOF
 

@@ -4,7 +4,6 @@ interface ImportMetaEnv {
   readonly VITE_API_URL: string
   readonly VITE_CLERK_PUBLISHABLE_KEY: string
   readonly VITE_RECAPTCHA_SITE_KEY: string
-  readonly VITE_TELEGRAM_BOT_USERNAME: string
   readonly VITE_NODE_ENV: string
 }
 

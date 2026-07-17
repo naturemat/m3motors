@@ -56,7 +56,6 @@ services:
       NODE_ENV: development
       VITE_API_URL: http://localhost:3000
       VITE_NODE_ENV: development
-      VITE_TELEGRAM_BOT_USERNAME: m3motors_bot
     volumes:
       - ./frontend/web/src:/app/src
       - ./frontend/web/package.json:/app/package.json

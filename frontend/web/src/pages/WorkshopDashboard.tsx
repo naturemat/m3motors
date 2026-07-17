@@ -49,7 +49,18 @@ export default function WorkshopDashboard() {
       ]);
 
       if (kpisRes.data?.kpis) {
-        setKpis(kpisRes.data.kpis);
+        const k = kpisRes.data.kpis;
+        setKpis({
+          totalVehiculos: k.totalVehicles ?? 0,
+          totalClientesActivos: k.totalClientsActive ?? 0,
+          ingresosMes: k.monthlyRevenue ?? 0,
+          ingresosTotales: k.monthlyRevenue ?? 0,
+          calificacionPromedio: k.avgMechanicRating ?? 0,
+          totalServicios: k.servicesCount ?? 0,
+          totalMecanicos: mechanicsRes.data.mechanics?.length ?? 0,
+          totalAlertasActivas: 0,
+          intervencionesMes: 0,
+        });
       }
 
       const rawMechanics: any[] = mechanicsRes.data.mechanics ?? [];
@@ -72,10 +83,10 @@ export default function WorkshopDashboard() {
           name: c.nombre,
           email: c.email,
           phone: c.telefono,
-          plate: '',
+          plate: c.vehiculos?.[0]?.placa ?? '',
           lastService: '',
           status: c.status === 'ACTIVATED' ? 'Activo' : 'Pendiente',
-          vehicleModel: '',
+          vehicleModel: c.vehiculos?.[0] ? `${c.vehiculos[0].marca} ${c.vehiculos[0].modelo}` : '',
         })),
       );
 

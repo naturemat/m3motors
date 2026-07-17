@@ -118,6 +118,7 @@ export default function WorkshopDashboard() {
     setOrders([]);
   };
 
+  // TODO: Create POST /admin/orders endpoint in backend to persist orders
   const handleAddOrder = (newOrder: Omit<ServiceOrder, 'id' | 'clientInitials' | 'date'>) => {
     const initials = newOrder.clientName
       .split(' ')
@@ -140,6 +141,7 @@ export default function WorkshopDashboard() {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
   };
 
+  // TODO: Create POST /admin/customers endpoint in backend to persist clients
   const handleAddClient = (newClient: Omit<Client, 'id' | 'idCard'>) => {
     const client: Client = {
       ...newClient,

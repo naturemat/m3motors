@@ -5,6 +5,10 @@ node_modules/
 
 # Project context (contains secrets)
 PROJECT_CONTEXT.md
+SUPABASE_SCHEMA.md
+
+# Archive (reference code, not deployed)
+_archive/
 
 # Build outputs
 dist/

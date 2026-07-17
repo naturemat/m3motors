@@ -1,6 +1,8 @@
-import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-react'
+import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Capacitor } from '@capacitor/core'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 
 import Landing from './pages/Landing'
 import MobileLanding from './pages/MobileLanding'
@@ -19,6 +21,7 @@ import MobileClientProfile from './pages/mobile/MobileClientProfile'
 import MobileMechanicDashboard from './pages/mobile/MobileMechanicDashboard'
 import MobileMechanicQRScanner from './pages/mobile/MobileMechanicQRScanner'
 import MobileMechanicVehicleHistory from './pages/mobile/MobileMechanicVehicleHistory'
+import MobileLogin from './pages/mobile/MobileLogin'
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -51,10 +54,33 @@ function ProtectedRoute({
   children: React.ReactNode
   allowedRoles?: UserRole[]
 }) {
-  const { isLoaded, isSignedIn } = useAuth()
-  const { user } = useUser()
+  const { isLoaded, isSignedIn, getToken } = useAuth()
+  const [role, setRole] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  if (!isLoaded) {
+  useEffect(() => {
+    const fetchRole = async () => {
+      if (!isSignedIn) {
+        setLoading(false)
+        return
+      }
+      try {
+        const token = await getToken()
+        const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+        const res = await axios.get(`${apiUrl}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        setRole(res.data.role ?? 'client')
+      } catch {
+        setRole('client')
+      } finally {
+        setLoading(false)
+      }
+    }
+    void fetchRole()
+  }, [isSignedIn, getToken])
+
+  if (!isLoaded || loading) {
     return (
       <div className="min-h-screen bg-[#F4F6F7] flex items-center justify-center">
         <div className="text-center">
@@ -69,9 +95,7 @@ function ProtectedRoute({
     return <Navigate to="/login" replace />
   }
 
-  const userRole = (user?.publicMetadata?.role as UserRole) || 'client'
-
-  if (allowedRoles && !allowedRoles.includes(userRole)) {
+  if (allowedRoles && role && !allowedRoles.includes(role as UserRole)) {
     return <Navigate to="/dashboard" replace />
   }
 
@@ -79,10 +103,33 @@ function ProtectedRoute({
 }
 
 function MobileRoleRedirect() {
-  const { isLoaded, isSignedIn } = useAuth()
-  const { user } = useUser()
+  const { isLoaded, isSignedIn, getToken } = useAuth()
+  const [role, setRole] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  if (!isLoaded) {
+  useEffect(() => {
+    const fetchRole = async () => {
+      if (!isSignedIn) {
+        setLoading(false)
+        return
+      }
+      try {
+        const token = await getToken()
+        const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+        const res = await axios.get(`${apiUrl}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        setRole(res.data.role ?? 'client')
+      } catch {
+        setRole('client')
+      } finally {
+        setLoading(false)
+      }
+    }
+    void fetchRole()
+  }, [isSignedIn, getToken])
+
+  if (!isLoaded || loading) {
     return (
       <div className="min-h-screen bg-[#F4F6F7] flex items-center justify-center">
         <div className="text-center">
@@ -97,9 +144,7 @@ function MobileRoleRedirect() {
     return <Navigate to="/" replace />
   }
 
-  const userRole = (user?.publicMetadata?.role as UserRole) || 'client'
-
-  if (userRole === 'mechanic') {
+  if (role === 'mechanic') {
     return <Navigate to="/mobile/mechanic" replace />
   }
   return <Navigate to="/mobile/client" replace />
@@ -117,9 +162,9 @@ export default function App() {
     >
       <HashRouter>
         <Routes>
-          {/* Public — Mobile gets its own landing */}
+          {/* Public — Mobile gets its own landing and login */}
           <Route path="/" element={isNative ? <MobileLanding /> : <Landing />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={isNative ? <MobileLogin /> : <Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/workshop/:id" element={<PublicLanding />} />
 

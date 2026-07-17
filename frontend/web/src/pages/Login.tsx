@@ -26,8 +26,7 @@ export default function Login() {
       <div className="w-full max-w-md">
         <img src="/Logo_M3Motors.png" alt="M3Motors" className="h-12 mx-auto mb-6" />
         <SignIn
-          routing="path"
-          path="/login"
+          routing="hash"
           afterSignInUrl="/dashboard"
           fallbackRedirectUrl="/dashboard"
           appearance={loginAppearance}

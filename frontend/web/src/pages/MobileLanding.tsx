@@ -1,4 +1,5 @@
-import { Link, Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { SignedIn, SignedOut } from '@clerk/clerk-react'
 import {
   Wrench,
@@ -59,6 +60,8 @@ const services = [
 ]
 
 export default function MobileLanding() {
+  const navigate = useNavigate()
+
   return (
     <>
       <SignedIn>
@@ -81,13 +84,13 @@ export default function MobileLanding() {
                 Mantenimiento predictivo, historial vehicular y servicios
                 profesionales. Todo en una sola plataforma.
               </p>
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-2 bg-white text-[#1A5276] px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-[#EBF5FB] transition-colors shadow-lg"
+              <button
+                onClick={() => navigate('/login')}
+                className="inline-flex items-center gap-2 bg-white text-[#1A5276] px-8 py-3.5 rounded-xl text-sm font-bold active:scale-95 transition-transform shadow-lg"
               >
                 Iniciar Sesion
                 <ChevronRight className="w-4 h-4" />
-              </Link>
+              </button>
             </div>
           </header>
 
@@ -134,13 +137,13 @@ export default function MobileLanding() {
               <p className="text-xs text-[#D6EAF8] mb-5">
                 Unete a los talleres que ya confian en M3Motors.
               </p>
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-2 bg-white text-[#1A5276] px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#EBF5FB] transition-colors"
+              <button
+                onClick={() => navigate('/login')}
+                className="inline-flex items-center gap-2 bg-white text-[#1A5276] px-6 py-3 rounded-xl text-sm font-bold active:scale-95 transition-transform"
               >
                 Comenzar Ahora
                 <ChevronRight className="w-4 h-4" />
-              </Link>
+              </button>
             </div>
           </section>
 

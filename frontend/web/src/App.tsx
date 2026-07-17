@@ -1,4 +1,4 @@
-import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-react'
+import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Capacitor } from '@capacitor/core'
 import { useState, useEffect } from 'react'

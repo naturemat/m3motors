@@ -1,161 +1,127 @@
-import React, {useState} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {AppBar, BottomNav, Card} from '../../components/molecules';
-import {Input, Button} from '../../components/atoms';
-import {ClientStackParamList} from '../../navigation/types';
-import {colors} from '../../theme';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '@/services/api';
 
-type Nav = NativeStackNavigationProp<ClientStackParamList, 'UpdateKM'>;
+export function UpdateKM() {
+  const navigate = useNavigate();
+  const [currentKm, setCurrentKm] = useState(0);
+  const [newKm, setNewKm] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [vehicleId, setVehicleId] = useState('');
 
-export default function UpdateKM() {
-  const navigation = useNavigation<Nav>();
-  const [newKM, setNewKM] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const currentKM = 45000;
+  useEffect(() => {
+    api.get('/vehicles/my')
+      .then((res) => {
+        setCurrentKm(res.data.ultimoKilometraje || 0);
+        setVehicleId(res.data.id);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleUpdate = async () => {
-    setIsLoading(true);
-    await new Promise<void>(r => setTimeout(r, 1500));
-    setIsLoading(false);
-    navigation.goBack();
+    const km = parseInt(newKm, 10);
+    if (isNaN(km) || km <= currentKm) {
+      setError(
+        `El kilometraje debe ser mayor a ${currentKm.toLocaleString()} km`,
+      );
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      await api.patch(`/vehicles/${vehicleId}/kilometraje`, { kilometraje: km });
+      setSuccess(true);
+      setTimeout(() => navigate('/client'), 1500);
+    } catch {
+      setError('Error al actualizar. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const isInvalid = !!newKM && parseInt(newKM, 10) <= currentKM;
-
   return (
-    <SafeAreaView style={styles.container}>
-      <AppBar
-        title="Actualizar Kilometraje"
-        showBack
-        onBack={() => navigation.goBack()}
-      />
+    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <div style={{ background: 'var(--primary-500)', padding: '20px 16px' }}>
+        <button
+          onClick={() => navigate('/client')}
+          style={{ color: 'white', fontSize: 14, marginBottom: 8 }}
+        >
+          {'< '}Volver
+        </button>
+        <h1 style={{ color: 'white', fontSize: 20, fontWeight: 700 }}>
+          Actualizar Kilometraje
+        </h1>
+      </div>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <Card style={styles.currentCard}>
-          <Text style={styles.currentLabel}>Kilometraje actual</Text>
-          <Text style={styles.currentValue}>
-            {currentKM.toLocaleString()} km
-          </Text>
-          <Text style={styles.currentDate}>Ultimo registro: 2026-06-15</Text>
-        </Card>
+      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{
+          background: 'white', borderRadius: 12, padding: 20, textAlign: 'center',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+        }}>
+          <p style={{ fontSize: 12, color: 'var(--gray-500)', marginBottom: 4 }}>
+            Kilometraje Actual
+          </p>
+          <p style={{
+            fontSize: 28, fontWeight: 700, color: 'var(--primary-500)',
+          }}>
+            {currentKm.toLocaleString()} km
+          </p>
+        </div>
 
-        <View style={styles.form}>
-          <Input
-            label="Nuevo kilometraje"
-            placeholder="Ingresa el kilometraje actual"
-            value={newKM}
-            onChangeText={setNewKM}
-            keyboardType="number-pad"
-            error={isInvalid ? `El kilometraje debe ser mayor a ${currentKM.toLocaleString()} km` : undefined}
-          />
-        </View>
+        {success ? (
+          <div style={{ textAlign: 'center', padding: 32 }}>
+            <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--success)' }}>
+              Kilometraje actualizado!
+            </p>
+          </div>
+        ) : (
+          <>
+            <div>
+              <label style={{
+                fontSize: 13, color: 'var(--gray-700)', marginBottom: 6, display: 'block',
+              }}>
+                Nuevo Kilometraje
+              </label>
+              <input
+                type="number"
+                value={newKm}
+                onChange={(e) => setNewKm(e.target.value)}
+                placeholder="Ej: 50000"
+                autoFocus
+                style={{
+                  width: '100%', padding: '14px', border: '1px solid var(--gray-300)',
+                  borderRadius: 8, fontSize: 18, textAlign: 'center', outline: 'none',
+                }}
+              />
+            </div>
 
-        <View style={styles.infoBox}>
-          <Text style={styles.infoIcon}>ℹ️</Text>
-          <Text style={styles.infoText}>
-            Actualizar tu kilometraje ayuda al sistema a calcular el desgaste
-            de tu vehiculo y generar alertas precisas de mantenimiento.
-          </Text>
-        </View>
+            {error && <p style={{ color: 'var(--error)', fontSize: 13 }}>{error}</p>}
 
-        <View style={styles.actions}>
-          <Button
-            title="Actualizar Kilometraje"
-            variant="primary"
-            size="large"
-            fullWidth
-            onPress={handleUpdate}
-            loading={isLoading}
-            disabled={!newKM || isInvalid}
-          />
-          <Button
-            title="Cancelar"
-            variant="secondary"
-            size="large"
-            fullWidth
-            onPress={() => navigation.goBack()}
-          />
-        </View>
-      </ScrollView>
+            <div style={{
+              background: 'var(--info)', color: 'white', borderRadius: 8,
+              padding: 12, fontSize: 12, lineHeight: 1.5,
+            }}>
+              Mantener tu kilometraje actualizado permite al sistema predecir con
+              precision cuando necesitaras tu proximo mantenimiento.
+            </div>
 
-      <BottomNav
-        active="inicio"
-        items={[
-          {key: 'inicio', label: 'Inicio', icon: 'home'},
-          {key: 'historial', label: 'Historial', icon: 'file-text'},
-          {key: 'qr', label: 'QR', icon: 'qrcode'},
-          {key: 'perfil', label: 'Perfil', icon: 'user'},
-        ]}
-        onPress={key => {
-          if (key === 'historial') navigation.navigate('ClientHistory');
-          else if (key === 'qr') navigation.navigate('ClientQR');
-          else if (key === 'perfil') navigation.navigate('ClientProfile');
-        }}
-      />
-    </SafeAreaView>
+            <button
+              onClick={handleUpdate}
+              disabled={loading || !newKm}
+              style={{
+                width: '100%', padding: 14,
+                background: loading ? 'var(--gray-500)' : 'var(--accent)',
+                color: 'white', borderRadius: 8, fontSize: 15, fontWeight: 600,
+                border: 'none',
+              }}
+            >
+              {loading ? 'Actualizando...' : 'Actualizar Kilometraje'}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral[100],
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 80,
-  },
-  currentCard: {
-    alignItems: 'center',
-  },
-  currentLabel: {
-    fontSize: 14,
-    color: colors.neutral[600],
-  },
-  currentValue: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: colors.primary[500],
-    marginTop: 4,
-  },
-  currentDate: {
-    fontSize: 12,
-    color: colors.neutral[400],
-    marginTop: 4,
-  },
-  form: {
-    marginTop: 16,
-  },
-  infoBox: {
-    flexDirection: 'row',
-    backgroundColor: colors.primary[100],
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 16,
-    gap: 12,
-    alignItems: 'flex-start',
-  },
-  infoIcon: {
-    fontSize: 20,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.neutral[900],
-    lineHeight: 20,
-  },
-  actions: {
-    marginTop: 24,
-    gap: 8,
-  },
-});

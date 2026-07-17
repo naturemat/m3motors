@@ -1,190 +1,89 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {AppBar, BottomNav, Card} from '../../components/molecules';
-import {Badge} from '../../components/atoms';
-import {ClientStackParamList} from '../../navigation/types';
-import {colors} from '../../theme';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '@/services/api';
+import type { Intervention } from '@/types';
 
-type Nav = NativeStackNavigationProp<ClientStackParamList, 'ClientHistory'>;
+export function ClientHistory() {
+  const navigate = useNavigate();
+  const [interventions, setInterventions] = useState<Intervention[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const mockHistory = [
-  {
-    id: '1',
-    fecha: '2026-06-15',
-    servicio: 'Cambio de aceite',
-    mecanico: 'Juan Perez',
-    kilometraje: 45000,
-    componentes: ['Filtro de aceite', 'Aceite 5W-30'],
-    costo: 85.0,
-  },
-  {
-    id: '2',
-    fecha: '2026-05-20',
-    servicio: 'Revision de frenos',
-    mecanico: 'Carlos Lopez',
-    kilometraje: 42000,
-    componentes: ['Pastillas de freno delanteras'],
-    costo: 120.0,
-  },
-  {
-    id: '3',
-    fecha: '2026-04-10',
-    servicio: 'Cambio de llantas',
-    mecanico: 'Juan Perez',
-    kilometraje: 38000,
-    componentes: ['Llantas 205/55R16'],
-    costo: 350.0,
-  },
-];
-
-export default function ClientHistory() {
-  const navigation = useNavigation<Nav>();
+  useEffect(() => {
+    api.get('/vehicles/my')
+      .then((res) => api.get(`/vehicles/${res.data.id}/history`))
+      .then((res) => setInterventions(res.data?.intervenciones || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <AppBar title="Historial" showBack onBack={() => navigation.goBack()} />
+    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <div style={{ background: 'var(--primary-500)', padding: '20px 16px' }}>
+        <button
+          onClick={() => navigate('/client')}
+          style={{ color: 'white', fontSize: 14, marginBottom: 8 }}
+        >
+          {'< '}Volver
+        </button>
+        <h1 style={{ color: 'white', fontSize: 20, fontWeight: 700 }}>
+          Historial de Servicios
+        </h1>
+      </div>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {mockHistory.length > 0 ? (
-          mockHistory.map(item => (
-            <Card key={item.id} style={styles.card}>
-              <View style={styles.header}>
-                <Text style={styles.date}>{item.fecha}</Text>
-                <Badge label={item.servicio} type="info" size="small" />
-              </View>
-              <Text style={styles.service}>{item.servicio}</Text>
-              <View style={styles.details}>
-                <Text style={styles.detail}>Mecanico: {item.mecanico}</Text>
-                <Text style={styles.detail}>
-                  KM: {item.kilometraje.toLocaleString()}
-                </Text>
-              </View>
-              {item.componentes.length > 0 && (
-                <View style={styles.components}>
-                  {item.componentes.map((comp, index) => (
-                    <Badge
-                      key={index}
-                      label={comp}
-                      type="outlined"
-                      size="small"
-                    />
-                  ))}
-                </View>
-              )}
-              {item.costo && (
-                <Text style={styles.cost}>${item.costo.toFixed(2)}</Text>
-              )}
-            </Card>
-          ))
+      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {loading ? (
+          <p style={{ textAlign: 'center', color: 'var(--gray-500)', padding: 32 }}>
+            Cargando...
+          </p>
+        ) : interventions.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 40, color: 'var(--gray-500)' }}>
+            <p style={{ fontSize: 14 }}>No hay servicios registrados</p>
+          </div>
         ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🔧</Text>
-            <Text style={styles.emptyTitle}>
-              Aun no hay servicios registrados
-            </Text>
-            <Text style={styles.emptyText}>
-              Tu historial de mantenimiento aparecera aqui cuando tengas tu
-              primera intervencion.
-            </Text>
-          </View>
+          interventions.map((i) => (
+            <div key={i.id} style={{
+              background: 'white', borderRadius: 10, padding: 14,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            }}>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', marginBottom: 6,
+              }}>
+                <p style={{ fontWeight: 600, fontSize: 14 }}>
+                  {i.servicio || i.diagnostico}
+                </p>
+                <span style={{ fontSize: 12, color: 'var(--gray-500)' }}>
+                  {new Date(i.fecha).toLocaleDateString()}
+                </span>
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--gray-500)' }}>
+                {i.mecanico} - {i.kilometraje.toLocaleString()} km
+              </p>
+              {i.costo > 0 && (
+                <p style={{
+                  fontSize: 13, fontWeight: 600, color: 'var(--primary-500)',
+                  marginTop: 4,
+                }}>
+                  ${i.costo.toLocaleString()}
+                </p>
+              )}
+              {i.componentes?.length > 0 && (
+                <div style={{
+                  display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6,
+                }}>
+                  {i.componentes.map((c, idx) => (
+                    <span key={idx} style={{
+                      background: 'var(--gray-100)', padding: '2px 8px',
+                      borderRadius: 4, fontSize: 11,
+                    }}>
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))
         )}
-      </ScrollView>
-
-      <BottomNav
-        active="historial"
-        items={[
-          {key: 'inicio', label: 'Inicio', icon: 'home'},
-          {key: 'historial', label: 'Historial', icon: 'file-text'},
-          {key: 'qr', label: 'QR', icon: 'qrcode'},
-          {key: 'perfil', label: 'Perfil', icon: 'user'},
-        ]}
-        onPress={key => {
-          if (key === 'inicio') navigation.navigate('ClientDashboard');
-          else if (key === 'qr') navigation.navigate('ClientQR');
-          else if (key === 'perfil') navigation.navigate('ClientProfile');
-        }}
-      />
-    </SafeAreaView>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral[100],
-  },
-  scrollContent: {
-    paddingBottom: 80,
-  },
-  card: {
-    marginHorizontal: 16,
-    marginTop: 12,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  date: {
-    fontSize: 12,
-    color: colors.neutral[600],
-  },
-  service: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.neutral[900],
-    marginBottom: 8,
-  },
-  details: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 8,
-  },
-  detail: {
-    fontSize: 14,
-    color: colors.neutral[600],
-  },
-  components: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  cost: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.success[500],
-    marginTop: 8,
-    textAlign: 'right',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 32,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.neutral[900],
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptyText: {
-    fontSize: 14,
-    color: colors.neutral[600],
-    textAlign: 'center',
-    lineHeight: 21,
-  },
-});

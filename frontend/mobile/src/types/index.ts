@@ -32,7 +32,7 @@ export interface Vehicle {
     km: number;
     semanas: number;
   };
-  qrCode: string;
+  qrCode?: string;
   totalIntervenciones: number;
 }
 
@@ -43,15 +43,15 @@ export interface Intervention {
   mecanico: string;
   kilometraje: number;
   componentes: string[];
-  costo?: number;
-  diagnostico?: string;
+  costo: number;
+  diagnostico: string;
   observaciones?: string;
-  severidad?: 'BAJA' | 'MEDIA' | 'ALTA';
+  severidad: string;
 }
 
 export interface Alert {
   id: string;
-  severity: 'high' | 'medium' | 'low';
+  severity: 'baja' | 'media' | 'alta';
   title: string;
   component: string;
   days: number;
@@ -62,10 +62,10 @@ export interface Customer {
   nombre: string;
   telefono: string;
   email: string;
-  licensePlate?: string;
-  vehicleId?: string;
-  status: 'pending' | 'active';
-  fechaPreRegistro?: string;
+  licensePlate: string;
+  vehicleId: string;
+  status: string;
+  fechaPreRegistro: string;
 }
 
 export interface DashboardData {

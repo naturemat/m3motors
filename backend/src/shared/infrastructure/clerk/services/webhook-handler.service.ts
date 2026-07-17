@@ -1,46 +1,11 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Injectable, Logger } from '@nestjs/common';
-
-type PrismaAny = any;
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class WebhookHandlerService {
   private readonly logger = new Logger(WebhookHandlerService.name);
 
-  private prisma: PrismaAny;
-
-  constructor() {
-    try {
-      const { PrismaClient } = require('@prisma/client');
-
-      const { PrismaPg } = require('@prisma/adapter-pg');
-
-      const databaseUrl = process.env.DATABASE_URL;
-      if (!databaseUrl) {
-        this.logger.error('DATABASE_URL not set');
-        return;
-      }
-
-      const url = new URL(databaseUrl);
-      const adapter = new PrismaPg({
-        host: url.hostname,
-        port: parseInt(url.port, 10) || 5432,
-        user: url.username,
-        password: url.password,
-        database: url.pathname.replace('/', ''),
-        ssl: { rejectUnauthorized: false },
-      });
-      this.prisma = new PrismaClient({ adapter });
-      this.logger.log('PrismaClient initialized for webhook handler');
-    } catch (error) {
-      this.logger.error('Failed to initialize PrismaClient', error);
-    }
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   handleUserCreated(data: { id: string }) {
     this.logger.log('Processing user.created:', data.id);
@@ -91,23 +56,23 @@ export class WebhookHandlerService {
 
   private async syncAdmin(clerkId: string, orgId: string, email: string) {
     try {
-      const existing = await this.prisma.workshop.findFirst({
+      const existing = await this.prisma.client$.workshop.findFirst({
         where: { clerkOrgId: orgId },
       });
 
       if (!existing) {
-        const byOwner = await this.prisma.workshop.findFirst({
+        const byOwner = await this.prisma.client$.workshop.findFirst({
           where: { ownerId: clerkId },
         });
 
         if (byOwner) {
-          await this.prisma.workshop.update({
+          await this.prisma.client$.workshop.update({
             where: { id: byOwner.id },
             data: { clerkOrgId: orgId },
           });
           this.logger.log('Workshop clerk_org_id updated:', orgId);
         } else {
-          await this.prisma.workshop.create({
+          await this.prisma.client$.workshop.create({
             data: {
               nombre: `Taller de ${email.split('@')[0]}`,
               ownerId: clerkId,
@@ -133,12 +98,12 @@ export class WebhookHandlerService {
         return;
       }
 
-      const existing = await this.prisma.mechanic.findFirst({
+      const existing = await this.prisma.client$.mechanic.findFirst({
         where: { clerkId },
       });
 
       if (!existing) {
-        await this.prisma.mechanic.create({
+        await this.prisma.client$.mechanic.create({
           data: {
             workshopId: workshop.id,
             clerkId,
@@ -163,12 +128,12 @@ export class WebhookHandlerService {
         return;
       }
 
-      const existing = await this.prisma.cliente.findFirst({
+      const existing = await this.prisma.client$.cliente.findFirst({
         where: { clerkId },
       });
 
       if (!existing) {
-        const mechanic = await this.prisma.mechanic.findFirst({
+        const mechanic = await this.prisma.client$.mechanic.findFirst({
           where: { workshopId: workshop.id, activo: true },
         });
 
@@ -177,7 +142,7 @@ export class WebhookHandlerService {
           return;
         }
 
-        await this.prisma.cliente.create({
+        await this.prisma.client$.cliente.create({
           data: {
             clerkId,
             nombre: email.split('@')[0],
@@ -196,13 +161,13 @@ export class WebhookHandlerService {
 
   private async findWorkshopForOrg(orgId: string) {
     try {
-      const workshop = await this.prisma.workshop.findFirst({
+      const workshop = await this.prisma.client$.workshop.findFirst({
         where: { clerkOrgId: orgId },
       });
 
       if (workshop) return workshop;
 
-      return await this.prisma.workshop.findFirst();
+      return await this.prisma.client$.workshop.findFirst();
     } catch (error) {
       this.logger.error('Error finding workshop:', error);
       return null;

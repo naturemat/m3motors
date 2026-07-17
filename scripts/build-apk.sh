@@ -6,7 +6,7 @@
 # Requiere: Java 17+, Android SDK, Node.js 22+, ~2GB disco libre
 # =============================================================================
 
-WEB_DIR="/opt/m3motors/frontend/web"
+WEB_DIR="/opt/m3motors/frontend/mobile"
 APK_DIR="/opt/m3motors/apk"
 APK_NAME="M3Motors.apk"
 ANDROID_HOME="/opt/android-sdk"
@@ -84,8 +84,17 @@ if [ $BUILD_EXIT -ne 0 ]; then
 fi
 log "  Web build completado"
 
-# 4. Sincronizar Capacitor
-log "[5/6] Sincronizando Capacitor..."
+# 4. Inicializar Capacitor si es primera vez
+if [ ! -d "$WEB_DIR/android" ]; then
+  log "[5/7] Inicializando Capacitor Android..."
+  cd "$WEB_DIR"
+  npx cap init M3Motors com.m3motors.mobile --web-dir dist 2>&1 | grep -E "√|error" || true
+  npx cap add android 2>&1 | grep -E "√|error" || true
+  log "  Capacitor inicializado"
+fi
+
+# 5. Sincronizar Capacitor
+log "[6/7] Sincronizando Capacitor..."
 npx cap sync android 2>&1 | grep -E "√|error"
 SYNC_EXIT=$?
 if [ $SYNC_EXIT -ne 0 ]; then
@@ -97,8 +106,8 @@ log "  Capacitor sync completado"
 # Crear local.properties
 echo "sdk.dir=$ANDROID_HOME" > "$WEB_DIR/android/local.properties"
 
-# 5. Construir APK con Gradle
-log "[6/6] Construyendo APK..."
+# 6. Construir APK con Gradle
+log "[7/7] Construyendo APK..."
 cd "$WEB_DIR/android"
 ./gradlew assembleDebug --no-daemon 2>&1 | grep -E "BUILD|error|FAILED" | head -5
 GRADLE_EXIT=$?

@@ -1,18 +1,11 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 const api = axios.create({
-  baseURL: API_URL,
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3000',
 });
 
-api.interceptors.request.use(async config => {
-  const token = await SecureStore.getItemAsync('clerk_token');
+api.interceptors.request.use(async (config) => {
+  const token = localStorage.getItem('clerk_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -20,10 +13,10 @@ api.interceptors.request.use(async config => {
 });
 
 api.interceptors.response.use(
-  response => response,
-  async error => {
+  (response) => response,
+  (error) => {
     if (error.response?.status === 401) {
-      await SecureStore.deleteItemAsync('clerk_token');
+      localStorage.removeItem('clerk_token');
     }
     return Promise.reject(error);
   },

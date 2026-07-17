@@ -1,172 +1,78 @@
-import React, {useState} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TextInput,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {AppBar} from '../../components/molecules';
-import {Button} from '../../components/atoms';
-import {MechanicStackParamList} from '../../navigation/types';
-import {fetchHistorialByQR} from '../../services/vehicle';
-import {colors, typography, spacing, borderRadius} from '../../theme';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchHistorialByQR } from '@/services/vehicle';
 
-type Nav = NativeStackNavigationProp<MechanicStackParamList, 'QRScanner'>;
-
-export default function QRScanner() {
-  const navigation = useNavigation<Nav>();
+export function QRScanner() {
+  const navigate = useNavigate();
   const [qrCode, setQrCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleScan = async () => {
-    if (!qrCode.trim()) {
-      Alert.alert('Error', 'Ingresa un codigo QR valido');
-      return;
-    }
-
+  const handleSubmit = async () => {
+    if (!qrCode.trim()) return;
     setLoading(true);
+    setError('');
     try {
-      const historial = await fetchHistorialByQR(qrCode.trim());
-      navigation.replace('VehicleHistory', {
-        vehicleId: historial.vehicleId,
-      });
-    } catch (_error) {
-      Alert.alert(
-        'Codigo QR no valido',
-        'Intenta nuevamente con un codigo valido.',
-      );
+      const data = await fetchHistorialByQR(qrCode.trim());
+      navigate(`/mechanic/vehicle/${data.id}`);
+    } catch {
+      setError('Codigo QR no valido. Verifica e intenta de nuevo.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <AppBar
-        title="Escanear QR"
-        showBack
-        onBack={() => navigation.goBack()}
-      />
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: 16 }}>
+      <div style={{
+        background: 'white', borderRadius: 16, padding: 32, textAlign: 'center',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+      }}>
+        <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>
+          Escanear Codigo QR
+        </h2>
+        <p style={{ fontSize: 13, color: 'var(--gray-500)', marginBottom: 20 }}>
+          Ingresa el codigo QR del vehiculo
+        </p>
 
-      <KeyboardAvoidingView
-        style={styles.content}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View style={styles.scannerArea}>
-          <View style={styles.scanFrame}>
-            <View style={[styles.corner, styles.topLeft]} />
-            <View style={[styles.corner, styles.topRight]} />
-            <View style={[styles.corner, styles.bottomLeft]} />
-            <View style={[styles.corner, styles.bottomRight]} />
-          </View>
-          <Text style={styles.scanText}>
-            Ingresa el codigo QR del vehiculo
-          </Text>
-        </View>
+        <input
+          value={qrCode}
+          onChange={(e) => setQrCode(e.target.value)}
+          placeholder="Codigo QR"
+          autoFocus
+          style={{
+            width: '100%', padding: '12px 14px', border: '1px solid var(--gray-300)',
+            borderRadius: 8, fontSize: 15, textAlign: 'center', marginBottom: 12,
+            outline: 'none',
+          }}
+          onFocus={(e) => { e.target.style.borderColor = 'var(--primary-500)'; }}
+          onBlur={(e) => { e.target.style.borderColor = 'var(--gray-300)'; }}
+        />
 
-        <View style={styles.inputSection}>
-          <TextInput
-            style={styles.input}
-            placeholder="QR-XXXX-XXXX"
-            placeholderTextColor={colors.neutral[400]}
-            value={qrCode}
-            onChangeText={setQrCode}
-            autoCapitalize="characters"
-            autoCorrect={false}
-          />
+        {error && (
+          <p style={{ color: 'var(--error)', fontSize: 13, marginBottom: 12 }}>{error}</p>
+        )}
 
-          <Button
-            title={loading ? 'Buscando...' : 'Buscar Vehiculo'}
-            variant="primary"
-            size="large"
-            fullWidth
-            onPress={handleScan}
-            disabled={loading || !qrCode.trim()}
-          />
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        <button
+          onClick={handleSubmit}
+          disabled={loading || !qrCode.trim()}
+          style={{
+            width: '100%', padding: 14,
+            background: loading ? 'var(--gray-500)' : 'var(--primary-500)',
+            color: 'white', borderRadius: 8, fontSize: 15, fontWeight: 600,
+            border: 'none',
+          }}
+        >
+          {loading ? 'Buscando...' : 'Buscar Vehiculo'}
+        </button>
+
+        <button
+          onClick={() => navigate('/mechanic')}
+          style={{ marginTop: 12, color: 'var(--gray-700)', fontSize: 14, padding: '8px 16px' }}
+        >
+          Volver
+        </button>
+      </div>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral[100],
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: spacing[4],
-  },
-  scannerArea: {
-    alignItems: 'center',
-    marginBottom: spacing[8],
-  },
-  scanFrame: {
-    width: 220,
-    height: 220,
-    borderWidth: 2,
-    borderColor: colors.primary[500],
-    borderRadius: borderRadius.lg,
-    marginBottom: spacing[4],
-    position: 'relative',
-  },
-  corner: {
-    position: 'absolute',
-    width: 30,
-    height: 30,
-    borderColor: colors.primary[500],
-  },
-  topLeft: {
-    top: -2,
-    left: -2,
-    borderTopWidth: 4,
-    borderLeftWidth: 4,
-    borderTopLeftRadius: borderRadius.lg,
-  },
-  topRight: {
-    top: -2,
-    right: -2,
-    borderTopWidth: 4,
-    borderRightWidth: 4,
-    borderTopRightRadius: borderRadius.lg,
-  },
-  bottomLeft: {
-    bottom: -2,
-    left: -2,
-    borderBottomWidth: 4,
-    borderLeftWidth: 4,
-    borderBottomLeftRadius: borderRadius.lg,
-  },
-  bottomRight: {
-    bottom: -2,
-    right: -2,
-    borderBottomWidth: 4,
-    borderRightWidth: 4,
-    borderBottomRightRadius: borderRadius.lg,
-  },
-  scanText: {
-    ...typography.bodySecondary,
-    textAlign: 'center',
-  },
-  inputSection: {
-    gap: spacing[4],
-  },
-  input: {
-    backgroundColor: colors.neutral[0],
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: borderRadius.base,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
-    ...typography.input,
-    textAlign: 'center',
-    letterSpacing: 2,
-  },
-});

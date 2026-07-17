@@ -10,7 +10,6 @@ export default function MobileClientQR() {
   const { getToken } = useAuth()
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [qrImage, setQrImage] = useState<string | null>(null)
-  const [vehicleId, setVehicleId] = useState<number | null>(null)
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -23,7 +22,6 @@ export default function MobileClientQR() {
       const vehiculos = vehiculosRes.data.vehiculos ?? []
       if (vehiculos.length > 0) {
         const v = vehiculos[0]
-        setVehicleId(v.id)
         if (v.qr?.codigo) {
           setQrCode(v.qr.codigo)
           // Get QR image

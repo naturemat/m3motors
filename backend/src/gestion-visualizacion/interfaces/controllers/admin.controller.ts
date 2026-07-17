@@ -116,7 +116,7 @@ export class AdminController {
 
     try {
       const clerkUser = await this.clerkService.createUser({
-        email: `${dto.nombre.toLowerCase().replace(/\s/g, '.')}@m3motors.local`,
+        email: `${dto.nombre.toLowerCase().replace(/\s/g, '.')}@m3motors.me`,
         password: tempPassword,
         firstName: dto.nombre,
         publicMetadata: { role: 'mechanic' },

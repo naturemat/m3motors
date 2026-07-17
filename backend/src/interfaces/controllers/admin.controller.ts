@@ -381,4 +381,81 @@ export class AdminController {
 
     return { cliente };
   }
+
+  @Post('customers')
+  @HttpCode(201)
+  @ApiOperation({ summary: 'Crear cliente directamente desde admin' })
+  @ApiResponse({ status: 201, description: 'Cliente creado' })
+  async createCustomer(@Req() req: Request, @Body() body: any) {
+    const { userId } = (req as any).auth;
+    const workshop = await this.findWorkshopForAdmin(userId);
+    if (!workshop) return { error: 'Taller no encontrado' };
+
+    const full = await this.prisma.client$.workshop.findFirst({
+      where: { id: workshop.id },
+      include: { mecanicos: true },
+    });
+
+    const mechanicId = full?.mecanicos?.[0]?.id;
+    if (!mechanicId) return { error: 'No hay mecánico activo disponible' };
+
+    const { nombre, email, telefono, placa } = body;
+
+    const cliente = await this.prisma.client$.cliente.create({
+      data: {
+        clerkId: crypto.randomUUID(),
+        nombre,
+        email,
+        telefono: telefono ?? '',
+        status: 'ACTIVATED',
+        idMecanicoActivo: mechanicId,
+      },
+    });
+
+    // Si se proporciona placa, crear vehículo
+    if (placa) {
+      await this.prisma.client$.vehicle.create({
+        data: {
+          placa,
+          marca: body.marca ?? 'N/A',
+          modelo: body.modelo ?? 'N/A',
+          anio: body.anio ?? new Date().getFullYear(),
+          status: 'ACTIVATED',
+          ultimoKilometraje: 0,
+          clienteId: cliente.id,
+          idMecanicoActivo: mechanicId,
+        },
+      });
+    }
+
+    return { cliente };
+  }
+
+  @Delete('customers/:id')
+  @ApiOperation({ summary: 'Eliminar cliente' })
+  @ApiResponse({ status: 200, description: 'Cliente eliminado' })
+  async deleteCustomer(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request,
+  ) {
+    const { userId } = (req as any).auth;
+    const workshop = await this.findWorkshopForAdmin(userId);
+    if (!workshop) return { error: 'Taller no encontrado' };
+
+    const full = await this.prisma.client$.workshop.findFirst({
+      where: { id: workshop.id },
+      include: { mecanicos: true },
+    });
+
+    const mechanicIds = full?.mecanicos?.map((m: any) => m.id) ?? [];
+
+    await this.prisma.client$.cliente.deleteMany({
+      where: {
+        id,
+        idMecanicoActivo: { in: mechanicIds },
+      },
+    });
+
+    return { success: true };
+  }
 }

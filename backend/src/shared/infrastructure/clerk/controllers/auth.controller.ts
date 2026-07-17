@@ -14,6 +14,7 @@ import { Webhook } from 'svix';
 import { ClerkService } from '../clerk.service';
 import { ClerkAuthGuard } from '../clerk.guard';
 import { WebhookHandlerService } from '../services/webhook-handler.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 interface AuthenticatedRequest extends Request {
   auth?: {
@@ -31,6 +32,7 @@ export class AuthController {
   constructor(
     private readonly clerkService: ClerkService,
     private readonly webhookHandler: WebhookHandlerService,
+    private readonly prisma: PrismaService,
   ) {}
 
   private getWebhook(): Webhook {
@@ -80,6 +82,23 @@ export class AuthController {
       // Si falla la obtención de membresías, retornamos sin orgs
     }
 
+    // Determinar rol desde la BD
+    let role = 'client';
+    try {
+      const mechanic = await this.prisma.client$.mechanic.findFirst({
+        where: { clerkId: userId },
+      });
+      if (mechanic) {
+        role = 'mechanic';
+      }
+      // Si tiene org de taller (es admin), ya se detecta por organizations
+      if (orgs.length > 0) {
+        role = 'admin';
+      }
+    } catch {
+      // Si falla, mantener default
+    }
+
     return {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       id: user?.id ?? '',
@@ -90,6 +109,7 @@ export class AuthController {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       lastName: user?.lastName ?? '',
       organizations: orgs,
+      role,
     };
   }
 

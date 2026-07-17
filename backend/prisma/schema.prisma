@@ -38,6 +38,7 @@ model Mechanic {
   clerkId      String   @unique @map("clerk_id") @db.VarChar(100)
   nombre       String   @db.VarChar(100)
   especialidad String?  @db.VarChar(50)
+  rating       Int?     @default(0)
   activo       Boolean  @default(true)
   creadoPor    Int      @map("creado_por")
   createdAt    DateTime @default(now()) @map("created_at")

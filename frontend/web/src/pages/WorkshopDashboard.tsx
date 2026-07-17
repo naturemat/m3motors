@@ -118,41 +118,55 @@ export default function WorkshopDashboard() {
     setOrders([]);
   };
 
-  // TODO: Create POST /admin/orders endpoint in backend to persist orders
-  const handleAddOrder = (newOrder: Omit<ServiceOrder, 'id' | 'clientInitials' | 'date'>) => {
-    const initials = newOrder.clientName
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
-
-    const order: ServiceOrder = {
-      ...newOrder,
-      id: String(orders.length + 1),
-      clientInitials: initials,
-      date: new Date().toISOString().split('T')[0],
-    };
-
-    setOrders([order, ...orders]);
+  const handleAddOrder = async (newOrder: Omit<ServiceOrder, 'id' | 'clientInitials' | 'date'>) => {
+    try {
+      const headers = await authHeaders();
+      await axios.post(
+        `${apiUrl}/admin/services`,
+        {
+          nombre: newOrder.serviceName,
+          precioReferencia: newOrder.total,
+          categoria: 'General',
+        },
+        { headers },
+      );
+      await fetchData();
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? 'No se pudo crear el servicio');
+    }
   };
 
   const handleUpdateOrderStatus = (id: string, status: 'PENDIENTE' | 'EN PROGRESO' | 'COMPLETADO') => {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
   };
 
-  // TODO: Create POST /admin/customers endpoint in backend to persist clients
-  const handleAddClient = (newClient: Omit<Client, 'id' | 'idCard'>) => {
-    const client: Client = {
-      ...newClient,
-      id: String(clients.length + 1),
-      idCard: `CLI-${String(942 + clients.length).padStart(4, '0')}`,
-    };
-    setClients([client, ...clients]);
+  const handleAddClient = async (newClient: Omit<Client, 'id' | 'idCard'>) => {
+    try {
+      const headers = await authHeaders();
+      await axios.post(
+        `${apiUrl}/admin/customers`,
+        {
+          nombre: newClient.name,
+          email: newClient.email,
+          telefono: newClient.phone,
+          placa: newClient.plate,
+        },
+        { headers },
+      );
+      await fetchData();
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? 'No se pudo crear el cliente');
+    }
   };
 
-  const handleDeleteClient = (id: string) => {
-    setClients((prev) => prev.filter((c) => c.id !== id));
+  const handleDeleteClient = async (id: string) => {
+    try {
+      const headers = await authHeaders();
+      await axios.delete(`${apiUrl}/admin/customers/${id}`, { headers });
+      await fetchData();
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? 'No se pudo eliminar el cliente');
+    }
   };
 
   const handleAddMechanic = async (newMechanic: Omit<Mechanic, 'id' | 'idCard'>) => {

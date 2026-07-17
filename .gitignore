@@ -3,6 +3,9 @@ node_modules/
 .pnp
 .pnp.js
 
+# Project context (contains secrets)
+PROJECT_CONTEXT.md
+
 # Build outputs
 dist/
 build/

@@ -95,10 +95,13 @@ fi
 
 # 5. Sincronizar Capacitor
 log "[6/7] Sincronizando Capacitor..."
-npx cap sync android 2>&1 | grep -E "√|error"
+cd "$WEB_DIR"
+npx cap sync android 2>&1
 SYNC_EXIT=$?
 if [ $SYNC_EXIT -ne 0 ]; then
-  log "  ERROR: Capacitor sync falló"
+  log "  ERROR: Capacitor sync falló (exit $SYNC_EXIT)"
+  log "  Verificando directorio android..."
+  ls -la android/ 2>/dev/null || log "  Directorio android/ no existe"
   exit 1
 fi
 log "  Capacitor sync completado"
@@ -109,7 +112,7 @@ echo "sdk.dir=$ANDROID_HOME" > "$WEB_DIR/android/local.properties"
 # 6. Construir APK con Gradle
 log "[7/7] Construyendo APK..."
 cd "$WEB_DIR/android"
-./gradlew assembleDebug --no-daemon 2>&1 | grep -E "BUILD|error|FAILED" | head -5
+./gradlew assembleDebug --no-daemon 2>&1 | tail -20
 GRADLE_EXIT=$?
 if [ $GRADLE_EXIT -ne 0 ]; then
   log "  ERROR: Gradle build falló (exit $GRADLE_EXIT)"

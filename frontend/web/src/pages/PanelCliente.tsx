@@ -136,7 +136,7 @@ export default function PanelCliente() {
       <header className="bg-primary text-white">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="M3Motors" className="h-7 brightness-0 invert" />
+            <img src="/Logo_M3Motors.png" alt="M3Motors" className="h-7 brightness-0 invert" />
             <span className="text-sm opacity-80">Panel Cliente</span>
           </div>
           <span className="text-sm opacity-80">Estado: Activo</span>

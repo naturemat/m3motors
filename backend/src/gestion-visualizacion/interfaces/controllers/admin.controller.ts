@@ -270,6 +270,172 @@ export class AdminController {
     return { cliente };
   }
 
+  @Post('customers')
+  @HttpCode(201)
+  @ApiOperation({ summary: 'Crear nuevo cliente' })
+  @ApiResponse({ status: 201, description: 'Cliente creado exitosamente' })
+  async createCustomer(
+    @Req() req: Request,
+    @Body()
+    body: { nombre: string; email: string; telefono: string; status?: string },
+  ) {
+    const { userId } = (req as any).auth;
+    const workshop = await this.findWorkshopForAdmin(userId);
+    if (!workshop) return { error: 'Taller no encontrado' };
+
+    const full = await this.prisma.client$.workshop.findFirst({
+      where: { id: workshop.id },
+      include: { mecanicos: true },
+    });
+
+    const mechanicId = full?.mecanicos?.[0]?.id;
+    if (!mechanicId) return { error: 'No hay mecánico activo disponible' };
+
+    const cliente = await this.prisma.client$.cliente.create({
+      data: {
+        clerkId: crypto.randomUUID(),
+        nombre: body.nombre,
+        email: body.email,
+        telefono: body.telefono,
+        status: body.status ?? 'ACTIVATED',
+        idMecanicoActivo: mechanicId,
+      },
+    });
+
+    return { cliente };
+  }
+
+  @Delete('customers/:id')
+  @ApiOperation({ summary: 'Eliminar cliente' })
+  @ApiResponse({ status: 200, description: 'Cliente eliminado' })
+  async deleteCustomer(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request,
+  ) {
+    const { userId } = (req as any).auth;
+    const workshop = await this.findWorkshopForAdmin(userId);
+    if (!workshop) return { error: 'Taller no encontrado' };
+
+    const full = await this.prisma.client$.workshop.findFirst({
+      where: { id: workshop.id },
+      include: { mecanicos: true },
+    });
+
+    const mechanicIds = full?.mecanicos?.map((m: any) => m.id) ?? [];
+    if (mechanicIds.length === 0) return { error: 'Taller sin mecánicos' };
+
+    await this.prisma.client$.cliente.deleteMany({
+      where: { id, idMecanicoActivo: { in: mechanicIds } },
+    });
+
+    return { success: true };
+  }
+
+  @Get('orders')
+  @ApiOperation({ summary: 'Listar órdenes de servicio (intervenciones)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de intervenciones del taller',
+  })
+  async getOrders(@Req() req: Request) {
+    const { userId } = (req as any).auth;
+    const workshop = await this.findWorkshopForAdmin(userId);
+    if (!workshop) return { orders: [] };
+
+    const orders = await this.prisma.client$.intervention.findMany({
+      where: { mecanico: { workshopId: workshop.id } },
+      include: {
+        vehiculo: true,
+        serviceCatalog: true,
+        mecanico: true,
+      },
+      orderBy: { fecha: 'desc' },
+    });
+
+    return { orders };
+  }
+
+  @Post('orders')
+  @HttpCode(201)
+  @ApiOperation({ summary: 'Crear orden de servicio (intervención)' })
+  @ApiResponse({ status: 201, description: 'Orden creada exitosamente' })
+  async createOrder(
+    @Req() req: Request,
+    @Body()
+    body: {
+      clientName: string;
+      vehicle: string;
+      serviceName: string;
+      status?: string;
+      total?: number;
+    },
+  ) {
+    const { userId } = (req as any).auth;
+    const workshop = await this.findWorkshopForAdmin(userId);
+    if (!workshop) return { error: 'Taller no encontrado' };
+
+    const full = await this.prisma.client$.workshop.findFirst({
+      where: { id: workshop.id },
+      include: { mecanicos: true },
+    });
+
+    const mechanicId = full?.mecanicos?.[0]?.id;
+    if (!mechanicId) return { error: 'No hay mecánico activo disponible' };
+
+    // Find service catalog by nombre
+    const serviceCatalog = await this.prisma.client$.serviceCatalog.findFirst({
+      where: { workshopId: workshop.id, nombre: body.serviceName },
+    });
+
+    // Find vehicle by placa or create placeholder
+    let vehicle = await this.prisma.client$.vehicle.findFirst({
+      where: { placa: body.vehicle },
+    });
+
+    if (!vehicle) {
+      // Create a placeholder client first if needed
+      const placeholderClient = await this.prisma.client$.cliente.create({
+        data: {
+          clerkId: crypto.randomUUID(),
+          nombre: body.clientName,
+          email: `placeholder-${crypto.randomUUID()}@m3motors.me`,
+          telefono: '0000000000',
+          status: 'ACTIVATED',
+          idMecanicoActivo: mechanicId,
+        },
+      });
+
+      vehicle = await this.prisma.client$.vehicle.create({
+        data: {
+          clienteId: placeholderClient.id,
+          placa: body.vehicle,
+          marca: 'DESCONOCIDA',
+          modelo: 'DESCONOCIDO',
+          anio: new Date().getFullYear(),
+          status: 'PENDING',
+          idMecanicoActivo: mechanicId,
+        },
+      });
+    }
+
+    const intervention = await this.prisma.client$.intervention.create({
+      data: {
+        vehiculoId: vehicle.id,
+        mecanicoId: mechanicId,
+        serviceCatalogId: serviceCatalog?.id ?? null,
+        estado: body.status ?? 'PENDIENTE',
+        manoDeObra: body.total ?? 0,
+        kilometrajeOdometro: vehicle.ultimoKilometraje,
+      },
+      include: {
+        vehiculo: true,
+        serviceCatalog: true,
+      },
+    });
+
+    return { order: intervention };
+  }
+
   private generateTempPassword(): string {
     const chars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';

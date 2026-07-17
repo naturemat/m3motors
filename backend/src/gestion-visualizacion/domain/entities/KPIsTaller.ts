@@ -8,6 +8,7 @@ export interface KPIsTaller {
   totalMecanicos: number;
   totalAlertasActivas: number;
   intervencionesMes: number;
+  totalOrders: number;
 }
 
 export interface KPIsMecanico {

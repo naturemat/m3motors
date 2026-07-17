@@ -194,12 +194,20 @@ jobs:
           done
 
           echo "=== [6/7] Build APK local ==="
+          rm -rf /opt/m3motors/apk/M3Motors.apk
           mkdir -p /opt/m3motors/apk
           chmod +x /opt/m3motors/scripts/build-apk.sh
           export VITE_API_URL=""
           export VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           export VITE_ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }}
-          bash /opt/m3motors/scripts/build-apk.sh || echo "  WARNING: APK build falló, servicios no afectados"
+          bash /opt/m3motors/scripts/build-apk.sh
+          APK_RESULT=$?
+          if [ $APK_RESULT -eq 0 ]; then
+            echo "  APK construido correctamente"
+            ls -lh /opt/m3motors/apk/M3Motors.apk
+          else
+            echo "  ERROR: APK build falló (exit $APK_RESULT), servicios no afectados"
+          fi
 
           echo "=== [7/7] Limpiar imagenes no utilizadas ==="
           docker image prune -af --filter "until=72h" 2>/dev/null || true

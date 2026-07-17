@@ -3,9 +3,6 @@ node_modules/
 .pnp
 .pnp.js
 
-# Expo
-.expo/
-
 # Project context (contains secrets)
 PROJECT_CONTEXT.md
 SUPABASE_SCHEMA.md
@@ -44,25 +41,17 @@ yarn-error.log*
 coverage/
 .nyc_output/
 
-# Expo / React Native
-.expo/
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-*.orig.*
-
-# Android
+# Android build artifacts
 android/app/build/
 android/.gradle/
 android/build/
 android/local.properties
+frontend/web/android/app/build/
+frontend/web/android/.gradle/
+frontend/web/android/local.properties
 
-# Capacitor
-frontend/mobile/dist/
-frontend/mobile/android/
-frontend/mobile/ios/
+# Mobile — APK is built from frontend/web/ via Capacitor
+frontend/mobile/
 
 # iOS
 ios/Pods/

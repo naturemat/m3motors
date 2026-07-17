@@ -1,5 +1,5 @@
 import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import Landing from './pages/Landing'
 import Login from './pages/Login'
@@ -76,7 +76,7 @@ export default function App() {
         'choose-organization': '/dashboard',
       }}
     >
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           {/* Public */}
           <Route path="/" element={<Landing />} />
@@ -95,7 +95,7 @@ export default function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </ClerkProvider>
   )
 }

@@ -39,9 +39,9 @@ export default function MechanicsView({ mechanics, addMechanic, updateWorkload, 
     return matchesSearch && matchesSpecialty;
   });
 
-  const totalCount = 10 + mechanics.length;
-  const activeToday = 8 + mechanics.filter(m => m.status === 'Activo').length;
-  const restCount = 2 + mechanics.filter(m => m.status === 'Inactivo').length;
+  const totalCount = mechanics.length;
+  const activeToday = mechanics.filter(m => m.status === 'Activo').length;
+  const restCount = mechanics.filter(m => m.status === 'Inactivo').length;
   const totalWorkloadSum = mechanics.reduce((sum, m) => sum + m.workload, 0);
   const averageWorkload = mechanics.length > 0 ? Math.round(totalWorkloadSum / mechanics.length) : 78;
 

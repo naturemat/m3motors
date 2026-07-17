@@ -1,4 +1,7 @@
 import { SignIn } from '@clerk/clerk-react'
+import { Capacitor } from '@capacitor/core'
+
+const isNative = Capacitor.isNativePlatform()
 
 const loginAppearance = {
   variables: {
@@ -19,6 +22,8 @@ const loginAppearance = {
 }
 
 export default function Login() {
+  // Mobile redirects to /dashboard which then routes to mobile dashboards
+  // Web redirects to /dashboard which shows WorkshopDashboard
   return (
     <div className="min-h-screen bg-[#F4F6F7] flex items-center justify-center">
       <div className="w-full max-w-md">

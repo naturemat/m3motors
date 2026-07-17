@@ -6,6 +6,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Param,
   Body,
   UseGuards,
@@ -156,5 +157,20 @@ export class VehicleController {
     });
 
     return vehicle;
+  }
+
+  @Put(':id/update-km')
+  @ApiOperation({ summary: 'Actualizar kilometraje del vehículo' })
+  @ApiResponse({ status: 200, description: 'Kilometraje actualizado' })
+  async updateKm(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { kilometraje: number },
+  ) {
+    const vehicle = await this.prisma.client$.vehicle.update({
+      where: { id },
+      data: { ultimoKilometraje: body.kilometraje },
+    });
+
+    return { vehicle };
   }
 }

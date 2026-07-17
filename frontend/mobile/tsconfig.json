@@ -1,29 +1,24 @@
 {
-  "extends": "@react-native/typescript-config",
   "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
     "strict": true,
-    "types": ["jest"],
-    "baseUrl": ".",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
-    "lib": [
-      "es2019",
-      "es2020.bigint",
-      "es2020.date",
-      "es2020.number",
-      "es2020.promise",
-      "es2020.string",
-      "es2020.symbol.wellknown",
-      "es2021.promise",
-      "es2021.string",
-      "es2021.weakref",
-      "es2022.array",
-      "es2022.object",
-      "es2022.string",
-      "dom"
-    ]
+    "baseUrl": "."
   },
-  "include": ["**/*.ts", "**/*.tsx", "global.d.ts"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  "include": ["src"]
 }

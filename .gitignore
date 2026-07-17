@@ -3,6 +3,9 @@ node_modules/
 .pnp
 .pnp.js
 
+# Project context (contains secrets)
+PROJECT_CONTEXT.md
+
 # Build outputs
 dist/
 build/
@@ -48,6 +51,11 @@ android/app/build/
 android/.gradle/
 android/build/
 android/local.properties
+
+# Capacitor
+frontend/mobile/dist/
+frontend/mobile/android/
+frontend/mobile/ios/
 
 # iOS
 ios/Pods/

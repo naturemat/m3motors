@@ -100,7 +100,7 @@ jobs:
     needs: [detect-changes, build-backend, build-frontend-web]
     if: always() && needs.build-backend.result != 'failure' && needs.build-frontend-web.result != 'failure' && (needs.build-backend.result == 'success' || needs.build-frontend-web.result == 'success')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -149,8 +149,6 @@ jobs:
           CLERK_WEBHOOK_SECRET=${{ secrets.CLERK_WEBHOOK_SECRET }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
-          LLM_API_KEY=${{ secrets.LLM_API_KEY }}
-          LLM_MODEL=${{ secrets.LLM_MODEL }}
           GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
           RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
@@ -159,9 +157,6 @@ jobs:
           ONESIGNAL_REST_API_KEY=${{ secrets.ONESIGNAL_REST_API_KEY }}
           REDIS_HOST=redis
           REDIS_PORT=6379
-          NOTIFICATION_ENABLED=true
-          NOTIFICATION_MAX_RETRIES=3
-          NOTIFICATION_RETRY_DELAY_MS=5000
           LOG_LEVEL=${{ secrets.LOG_LEVEL }}
           CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
           SUPABASE_URL=${{ secrets.SUPABASE_URL }}
@@ -170,9 +165,6 @@ jobs:
           SUPABASE_STORAGE_BUCKET=${{ secrets.SUPABASE_STORAGE_BUCKET }}
           RECAPTCHA_SECRET=${{ secrets.RECAPTCHA_SECRET }}
           QR_BASE_URL=${{ secrets.QR_BASE_URL }}
-          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_BOT_USERNAME=${{ secrets.TELEGRAM_BOT_USERNAME }}
-          MCP_SERVER_URL=${{ secrets.MCP_SERVER_URL }}
           ENVEOF
 
       - name: Deploy via SSH
@@ -207,6 +199,9 @@ jobs:
           echo "=== [6/7] Build APK local ==="
           mkdir -p /opt/m3motors/apk
           chmod +x /opt/m3motors/scripts/build-apk.sh
+          export VITE_API_URL=https://m3motors.com/api
+          export VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          export VITE_ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_APP_ID }}
           bash /opt/m3motors/scripts/build-apk.sh || echo "  WARNING: APK build falló, servicios no afectados"
 
           echo "=== [7/7] Limpiar imagenes no utilizadas ==="

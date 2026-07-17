@@ -1,22 +1,22 @@
 export interface DetalleComponenteDTO {
   componenteReemplazado: string;
-  limiteKilometraje?: number;
-  tipoServicio: string; // Ej: 'REEMPLAZO', 'MANTENIMIENTO'
+  limiteKilometraje: number;
+  tipoServicio: string;
 }
 
 export interface CreateInterventionDTO {
-  vehiculoId: number;
-  serviceCatalogId?: number;
+  vehiculoId: string;
+  serviceCatalogId: string;
   kilometrajeOdometro: number;
   diagnostico: string;
   observaciones?: string;
-  severidad: 'BAJA' | 'MEDIA' | 'ALTA';
+  severidad: string;
   manoDeObra: number;
-  detalles?: DetalleComponenteDTO[];
+  detalles: DetalleComponenteDTO[];
 }
 
 export interface VehiculoInfo {
-  id: number;
+  id: string;
   placa: string;
   marca: string;
   modelo: string;

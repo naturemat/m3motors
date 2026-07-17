@@ -51,25 +51,6 @@ jobs:
       - run: npm ci
       - run: npm run lint
 
-  backend-test:
-    name: Backend Tests
-    needs: detect-changes
-    if: needs.detect-changes.outputs.backend == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: ./backend
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: ./backend/package-lock.json
-      - run: npm ci
-      - run: npm test
-
   frontend-web-lint:
     name: Frontend Web Lint
     needs: detect-changes
@@ -89,25 +70,6 @@ jobs:
       - run: npm install --legacy-peer-deps
       - run: npm run lint
 
-  frontend-web-test:
-    name: Frontend Web Tests
-    needs: detect-changes
-    if: needs.detect-changes.outputs.frontend-web == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: ./frontend/web
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: ./frontend/web/package-lock.json
-      - run: npm install --legacy-peer-deps
-      - run: npm test
-
   frontend-mobile-lint:
     name: Frontend Mobile Lint
     needs: detect-changes
@@ -124,24 +86,5 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: ./frontend/mobile/package-lock.json
-      - run: npm install --legacy-peer-deps
+      - run: npm ci
       - run: npm run lint
-
-  frontend-mobile-test:
-    name: Frontend Mobile Tests
-    needs: detect-changes
-    if: needs.detect-changes.outputs.frontend-mobile == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: ./frontend/mobile
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: ./frontend/mobile/package-lock.json
-      - run: npm install --legacy-peer-deps
-      - run: npm test

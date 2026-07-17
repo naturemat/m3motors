@@ -70,7 +70,8 @@ export class ClerkService {
     });
   }
 
-  createUser(params: {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async createUser(params: {
     email: string;
     password: string;
     firstName?: string;

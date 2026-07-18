@@ -98,4 +98,29 @@ export class MechanicDashboardController {
 
     return { clients };
   }
+
+  @Get('services')
+  @ApiOperation({ summary: 'Catálogo de servicios del taller (para crear intervenciones)' })
+  async getServices(@Req() req: Request) {
+    const { userId } = (req as any).auth;
+
+    const mechanic = await this.prisma.client$.mechanic.findFirst({
+      where: { clerkId: userId },
+    });
+
+    if (!mechanic) return { services: [] };
+
+    const services = await this.prisma.client$.serviceCatalog.findMany({
+      where: { workshopId: mechanic.workshopId, activo: true },
+      select: {
+        id: true,
+        nombre: true,
+        descripcion: true,
+        categoria: true,
+        precioReferencia: true,
+      },
+    });
+
+    return { services };
+  }
 }

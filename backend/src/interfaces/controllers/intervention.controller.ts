@@ -22,7 +22,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { Request } from 'express';
-import { ClerkAuthGuard } from '../../shared/infrastructure/clerk/clerk.guard';
+import { UnifiedAuthGuard } from '../../shared/infrastructure/auth/unified-auth.guard';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { SupabaseStorageService } from '../../shared/infrastructure/storage/supabase-storage.service';
 import { CreateInterventionDTO } from '../../application/dto/CreateInterventionDTO';
@@ -30,7 +30,7 @@ import { CreateInterventionDTO } from '../../application/dto/CreateInterventionD
 @ApiTags('Interventions')
 @ApiBearerAuth()
 @Controller('interventions')
-@UseGuards(ClerkAuthGuard)
+@UseGuards(UnifiedAuthGuard)
 export class InterventionController {
   private readonly logger = new Logger(InterventionController.name);
 

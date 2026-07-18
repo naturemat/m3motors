@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ClerkModule } from './shared/infrastructure/clerk/clerk.module';
+import { AuthModule } from './shared/infrastructure/auth/auth.module';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 import { EventPublisherModule } from './shared/infrastructure/events/EventPublisherModule';
 import { StorageModule } from './shared/infrastructure/storage/storage.module';
@@ -35,6 +36,7 @@ import {
 
 @Module({
   imports: [
+    AuthModule,
     ClerkModule,
     PrismaModule,
     EventPublisherModule,

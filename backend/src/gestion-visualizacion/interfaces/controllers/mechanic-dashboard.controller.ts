@@ -7,14 +7,14 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { Request } from 'express';
-import { ClerkAuthGuard } from '../../../shared/infrastructure/clerk/clerk.guard';
+import { UnifiedAuthGuard } from '../../../shared/infrastructure/auth/unified-auth.guard';
 import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.service';
 import { ObtenerKPIsMecanico } from '../../application/use-cases/ObtenerKPIsMecanico';
 
 @ApiTags('Mechanic Dashboard')
 @ApiBearerAuth()
 @Controller('mechanic/dashboard')
-@UseGuards(ClerkAuthGuard)
+@UseGuards(UnifiedAuthGuard)
 export class MechanicDashboardController {
   constructor(
     private readonly prisma: PrismaService,

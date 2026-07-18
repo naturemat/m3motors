@@ -103,7 +103,7 @@ export default function WorkshopDashboard() {
             vehicle: vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.placa})` : '',
             serviceName: s.nombre,
             status: s.activo ? 'COMPLETADO' as const : 'PENDIENTE' as const,
-            total: Number(s.precioReferencia) ?? 0,
+            total: Number(s.precioReferencia) || 0,
             date: '',
           };
         }),
@@ -190,7 +190,7 @@ export default function WorkshopDashboard() {
       const headers = await authHeaders();
       await axios.post(
         `${apiUrl}/admin/mechanics`,
-        { nombre: newMechanic.name, especialidad: newMechanic.specialty },
+        { nombre: newMechanic.name, especialidad: newMechanic.specialty, rating: newMechanic.workload },
         { headers },
       );
       await fetchData();

@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useSignIn } from '@clerk/clerk-react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import axios from 'axios'
+
+const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
 export default function MobileLogin() {
   const navigate = useNavigate()
-  const { signIn, setActive } = useSignIn()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -20,31 +21,35 @@ export default function MobileLogin() {
     setError(null)
 
     try {
-      const result = await signIn.create({
-        identifier: email,
+      const result = await axios.post(`${apiUrl}/auth/login-mobile`, {
+        email,
         password,
       })
 
-      console.log('[MobileLogin] Sign-in result status:', result.status)
-      console.log('[MobileLogin] Sign-in result:', JSON.stringify(result, null, 2))
-
-      if (result.status === 'complete') {
-        console.log('[MobileLogin] Login successful, activating session...')
-        await setActive({ session: result.createdSessionId })
-        navigate('/')
+      if (result.data.success) {
+        console.log('[MobileLogin] Login successful:', result.data)
+        // Guardar datos del usuario y token en localStorage
+        const token = `mobile_${result.data.userId}_m3motors`
+        localStorage.setItem('mobile_user', JSON.stringify({
+          userId: result.data.userId,
+          role: result.data.role,
+          name: result.data.name,
+          workshopId: result.data.workshopId,
+          token: token,
+        }))
+        // Redirigir segun rol
+        if (result.data.role === 'mechanic') {
+          navigate('/mobile/mechanic')
+        } else {
+          navigate('/mobile/client')
+        }
       } else {
-        console.log('[MobileLogin] Unexpected status:', result.status)
-        setError(`Estado inesperado: ${result.status}`)
+        setError('Credenciales incorrectas')
       }
     } catch (err: any) {
-      console.error('[MobileLogin] Full error:', JSON.stringify(err, null, 2))
-      const clerkError = err?.errors?.[0]
-      if (clerkError) {
-        console.error('[MobileLogin] Clerk error:', clerkError)
-        setError(`Error Clerk: ${clerkError.message ?? clerkError.code ?? 'Unknown'}`)
-      } else {
-        setError(`Error: ${err?.message ?? err?.toString() ?? 'Desconocido'}`)
-      }
+      console.error('[MobileLogin] Error:', err)
+      const msg = err?.response?.data?.message ?? err?.message ?? 'Error al iniciar sesion'
+      setError(msg)
     } finally {
       setLoading(false)
     }
@@ -134,6 +139,16 @@ export default function MobileLogin() {
         <div className="mt-6 text-center">
           <p className="text-[10px] text-[#5D6D7E]">
             No tienes cuenta? Contacta al administrador del taller.
+          </p>
+        </div>
+
+        <div className="mt-4 p-4 bg-[#EBF5FB] rounded-xl">
+          <p className="text-[10px] font-bold text-[#1A5276] mb-2">Credenciales de prueba:</p>
+          <p className="text-[10px] text-[#5D6D7E]">
+            <strong>Mecanico:</strong> test@test.com / mobile_test@test.com_m3motors
+          </p>
+          <p className="text-[10px] text-[#5D6D7E]">
+            <strong>Cliente:</strong> mateopaulna2@gmail.com / mobile_mateopaulna2@gmail.com_m3motors
           </p>
         </div>
       </div>

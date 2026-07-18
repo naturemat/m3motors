@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '@clerk/clerk-react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { ArrowLeft, QrCode, Copy, Check, Car, ChevronDown } from 'lucide-react'
@@ -15,18 +14,17 @@ interface Vehiculo {
 }
 
 export default function MobileClientQR() {
-  const { getToken } = useAuth()
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([])
   const [selectedVehicle, setSelectedVehicle] = useState<Vehiculo | null>(null)
   const [qrImage, setQrImage] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(true)
   const [showPicker, setShowPicker] = useState(false)
+  const mobileUser = JSON.parse(localStorage.getItem('mobile_user') ?? '{}')
 
   const fetchData = useCallback(async () => {
     try {
-      const token = await getToken()
-      const headers = { Authorization: `Bearer ${token}` }
+      const headers = { Authorization: `Bearer ${mobileUser.token}` }
 
       const vehiculosRes = await axios.get(`${apiUrl}/client/dashboard/vehiculos`, { headers })
       const vehs: Vehiculo[] = vehiculosRes.data.vehiculos ?? []
@@ -44,7 +42,7 @@ export default function MobileClientQR() {
     } finally {
       setLoading(false)
     }
-  }, [getToken])
+  }, [])
 
   useEffect(() => {
     void fetchData()
@@ -64,8 +62,7 @@ export default function MobileClientQR() {
     setShowPicker(false)
     setQrImage(null)
     if (vehiculo.qr?.codigo) {
-      const token = await getToken()
-      const headers = { Authorization: `Bearer ${token}` }
+      const headers = { Authorization: `Bearer ${mobileUser.token}` }
       await loadQrImage(vehiculo.id, headers)
     }
   }

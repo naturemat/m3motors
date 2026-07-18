@@ -1,13 +1,13 @@
-import { useAuth, useUser } from '@clerk/clerk-react'
-import { Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, User, Mail, Phone, LogOut } from 'lucide-react'
 
 export default function MobileClientProfile() {
-  const { signOut } = useAuth()
-  const { user } = useUser()
+  const navigate = useNavigate()
+  const mobileUser = JSON.parse(localStorage.getItem('mobile_user') ?? '{}')
 
-  const handleLogout = async () => {
-    await signOut()
+  const handleLogout = () => {
+    localStorage.removeItem('mobile_user')
+    navigate('/')
   }
 
   return (
@@ -27,7 +27,7 @@ export default function MobileClientProfile() {
             <User className="w-8 h-8 text-[#1A5276]" />
           </div>
           <h2 className="text-base font-bold text-[#2C3E50]">
-            {user?.firstName} {user?.lastName}
+            {mobileUser.name ?? 'Cliente'}
           </h2>
           <p className="text-xs text-[#5D6D7E] mt-1">Cliente</p>
         </div>
@@ -41,7 +41,7 @@ export default function MobileClientProfile() {
             <div>
               <p className="text-[9px] text-[#5D6D7E] font-bold uppercase tracking-wider">Email</p>
               <p className="text-xs text-[#2C3E50]">
-                {user?.emailAddresses?.[0]?.emailAddress ?? 'No disponible'}
+                {mobileUser.email ?? 'No disponible'}
               </p>
             </div>
           </div>
@@ -53,7 +53,7 @@ export default function MobileClientProfile() {
             <div>
               <p className="text-[9px] text-[#5D6D7E] font-bold uppercase tracking-wider">Telefono</p>
               <p className="text-xs text-[#2C3E50]">
-                {user?.phoneNumbers?.[0]?.phoneNumber ?? 'No registrado'}
+                {mobileUser.phone ?? 'No registrado'}
               </p>
             </div>
           </div>

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useAuth, useUser } from '@clerk/clerk-react'
-import { Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
 import {
   LayoutDashboard,
@@ -31,16 +30,15 @@ interface ClientePendiente {
 }
 
 export default function MobileMechanicDashboard() {
-  const { signOut, getToken } = useAuth()
-  const { user } = useUser()
+  const navigate = useNavigate()
   const [kpis, setKpis] = useState<KPIs | null>(null)
   const [clientesPendientes, setClientesPendientes] = useState<ClientePendiente[]>([])
   const [loading, setLoading] = useState(true)
+  const mobileUser = JSON.parse(localStorage.getItem('mobile_user') ?? '{}')
 
   const fetchData = useCallback(async () => {
     try {
-      const token = await getToken()
-      const headers = { Authorization: `Bearer ${token}` }
+      const headers = { Authorization: `Bearer ${mobileUser.token}` }
 
       const [kpisRes, clientesRes] = await Promise.all([
         axios.get(`${apiUrl}/mechanic/dashboard/kpis`, { headers }),
@@ -54,14 +52,15 @@ export default function MobileMechanicDashboard() {
     } finally {
       setLoading(false)
     }
-  }, [getToken])
+  }, [])
 
   useEffect(() => {
     void fetchData()
   }, [fetchData])
 
-  const handleLogout = async () => {
-    await signOut()
+  const handleLogout = () => {
+    localStorage.removeItem('mobile_user')
+    navigate('/')
   }
 
   if (loading) {
@@ -83,7 +82,7 @@ export default function MobileMechanicDashboard() {
           <div>
             <p className="text-[#D6EAF8] text-xs font-medium">Mecanico,</p>
             <h1 className="text-lg font-bold">
-              {user?.firstName ?? 'Tecnico'}
+              {mobileUser.name ?? 'Tecnico'}
             </h1>
           </div>
           <button

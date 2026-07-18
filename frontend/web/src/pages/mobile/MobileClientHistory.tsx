@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '@clerk/clerk-react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { ArrowLeft, Calendar, Wrench } from 'lucide-react'
@@ -19,14 +18,13 @@ interface HistorialItem {
 }
 
 export default function MobileClientHistory() {
-  const { getToken } = useAuth()
   const [historial, setHistorial] = useState<HistorialItem[]>([])
   const [loading, setLoading] = useState(true)
+  const mobileUser = JSON.parse(localStorage.getItem('mobile_user') ?? '{}')
 
   const fetchData = useCallback(async () => {
     try {
-      const token = await getToken()
-      const headers = { Authorization: `Bearer ${token}` }
+      const headers = { Authorization: `Bearer ${mobileUser.token}` }
       const res = await axios.get(`${apiUrl}/client/dashboard/historial`, { headers })
       setHistorial(res.data.historial ?? [])
     } catch (err) {
@@ -34,7 +32,7 @@ export default function MobileClientHistory() {
     } finally {
       setLoading(false)
     }
-  }, [getToken])
+  }, [])
 
   useEffect(() => {
     void fetchData()

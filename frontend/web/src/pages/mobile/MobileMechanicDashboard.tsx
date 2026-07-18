@@ -170,7 +170,7 @@ export default function MobileMechanicDashboard() {
           </Link>
 
           <Link
-            to="/mobile/mechanic/interventions"
+            to="/mobile/mechanic/services"
             className="bg-white rounded-xl p-4 flex items-center gap-3 border border-[#E2E8F0]/60 active:scale-95 transition-transform"
           >
             <Wrench className="w-6 h-6 text-[#F39C12]" />
@@ -236,7 +236,7 @@ export default function MobileMechanicDashboard() {
           <Users className="w-5 h-5" />
           <span className="text-[9px] font-bold">Clientes</span>
         </Link>
-        <Link to="/mobile/mechanic/interventions" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+        <Link to="/mobile/mechanic/services" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <Wrench className="w-5 h-5" />
           <span className="text-[9px] font-bold">Servicios</span>
         </Link>

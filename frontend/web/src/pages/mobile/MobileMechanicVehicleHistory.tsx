@@ -263,7 +263,7 @@ export default function MobileMechanicVehicleHistory() {
         <Link to="/mobile/mechanic/customers" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Clientes</span>
         </Link>
-        <Link to="/mobile/mechanic/interventions" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+        <Link to="/mobile/mechanic/services" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Servicios</span>
         </Link>
       </nav>

@@ -55,7 +55,7 @@ export class MechanicDashboardController {
   }
 
   @Get('clientes-pendientes')
-  @ApiOperation({ summary: 'Clientes pre-registrados pendientes' })
+  @ApiOperation({ summary: 'Clientes del taller' })
   async getClientesPendientes(@Req() req: Request) {
     const { userId } = (req as any).auth;
 
@@ -65,10 +65,14 @@ export class MechanicDashboardController {
 
     if (!mechanic) return { clientes: [] };
 
-    const clientes = await this.prisma.client$.preRegisteredCustomer.findMany({
-      where: {
-        workshopId: mechanic.workshopId,
-        status: 'PENDING',
+    const clientes = await this.prisma.client$.cliente.findMany({
+      where: { idMecanicoActivo: mechanic.id },
+      select: {
+        id: true,
+        nombre: true,
+        email: true,
+        telefono: true,
+        status: true,
       },
     });
 

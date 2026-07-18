@@ -468,7 +468,7 @@ export default function MobileMechanicRegisterVehicle() {
         <button onClick={() => navigate('/mobile/mechanic/customers')} className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Clientes</span>
         </button>
-        <button onClick={() => navigate('/mobile/mechanic/interventions')} className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+        <button onClick={() => navigate('/mobile/mechanic/services')} className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Servicios</span>
         </button>
       </nav>

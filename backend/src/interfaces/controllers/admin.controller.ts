@@ -231,6 +231,7 @@ export class AdminController {
         workshopId: workshop.id,
         clerkId: clerkUserId ?? crypto.randomUUID(),
         nombre: dto.nombre,
+        email: dto.email ?? null,
         especialidad: dto.especialidad ?? null,
         rating: dto.rating ?? 0,
         activo: true,

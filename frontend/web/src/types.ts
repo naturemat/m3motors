@@ -14,6 +14,7 @@ export interface Mechanic {
   id: string;
   idCard: string;
   name: string;
+  email: string;
   specialty: string;
   workload: number;
   status: 'Activo' | 'Inactivo';

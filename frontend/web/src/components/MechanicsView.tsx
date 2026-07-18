@@ -25,6 +25,7 @@ export default function MechanicsView({ mechanics, addMechanic, updateWorkload, 
   const [showAddModal, setShowAddModal] = useState(false);
 
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [specialty, setSpecialty] = useState('Motor y Transmisión');
   const [workload, setWorkload] = useState('50');
   const [status, setStatus] = useState<'Activo' | 'Inactivo'>('Activo');
@@ -48,8 +49,8 @@ export default function MechanicsView({ mechanics, addMechanic, updateWorkload, 
   const handleCreateMechanic = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name) return;
-    addMechanic({ name, specialty, workload: parseInt(workload) || 0, status });
-    setName(''); setSpecialty('Motor y Transmisión'); setWorkload('50'); setStatus('Activo');
+    addMechanic({ name, email, specialty, workload: parseInt(workload) || 0, status });
+    setName(''); setEmail(''); setSpecialty('Motor y Transmisión'); setWorkload('50'); setStatus('Activo');
     setShowAddModal(false);
   };
 
@@ -278,6 +279,11 @@ export default function MechanicsView({ mechanics, addMechanic, updateWorkload, 
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nombre Completo</label>
                 <input type="text" required placeholder="Ej: Ricardo Mendoza" value={name} onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-[#1a5276] focus:bg-white transition-all" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email (para login mobile)</label>
+                <input type="email" required placeholder="mecanico@ejemplo.com" value={email} onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-[#1a5276] focus:bg-white transition-all" />
               </div>
               <div>

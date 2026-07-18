@@ -17,6 +17,14 @@ export class CreateMechanicDTO {
   nombre!: string;
 
   @ApiPropertyOptional({
+    example: 'mecanico@ejemplo.com',
+    description: 'Email del mecánico para login mobile',
+  })
+  @IsOptional()
+  @IsString()
+  email?: string;
+
+  @ApiPropertyOptional({
     example: 'Frenos',
     description: 'Especialidad del mecánico',
   })

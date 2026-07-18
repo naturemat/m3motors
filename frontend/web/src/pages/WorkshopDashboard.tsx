@@ -69,6 +69,7 @@ export default function WorkshopDashboard() {
           id: String(m.id),
           idCard: `MEC-${String(m.id).padStart(3, '0')}`,
           name: m.nombre,
+          email: m.email ?? '',
           specialty: m.especialidad ?? 'General',
           workload: m.rating ?? 0,
           status: m.activo ? 'Activo' : 'Inactivo',
@@ -190,7 +191,7 @@ export default function WorkshopDashboard() {
       const headers = await authHeaders();
       await axios.post(
         `${apiUrl}/admin/mechanics`,
-        { nombre: newMechanic.name, especialidad: newMechanic.specialty, rating: newMechanic.workload },
+        { nombre: newMechanic.name, email: newMechanic.email, especialidad: newMechanic.specialty, rating: newMechanic.workload },
         { headers },
       );
       await fetchData();

@@ -28,9 +28,8 @@ import { CreateVehicleDTO } from '../../application/dto/CreateVehicleDTO';
 import { UploadPhotoDTO } from '../../application/dto/UploadPhotoDTO';
 import { ObtenerHistorialVehiculo } from '../../registro-seguimiento/application/use-cases/ObtenerHistorialVehiculo';
 import { QRServiceImpl } from '../../registro-seguimiento/infrastructure/external-services/QRServiceImpl';
-import { GeminiOCRService } from '../../registro-seguimiento/infrastructure/external-services/GeminiOCRService';
 import { SupabaseStorageService } from '../../shared/infrastructure/storage/supabase-storage.service';
-import { ISERVICIO_GENERACION_QR } from '../../shared/domain/ports/tokens';
+import { ISERVICIO_GENERACION_QR, IOCR_SERVICE } from '../../shared/domain/ports/tokens';
 
 @ApiTags('Vehicles')
 @ApiBearerAuth()
@@ -41,7 +40,7 @@ export class VehicleController {
     private readonly prisma: PrismaService,
     private readonly obtenerHistorial: ObtenerHistorialVehiculo,
     @Inject(ISERVICIO_GENERACION_QR) private readonly qrService: QRServiceImpl,
-    private readonly ocrService: GeminiOCRService,
+    @Inject(IOCR_SERVICE) private readonly ocrService: any,
     private readonly storageService: SupabaseStorageService,
   ) {}
 

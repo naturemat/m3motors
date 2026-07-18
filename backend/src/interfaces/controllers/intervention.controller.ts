@@ -198,33 +198,18 @@ export class InterventionController {
       });
 
       await Promise.allSettled(photoPromises);
-
-      // Fetch intervention with photos
-      const interventionWithPhotos =
-        await this.prisma.client$.intervention.findUnique({
-          where: { id: intervention.id },
-          include: {
-            detalles: { include: { partsCatalog: true } },
-            fotos: true,
-          },
-        });
-
-      return {
-        mensaje: 'Servicio registrado exitosamente',
-        intervention: interventionWithPhotos,
-      };
     }
 
-    // 4. Enviar notificacion al cliente
+    // 5. Enviar notificacion al cliente (siempre, con o sin fotos)
     try {
-      const vehiculo = await this.prisma.client$.vehicle.findUnique({
+      const vehiculoInfo = await this.prisma.client$.vehicle.findUnique({
         where: { id: dto.vehiculoId },
         select: { clienteId: true },
       });
 
-      if (vehiculo?.clienteId) {
+      if (vehiculoInfo?.clienteId) {
         const cliente = await this.prisma.client$.cliente.findUnique({
-          where: { id: vehiculo.clienteId },
+          where: { id: vehiculoInfo.clienteId },
           select: { id: true, email: true, nombre: true },
         });
 
@@ -247,9 +232,19 @@ export class InterventionController {
       this.logger.error(`Error enviando notificacion: ${String(notifError)}`);
     }
 
+    // Fetch intervention with photos for response
+    const interventionWithPhotos =
+      await this.prisma.client$.intervention.findUnique({
+        where: { id: intervention.id },
+        include: {
+          detalles: { include: { partsCatalog: true } },
+          fotos: true,
+        },
+      });
+
     return {
       mensaje: 'Servicio registrado exitosamente',
-      intervention,
+      intervention: interventionWithPhotos,
     };
   }
 }

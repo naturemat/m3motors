@@ -151,7 +151,7 @@ export class CreateInterventionDTO {
   })
   @IsOptional()
   @IsString()
-  @IsIn(['PREVENTIVO', 'CORRECTIVO', 'PREDICTIVO'])
+  @IsIn(['PREVENTIVO', 'CORRECTIVO', 'PREDICTIVO', 'DIAGNOSTICO'])
   tipoIntervencion?: string;
 
   @ApiPropertyOptional({ type: [CreateDetalleDTO] })

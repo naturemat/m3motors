@@ -21,7 +21,7 @@ export class EvaluacionDiariaHandler {
   async ejecutar(): Promise<void> {
     this.logger.log('=== Iniciando evaluación diaria de componentes ===');
 
-    const vehiculos = await this.prisma.client$.vehiculo.findMany({
+    const vehiculos = await this.prisma.client$.vehicle.findMany({
       where: {
         status: 'ACTIVE',
         tasaDesgasteKmSem: { gt: 0 },

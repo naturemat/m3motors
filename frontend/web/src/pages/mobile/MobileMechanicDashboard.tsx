@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Users,
   Wrench,
-  Settings,
   LogOut,
   Car,
   QrCode,
@@ -197,19 +196,19 @@ export default function MobileMechanicDashboard() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E2E8F0] flex justify-around items-center h-16 z-40">
         <Link to="/mobile/mechanic" className="flex flex-col items-center gap-1 text-[#1A5276]">
           <LayoutDashboard className="w-5 h-5" />
-          <span className="text-[9px] font-bold">Dashboard</span>
+          <span className="text-[9px] font-bold">Inicio</span>
         </Link>
         <Link to="/mobile/mechanic/scanner" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <QrCode className="w-5 h-5" />
           <span className="text-[9px] font-bold">Escanear</span>
         </Link>
-        <Link to="/mobile/mechanic" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+        <Link to="/mobile/mechanic/customers" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <Users className="w-5 h-5" />
           <span className="text-[9px] font-bold">Clientes</span>
         </Link>
-        <Link to="/mobile/mechanic" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
-          <Settings className="w-5 h-5" />
-          <span className="text-[9px] font-bold">Ajustes</span>
+        <Link to="/mobile/mechanic/interventions" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+          <Wrench className="w-5 h-5" />
+          <span className="text-[9px] font-bold">Servicios</span>
         </Link>
       </nav>
     </div>

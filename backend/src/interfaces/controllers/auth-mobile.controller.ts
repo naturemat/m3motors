@@ -12,7 +12,7 @@ export class AuthMobileController {
 
   @Post('login-mobile')
   @HttpCode(200)
-  @ApiOperation({ summary: 'Login mobile sin Clerk (email + password)' })
+  @ApiOperation({ summary: 'Login mobile - email + password, role desde BD' })
   @ApiResponse({ status: 200, description: 'Login exitoso' })
   @ApiResponse({ status: 401, description: 'Credenciales incorrectas' })
   async loginMobile(@Body() body: { email: string; password: string }) {
@@ -22,13 +22,12 @@ export class AuthMobileController {
       throw new UnauthorizedException('Email y password son requeridos');
     }
 
-    // Password esperado: mobile_[email]_m3motors
     const expectedPassword = `mobile_${email}_m3motors`;
     if (password !== expectedPassword) {
       throw new UnauthorizedException('Credenciales incorrectas');
     }
 
-    // Buscar por email en mecanico
+    // Buscar en mecanico por email
     const mechanic = await this.prisma.client$.mechanic.findFirst({
       where: { email: email },
     });
@@ -43,7 +42,7 @@ export class AuthMobileController {
       };
     }
 
-    // Buscar por email en cliente
+    // Buscar en cliente por email
     const client = await this.prisma.client$.cliente.findFirst({
       where: { email: email },
     });
@@ -57,6 +56,6 @@ export class AuthMobileController {
       };
     }
 
-    throw new UnauthorizedException('Usuario no encontrado');
+    throw new UnauthorizedException('Usuario no encontrado en el sistema');
   }
 }

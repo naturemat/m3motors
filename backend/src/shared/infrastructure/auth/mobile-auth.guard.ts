@@ -14,10 +14,9 @@ export class MobileAuthGuard implements CanActivate {
 
     const token = authHeader.split(' ')[1];
 
-    // Mobile tokens start with 'mobile_'
-    if (token.startsWith('mobile_')) {
-      // Extract userId from token format: mobile_userId_m3motors
-      const parts = token.split('_');
+    // Mobile token format: mobile:::userId:::m3motors
+    if (token.startsWith('mobile:::')) {
+      const parts = token.split(':::');
       if (parts.length >= 2) {
         (request as any).auth = {
           userId: parts[1],

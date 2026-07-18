@@ -22,21 +22,23 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { Request } from 'express';
-import { ClerkAuthGuard } from '../../shared/infrastructure/clerk/clerk.guard';
+import { UnifiedAuthGuard } from '../../shared/infrastructure/auth/unified-auth.guard';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { SupabaseStorageService } from '../../shared/infrastructure/storage/supabase-storage.service';
 import { CreateInterventionDTO } from '../../application/dto/CreateInterventionDTO';
+import { NotificationService } from '../../notification/notification.service';
 
 @ApiTags('Interventions')
 @ApiBearerAuth()
 @Controller('interventions')
-@UseGuards(ClerkAuthGuard)
+@UseGuards(UnifiedAuthGuard)
 export class InterventionController {
   private readonly logger = new Logger(InterventionController.name);
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly storageService: SupabaseStorageService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Get()
@@ -213,10 +215,37 @@ export class InterventionController {
       };
     }
 
-    // 4. REQUERIMIENTO CRÍTICO: Lanzar evento de dominio IntervencionRegistrada
-    console.log(
-      `[Evento Dominio] IntervencionRegistrada disparado para ID: ${intervention.id}`,
-    );
+    // 4. Enviar notificacion al cliente
+    try {
+      const vehiculo = await this.prisma.client$.vehicle.findUnique({
+        where: { id: dto.vehiculoId },
+        select: { clienteId: true },
+      });
+
+      if (vehiculo?.clienteId) {
+        const cliente = await this.prisma.client$.cliente.findUnique({
+          where: { id: vehiculo.clienteId },
+          select: { id: true, email: true, nombre: true },
+        });
+
+        if (cliente) {
+          await this.notificationService.enviarAsync(
+            {
+              clienteId: cliente.id,
+              email: cliente.email,
+              tipo: 'INTERVENCION_CREADA' as any,
+              canal: 'email' as any,
+              asunto: 'Servicio registrado en tu vehiculo',
+              contenido: `Se ha registrado un servicio de tipo ${intervention.tipoIntervencion} en tu vehiculo. Diagnostico: ${intervention.diagnostico ?? 'Sin diagnostico'}`,
+              metadata: { intervencionId: intervention.id, vehiculoId: dto.vehiculoId },
+            },
+            cliente.email,
+          );
+        }
+      }
+    } catch (notifError) {
+      this.logger.error(`Error enviando notificacion: ${String(notifError)}`);
+    }
 
     return {
       mensaje: 'Servicio registrado exitosamente',

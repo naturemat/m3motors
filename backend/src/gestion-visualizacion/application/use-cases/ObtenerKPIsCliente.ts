@@ -32,17 +32,21 @@ export class ObtenerKPIsCliente {
           include: { mecanico: true },
         },
         alertas: {
-          where: { estadoAlerta: { in: ['ACTIVA', 'PENDIENTE'] } },
+          where: { estadoAlerta: { in: ['ACTIVA', 'PENDIENTE', 'activa', 'pendiente'] } },
         },
       },
     });
 
+    // Count ALL interventions across all vehicles (not limited to 5 per vehicle)
+    const totalIntervenciones = await this.prisma.client$.intervention.count({
+      where: { vehiculo: { clienteId: cliente.id } },
+    });
+
     const totalVehiculos = vehiculos.length;
-    const totalIntervenciones = vehiculos.reduce(
-      (sum, v) => sum + v.intervenciones.length,
+    const kilometrajeActual = vehiculos.reduce(
+      (max, v) => Math.max(max, v.ultimoKilometraje),
       0,
     );
-    const kilometrajeActual = vehiculos[0]?.ultimoKilometraje ?? 0;
     const alertasActivas = vehiculos.reduce(
       (sum, v) => sum + v.alertas.length,
       0,
@@ -52,8 +56,9 @@ export class ObtenerKPIsCliente {
     let proximoMantenimiento: string | null = null;
     for (const v of vehiculos) {
       for (const alerta of v.alertas) {
+        const isActiva = alerta.estadoAlerta === 'ACTIVA' || alerta.estadoAlerta === 'activa';
         if (
-          alerta.estadoAlerta === 'ACTIVA' &&
+          isActiva &&
           (!proximoMantenimiento ||
             alerta.fechaEstimada < new Date(proximoMantenimiento))
         ) {

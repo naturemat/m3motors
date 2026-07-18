@@ -50,7 +50,7 @@ export class ClientDashboardController {
           include: { mecanico: true },
         },
         alertas: {
-          where: { estadoAlerta: { in: ['ACTIVA', 'PENDIENTE'] } },
+          where: { estadoAlerta: { in: ['ACTIVA', 'PENDIENTE', 'activa', 'pendiente'] } },
         },
       },
     });

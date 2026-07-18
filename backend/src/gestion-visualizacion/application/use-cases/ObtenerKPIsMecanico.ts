@@ -62,7 +62,7 @@ export class ObtenerKPIsMecanico {
       this.prisma.client$.alertaPredictiva.count({
         where: {
           vehiculo: { idMecanicoActivo: mechanic.id },
-          estadoAlerta: { in: ['ACTIVA', 'PENDIENTE'] },
+          estadoAlerta: { in: ['ACTIVA', 'PENDIENTE', 'activa', 'pendiente'] },
         },
       }),
     ]);

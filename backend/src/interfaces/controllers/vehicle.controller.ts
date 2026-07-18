@@ -66,6 +66,21 @@ export class VehicleController {
     return { vehicles };
   }
 
+  // NOTE: qr/:qrCode MUST come before :id to avoid NestJS route collision
+  @Get('qr/:qrCode')
+  @ApiOperation({ summary: 'Obtener historial completo por QR' })
+  @ApiResponse({ status: 200, description: 'Historial del vehiculo' })
+  @ApiResponse({ status: 404, description: 'QR no valido' })
+  async findByQr(@Param('qrCode') qrCode: string) {
+    const historial = await this.obtenerHistorial.execute(qrCode);
+
+    if (!historial) {
+      return { error: 'Codigo QR no valido. Intenta nuevamente.' };
+    }
+
+    return historial;
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener perfil completo de un vehículo' })
   @ApiResponse({ status: 200, description: 'Perfil del vehículo con timeline' })
@@ -90,20 +105,6 @@ export class VehicleController {
     }
 
     return vehicle;
-  }
-
-  @Get('qr/:qrCode')
-  @ApiOperation({ summary: 'Obtener historial completo por QR' })
-  @ApiResponse({ status: 200, description: 'Historial del vehiculo' })
-  @ApiResponse({ status: 404, description: 'QR no valido' })
-  async findByQr(@Param('qrCode') qrCode: string) {
-    const historial = await this.obtenerHistorial.execute(qrCode);
-
-    if (!historial) {
-      return { error: 'Codigo QR no valido. Intenta nuevamente.' };
-    }
-
-    return historial;
   }
 
   @Get(':id/qr-image')
@@ -155,7 +156,7 @@ export class VehicleController {
         tipoMotor: dto.tipoMotor,
         status: 'PENDING',
         ultimoKilometraje: 0,
-        clienteId: 1,
+        clienteId: dto.clienteId ?? 1,
         idMecanicoActivo: mechanic.id,
       },
     });

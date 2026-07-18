@@ -57,11 +57,7 @@ export class ObtenerHistorialVehiculo {
   ) {}
 
   async execute(qrCode: string): Promise<VehiculoHistorialDTO | null> {
-    const vehiculos = await this.vehiculoRepository.findAll();
-    const vehiculo = vehiculos.find((v) => {
-      const qr = v.getQrCode();
-      return qr && qr.getCodigo() === qrCode;
-    });
+    const vehiculo = await this.vehiculoRepository.findByQrCode(qrCode);
 
     if (!vehiculo) {
       return null;

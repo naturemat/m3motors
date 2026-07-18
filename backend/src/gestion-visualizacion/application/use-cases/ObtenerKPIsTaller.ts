@@ -21,6 +21,7 @@ export class ObtenerKPIsTaller {
       totalAlertasActivas,
       intervencionesMes,
       totalOrders,
+      calificacionPromedio,
     ] = await Promise.all([
       this.prisma.client$.vehicle.count({
         where: { mecanicoActivo: { workshopId } },
@@ -53,7 +54,7 @@ export class ObtenerKPIsTaller {
       this.prisma.client$.alertaPredictiva.count({
         where: {
           vehiculo: { mecanicoActivo: { workshopId } },
-          estadoAlerta: { in: ['ACTIVA', 'PENDIENTE'] },
+          estadoAlerta: { in: ['activa', 'pendiente', 'ACTIVA', 'PENDIENTE'] },
         },
       }),
       this.prisma.client$.intervention.count({
@@ -67,6 +68,10 @@ export class ObtenerKPIsTaller {
           mecanico: { workshopId },
         },
       }),
+      this.prisma.client$.mechanic.aggregate({
+        _avg: { rating: true },
+        where: { workshopId, activo: true },
+      }),
     ]);
 
     return {
@@ -74,7 +79,7 @@ export class ObtenerKPIsTaller {
       totalClientesActivos,
       ingresosMes: Number(ingresosMes._sum.manoDeObra ?? 0),
       ingresosTotales: Number(ingresosTotales._sum.manoDeObra ?? 0),
-      calificacionPromedio: 0,
+      calificacionPromedio: Math.round(calificacionPromedio._avg.rating ?? 0),
       totalServicios,
       totalMecanicos,
       totalAlertasActivas,

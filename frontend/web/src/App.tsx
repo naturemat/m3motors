@@ -25,6 +25,7 @@ import MobileMechanicCustomers from './pages/mobile/MobileMechanicCustomers'
 import MobileMechanicInterventions from './pages/mobile/MobileMechanicInterventions'
 import MobileMechanicRegisterVehicle from './pages/mobile/MobileMechanicRegisterVehicle'
 import MobileMechanicCreateIntervention from './pages/mobile/MobileMechanicCreateIntervention'
+import MobileMechanicManualIntervention from './pages/mobile/MobileMechanicManualIntervention'
 import MobileLogin from './pages/mobile/MobileLogin'
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -239,6 +240,9 @@ export default function App() {
           } />
           <Route path="/mobile/mechanic/register-vehicle" element={
             <ProtectedRoute allowedRoles={['mechanic']}><MobileMechanicRegisterVehicle /></ProtectedRoute>
+          } />
+          <Route path="/mobile/mechanic/manual-intervention" element={
+            <ProtectedRoute allowedRoles={['mechanic']}><MobileMechanicManualIntervention /></ProtectedRoute>
           } />
 
           {/* Web — Clerk-based dashboards */}

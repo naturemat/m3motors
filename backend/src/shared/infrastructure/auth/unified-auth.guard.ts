@@ -18,9 +18,9 @@ export class UnifiedAuthGuard implements CanActivate {
 
     const token = authHeader.split(' ')[1];
 
-    // Mobile token format: mobile_userId_m3motors
-    if (token.startsWith('mobile_')) {
-      const parts = token.split('_');
+    // Mobile token format: mobile:::userId:::m3motors
+    if (token.startsWith('mobile:::')) {
+      const parts = token.split(':::');
       if (parts.length >= 2) {
         (request as any).auth = {
           userId: parts[1],

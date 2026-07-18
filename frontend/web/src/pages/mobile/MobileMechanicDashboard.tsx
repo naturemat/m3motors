@@ -224,9 +224,13 @@ export default function MobileMechanicDashboard() {
           <QrCode className="w-5 h-5" />
           <span className="text-[9px] font-bold">Escanear</span>
         </Link>
-        <Link to="/mobile/mechanic/register-vehicle" className="flex flex-col items-center gap-1 text-[#1A5276]">
+        <Link to="/mobile/mechanic/register-vehicle" className="flex flex-col items-center gap-1 text-[#27AE60]">
           <Car className="w-5 h-5 fill-current" />
           <span className="text-[9px] font-bold">Vehiculo</span>
+        </Link>
+        <Link to="/mobile/mechanic/manual-intervention" className="flex flex-col items-center gap-1 text-[#1A5276]">
+          <Wrench className="w-5 h-5 fill-current" />
+          <span className="text-[9px] font-bold">Revision</span>
         </Link>
         <Link to="/mobile/mechanic/customers" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <Users className="w-5 h-5" />

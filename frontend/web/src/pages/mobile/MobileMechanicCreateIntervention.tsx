@@ -552,6 +552,9 @@ export default function MobileMechanicCreateIntervention() {
         <button onClick={() => navigate('/mobile/mechanic/register-vehicle')} className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Vehiculo</span>
         </button>
+        <button onClick={() => navigate('/mobile/mechanic/manual-intervention')} className="flex flex-col items-center gap-1 text-[#1A5276]">
+          <span className="text-[9px] font-bold">Revision</span>
+        </button>
         <button onClick={() => navigate('/mobile/mechanic/customers')} className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Clientes</span>
         </button>

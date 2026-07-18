@@ -115,6 +115,9 @@ export default function MobileMechanicInterventions() {
           <Car className="w-5 h-5" />
           <span className="text-[9px] font-bold">Vehiculo</span>
         </Link>
+        <Link to="/mobile/mechanic/manual-intervention" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+          <span className="text-[9px] font-bold">Revision</span>
+        </Link>
         <Link to="/mobile/mechanic/customers" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Clientes</span>
         </Link>

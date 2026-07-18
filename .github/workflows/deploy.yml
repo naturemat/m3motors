@@ -160,7 +160,6 @@ jobs:
           SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_STORAGE_BUCKET=${{ secrets.SUPABASE_STORAGE_BUCKET }}
-          RECAPTCHA_SECRET=${{ secrets.RECAPTCHA_SECRET }}
           QR_BASE_URL=${{ secrets.QR_BASE_URL }}
           ENVEOF
 

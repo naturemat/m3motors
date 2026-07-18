@@ -148,13 +148,35 @@ export default function MobileMechanicDashboard() {
           </Link>
 
           <Link
-            to="/mobile/mechanic"
+            to="/mobile/mechanic/register-vehicle"
+            className="bg-[#27AE60] text-white rounded-xl p-4 flex items-center gap-3 active:scale-95 transition-transform"
+          >
+            <Car className="w-6 h-6" />
+            <div>
+              <p className="text-xs font-bold">Registrar Auto</p>
+              <p className="text-[10px] text-white/70">Foto + OCR</p>
+            </div>
+          </Link>
+
+          <Link
+            to="/mobile/mechanic/customers"
             className="bg-white rounded-xl p-4 flex items-center gap-3 border border-[#E2E8F0]/60 active:scale-95 transition-transform"
           >
             <Users className="w-6 h-6 text-[#1A5276]" />
             <div>
               <p className="text-xs font-bold text-[#2C3E50]">Clientes</p>
-              <p className="text-[10px] text-[#5D6D7E]">Ver pendientes</p>
+              <p className="text-[10px] text-[#5D6D7E]">Ver listado</p>
+            </div>
+          </Link>
+
+          <Link
+            to="/mobile/mechanic/interventions"
+            className="bg-white rounded-xl p-4 flex items-center gap-3 border border-[#E2E8F0]/60 active:scale-95 transition-transform"
+          >
+            <Wrench className="w-6 h-6 text-[#F39C12]" />
+            <div>
+              <p className="text-xs font-bold text-[#2C3E50]">Servicios</p>
+              <p className="text-[10px] text-[#5D6D7E]">Historial</p>
             </div>
           </Link>
         </div>

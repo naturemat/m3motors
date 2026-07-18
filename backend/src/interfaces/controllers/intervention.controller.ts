@@ -106,7 +106,7 @@ export class InterventionController {
     }
 
     // 1. Validar si el vehículo existe y obtener su último kilometraje
-    const vehiculo = await this.prisma.client$.vehiculo.findUnique({
+    const vehiculo = await this.prisma.client$.vehicle.findUnique({
       where: { id: dto.vehiculoId },
       select: { ultimoKilometraje: true },
     });
@@ -161,7 +161,7 @@ export class InterventionController {
         });
 
         // Actualizar el kilometraje actual en el Vehículo
-        await tx.vehiculo.update({
+        await tx.vehicle.update({
           where: { id: dto.vehiculoId },
           data: { ultimoKilometraje: dto.kilometrajeOdometro },
         });

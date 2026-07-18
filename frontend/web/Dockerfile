@@ -12,7 +12,7 @@ ENV VITE_RECAPTCHA_SITE_KEY=$VITE_RECAPTCHA_SITE_KEY
 
 COPY package*.json ./
 
-RUN npm ci --legacy-peer-deps
+RUN npm install --legacy-peer-deps
 
 COPY . .
 

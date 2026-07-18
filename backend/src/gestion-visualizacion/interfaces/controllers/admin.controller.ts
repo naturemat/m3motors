@@ -216,6 +216,7 @@ export class AdminController {
       where: {
         idMecanicoActivo: { in: full?.mecanicos?.map((m: any) => m.id) ?? [] },
       },
+      include: { vehiculos: true },
     });
 
     return { activeClients, preRegistered: full?.preRegisteredCustomers ?? [] };

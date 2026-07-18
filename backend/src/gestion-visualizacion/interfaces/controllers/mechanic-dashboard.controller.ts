@@ -46,7 +46,7 @@ export class MechanicDashboardController {
         cliente: true,
         qr: true,
         alertas: {
-          where: { estadoAlerta: { in: ['ACTIVA', 'PENDIENTE'] } },
+          where: { estadoAlerta: { in: ['ACTIVA', 'PENDIENTE', 'activa', 'pendiente'] } },
         },
       },
     });

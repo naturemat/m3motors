@@ -4,11 +4,11 @@ import { useAuth, useUser } from '@clerk/clerk-react'
 
 type Mechanic = { id: number; nombre: string; especialidad: string | null; activo: boolean; rating?: number }
 type ServiceItem = { id: number; nombre: string; descripcion?: string | null; precioReferencia: number; categoria: string }
-type ActiveClient = { id: number; nombre: string; email: string; telefono: string; status: string; idMecanicoActivo: number }
+type ActiveClient = { id: number; nombre: string; email: string; telefono: string; status: string; idMecanicoActivo: number; vehiculos?: Array<{ placa: string; marca: string; modelo: string }> }
 type PreRegisteredClient = { id: number; nombre: string; email: string; telefono: string; licensePlate: string | null; status: string; fechaPreRegistro: string; fechaActivacion: string | null }
 type Workshop = { id: number; nombre: string; direccion: string; horarios?: string | null; telefono: string; email: string; ownerId: string }
 
-type Kpis = { totalVehicles: number; totalClientsActive: number; monthlyRevenue: number; avgMechanicRating: number; servicesCount: number }
+type Kpis = { totalVehicles: number; totalClientsActive: number; monthlyRevenue: number; avgMechanicRating: number; servicesCount: number; totalMecanicos: number; intervencionesMes: number }
 
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
@@ -32,7 +32,7 @@ export default function AdminDashboard() {
   const [activeClients, setActiveClients] = useState<ActiveClient[]>([])
   const [preRegisteredClients, setPreRegisteredClients] = useState<PreRegisteredClient[]>([])
   const [workshop, setWorkshop] = useState<Workshop | null>(null)
-  const [kpis, setKpis] = useState<Kpis>({ totalVehicles: 0, totalClientsActive: 0, monthlyRevenue: 0, avgMechanicRating: 0, servicesCount: 0 })
+  const [kpis, setKpis] = useState<Kpis>({ totalVehicles: 0, totalClientsActive: 0, monthlyRevenue: 0, avgMechanicRating: 0, servicesCount: 0, totalMecanicos: 0, intervencionesMes: 0 })
   const [newMechanicName, setNewMechanicName] = useState('')
   const [newServiceName, setNewServiceName] = useState('')
   const [newServicePrice, setNewServicePrice] = useState<number | ''>('')
@@ -55,7 +55,17 @@ export default function AdminDashboard() {
         axios.get(`${apiUrl}/admin/customers`, { headers }),
       ])
 
-      setKpis(kpisRes.data.kpis)
+      // Backend returns flat Spanish field names (gestion-visualizacion controller)
+      const raw = kpisRes.data
+      setKpis({
+        totalVehicles: raw.totalVehiculos ?? raw.totalVehicles ?? 0,
+        totalClientsActive: raw.totalClientesActivos ?? raw.totalClientsActive ?? 0,
+        monthlyRevenue: raw.ingresosMes ?? raw.monthlyRevenue ?? 0,
+        avgMechanicRating: raw.calificacionPromedio ?? raw.avgMechanicRating ?? 0,
+        servicesCount: raw.totalServicios ?? raw.servicesCount ?? 0,
+        totalMecanicos: raw.totalMecanicos ?? 0,
+        intervencionesMes: raw.intervencionesMes ?? 0,
+      })
       setWorkshop(workshopRes.data.workshop)
       setMechanics(mechanicsRes.data.mechanics ?? [])
       setServices(servicesRes.data.services ?? [])
@@ -309,6 +319,11 @@ export default function AdminDashboard() {
                   <div>
                     <p className="font-semibold text-slate-900">{client.nombre}</p>
                     <p className="text-sm text-slate-600">{client.email}</p>
+                    {client.vehiculos && client.vehiculos.length > 0 && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {client.vehiculos.map(v => `${v.marca} ${v.modelo} (${v.placa})`).join(', ')}
+                      </p>
+                    )}
                   </div>
                   <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">Activo</span>
                 </div>

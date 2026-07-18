@@ -21,8 +21,19 @@ export class PrismaVehiculoRepository implements IVehiculoRepository {
     return this.toDomain(row);
   }
 
+  async findByQrCode(codigo: string): Promise<Vehiculo | null> {
+    const qr = await this.prisma.client$.vehicleQR.findUnique({
+      where: { codigo },
+      include: { vehiculo: true },
+    });
+    if (!qr?.vehiculo) return null;
+    return this.toDomain(qr.vehiculo);
+  }
+
   async findAll(): Promise<Vehiculo[]> {
-    const rows = await this.prisma.client$.vehicle.findMany();
+    const rows = await this.prisma.client$.vehicle.findMany({
+      include: { qr: true },
+    });
     return rows.map((row: any) => this.toDomain(row));
   }
 

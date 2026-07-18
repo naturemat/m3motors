@@ -56,9 +56,21 @@ function ProtectedRoute({
   children: React.ReactNode
   allowedRoles?: UserRole[]
 }) {
-  const { isSignedIn, getToken } = useAuth()
+  const { isSignedIn, getToken, isLoaded } = useAuth()
   const [role, setRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Wait for Clerk to initialize before making auth decisions
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-[#F4F6F7] flex items-center justify-center">
+        <div className="text-center">
+          <img src="/Logo_M3Motors.png" alt="M3Motors" className="w-12 h-12 mx-auto mb-4 animate-pulse" />
+          <p className="text-[#5D6D7E] text-sm">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
 
   useEffect(() => {
     // Mobile: check localStorage

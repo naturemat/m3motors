@@ -16,6 +16,11 @@ export class InMemoryVehiculoRepository implements IVehiculoRepository {
     return Promise.resolve(null);
   }
 
+  findByQrCode(_codigo: string): Promise<Vehiculo | null> {
+    // InMemory does not support QR lookup
+    return Promise.resolve(null);
+  }
+
   findAll(): Promise<Vehiculo[]> {
     return Promise.resolve(Array.from(this.vehiculos.values()));
   }

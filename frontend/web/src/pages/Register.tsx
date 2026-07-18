@@ -24,8 +24,7 @@ export default function Register() {
       <div className="w-full max-w-md">
         <img src="/Logo_M3Motors.png" alt="M3Motors" className="h-12 mx-auto mb-6" />
         <SignUp
-          routing="path"
-          path="/register"
+          routing="hash"
           afterSignUpUrl="/dashboard"
           fallbackRedirectUrl="/dashboard"
           appearance={registerAppearance}

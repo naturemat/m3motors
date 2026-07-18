@@ -23,6 +23,7 @@ RUN adduser --system --uid 1001 nestjs
 
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/package.json ./
+COPY --from=builder --chown=nestjs:nodejs /app/package-lock.json ./
 COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
 
 RUN npm ci --omit=dev && npm cache clean --force

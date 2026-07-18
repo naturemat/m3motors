@@ -90,7 +90,6 @@ export class VehicleController {
       include: {
         qr: true,
         fotos: true,
-        cliente: true,
         intervenciones: {
           orderBy: { fecha: 'desc' },
           include: {

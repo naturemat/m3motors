@@ -37,6 +37,7 @@ model Mechanic {
   workshopId   Int      @map("id_workshop")
   clerkId      String   @unique @map("clerk_id") @db.VarChar(100)
   nombre       String   @db.VarChar(100)
+  email        String?  @db.VarChar(100)
   especialidad String?  @db.VarChar(50)
   rating       Int?     @default(0)
   activo       Boolean  @default(true)

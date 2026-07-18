@@ -1,5 +1,5 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-react'
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { Capacitor } from '@capacitor/core'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
@@ -45,6 +45,21 @@ const clerkAppearance = {
     headerTitle: 'text-[#2C3E50]',
     headerSubtitle: 'text-[#5D6D7E]',
   },
+}
+
+function ClerkProviderWithRouter({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate()
+  return (
+    <ClerkProvider
+      publishableKey={clerkPubKey}
+      afterSignOutUrl="/"
+      appearance={clerkAppearance}
+      routerPush={(to) => navigate(to)}
+      routerReplace={(to) => navigate(to, { replace: true })}
+    >
+      {children}
+    </ClerkProvider>
+  )
 }
 
 type UserRole = 'admin' | 'mechanic' | 'client'
@@ -173,15 +188,8 @@ function MobileRoleRedirect() {
 
 export default function App() {
   return (
-    <ClerkProvider
-      publishableKey={clerkPubKey}
-      afterSignOutUrl="/"
-      appearance={clerkAppearance}
-      taskUrls={{
-        'choose-organization': '/dashboard',
-      }}
-    >
-      <HashRouter>
+    <HashRouter>
+      <ClerkProviderWithRouter>
         <Routes>
           {/* Public — Mobile gets its own landing and login */}
           <Route path="/" element={isNative ? <MobileLanding /> : <Landing />} />
@@ -235,7 +243,7 @@ export default function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </HashRouter>
-    </ClerkProvider>
+      </ClerkProviderWithRouter>
+    </HashRouter>
   )
 }

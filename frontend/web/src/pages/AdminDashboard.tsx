@@ -12,17 +12,6 @@ type Kpis = { totalVehicles: number; totalClientsActive: number; monthlyRevenue:
 
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
-function downloadCSV(filename: string, rows: string[][]) {
-  const csvContent = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
 export default function AdminDashboard() {
   const { getToken } = useAuth()
   const { user } = useUser()
@@ -164,46 +153,6 @@ export default function AdminDashboard() {
     } finally {
       setSaving(false)
     }
-  }
-
-  const exportAllCSV = () => {
-    const rows: string[][] = []
-    rows.push(['KPIs'])
-    rows.push(['Total vehículos', String(kpis.totalVehicles)])
-    rows.push(['Clientes activos', String(kpis.totalClientsActive)])
-    rows.push(['Ingresos mes', String(kpis.monthlyRevenue)])
-    rows.push(['Servicios en catálogo', String(kpis.servicesCount)])
-    rows.push([])
-    rows.push(['Mecánicos'])
-    rows.push(['ID', 'Nombre', 'Especialidad', 'Activo'])
-    mechanics.forEach(m => rows.push([String(m.id), m.nombre, m.especialidad ?? '', m.activo ? 'Sí' : 'No']))
-    rows.push([])
-    rows.push(['Servicios'])
-    rows.push(['ID', 'Nombre', 'Precio'])
-    services.forEach(s => rows.push([String(s.id), s.nombre, String(s.precioReferencia)]))
-    rows.push([])
-    rows.push(['Clientes activos'])
-    activeClients.forEach(c => rows.push([String(c.id), c.nombre, c.email, c.telefono]))
-    rows.push([])
-    rows.push(['Clientes pre-registrados'])
-    preRegisteredClients.forEach(c => rows.push([String(c.id), c.nombre, c.email, c.telefono, c.status]))
-
-    downloadCSV('reporte_m3motors.csv', rows)
-  }
-
-  const printReport = () => {
-    const wnd = window.open('', '_blank')
-    if (!wnd) return
-    wnd.document.write('<html><head><title>Reporte M3Motors</title>')
-    wnd.document.write('<style>body{font-family:Inter,Arial,sans-serif;padding:20px;} .kpi{margin-bottom:8px}</style>')
-    wnd.document.write('</head><body>')
-    wnd.document.write(`<h1>${workshop?.nombre ?? 'Taller M3'} - Reporte mensual</h1>`)
-    wnd.document.write(`<div class="kpi">Total vehículos: ${kpis.totalVehicles}</div>`)
-    wnd.document.write(`<div class="kpi">Clientes activos: ${kpis.totalClientsActive}</div>`)
-    wnd.document.write(`<div class="kpi">Ingresos mes: ${kpis.monthlyRevenue}</div>`)
-    wnd.document.write('</body></html>')
-    wnd.document.close()
-    wnd.print()
   }
 
   const summaryMechanicCount = mechanics.length
@@ -373,14 +322,6 @@ export default function AdminDashboard() {
                 className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-primary focus:bg-white"
               />
               <button disabled={saving || !workshop} onClick={saveWorkshop} className="w-full rounded-3xl bg-secondary px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">Guardar configuración</button>
-            </div>
-
-            <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm text-slate-600">Reporte mensual</p>
-              <div className="mt-4 flex gap-2">
-                <button onClick={exportAllCSV} className="flex-1 rounded-3xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-sky-700">Exportar CSV</button>
-                <button onClick={printReport} className="flex-1 rounded-3xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800">Imprimir / PDF</button>
-              </div>
             </div>
           </aside>
         </section>

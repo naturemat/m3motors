@@ -1,7 +1,10 @@
 node_modules
 dist
+.env
+.env.*
 .git
-.github
+.gitignore
+README.md
 *.md
-.env*
-.vscode
+android
+apk

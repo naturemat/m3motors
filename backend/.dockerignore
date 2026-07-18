@@ -1,9 +1,11 @@
 node_modules
 dist
+.env
+.env.*
 .git
-.github
-*.md
-.env*
-.vscode
-coverage
+.gitignore
+README.md
 test
+*.md
+coverage
+.nyc_output

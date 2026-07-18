@@ -170,20 +170,25 @@ jobs:
           set -e
           cd /opt/m3motors
 
-          echo "=== [1/7] Pull nuevas imagenes (ANTES de parar viejas) ==="
+          echo "=== [1/8] Limpiar residuos Docker ==="
+          docker container prune -f 2>/dev/null || true
+          docker volume prune -f 2>/dev/null || true
+          docker network prune -f 2>/dev/null || true
+
+          echo "=== [2/8] Pull nuevas imagenes (ANTES de parar viejas) ==="
           docker compose -f docker-compose.prod.yml --env-file .env pull
 
-          echo "=== [2/7] Limpiar logs antiguos de contenedores ==="
+          echo "=== [3/8] Limpiar logs antiguos de contenedores ==="
           find /var/lib/docker/containers -name "*-json.log" -size +50M -delete 2>/dev/null || true
 
-          echo "=== [3/7] Detener y reemplazar contenedores ==="
+          echo "=== [4/8] Detener y reemplazar contenedores ==="
           docker compose -f docker-compose.prod.yml --env-file .env up -d --force-recreate
 
-          echo "=== [4/7] Verificar estado ==="
+          echo "=== [5/8] Verificar estado ==="
           sleep 15
           docker compose -f docker-compose.prod.yml ps
 
-          echo "=== [5/7] Verificar backend health ==="
+          echo "=== [6/8] Verificar backend health ==="
           for i in 1 2 3; do
             if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
               echo "  Backend healthy"
@@ -193,7 +198,7 @@ jobs:
             sleep 5
           done
 
-          echo "=== [6/7] Build APK local ==="
+          echo "=== [7/8] Build APK local ==="
           rm -rf /opt/m3motors/apk/M3Motors.apk
           mkdir -p /opt/m3motors/apk
           chmod +x /opt/m3motors/scripts/build-apk.sh
@@ -209,8 +214,9 @@ jobs:
             echo "  ERROR: APK build falló (exit $APK_RESULT), servicios no afectados"
           fi
 
-          echo "=== [7/7] Limpiar imagenes no utilizadas ==="
-          docker image prune -af --filter "until=72h" 2>/dev/null || true
+          echo "=== [8/8] Limpiar imagenes no utilizadas ==="
+          docker image prune -af --filter "until=24h" 2>/dev/null || true
+          docker builder prune -f --filter "until=24h" 2>/dev/null || true
 
           echo "=== Deploy completado ==="
           DEPLOY_SCRIPT

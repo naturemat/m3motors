@@ -68,6 +68,7 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
 
   const currentMonthIncome = kpis?.ingresosMes ?? totalIncome;
   const avgMonthlyIncome = kpis?.ingresosTotales ? kpis.ingresosTotales / 6 : 0;
+  const maxIncome = Math.max(currentMonthIncome, avgMonthlyIncome, 1);
 
   return (
     <div className="flex-1 min-w-0 bg-[#f8fafb]">
@@ -169,7 +170,7 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
                 </div>
                 <div
                   className="w-full rounded-t bg-gradient-to-t from-[#003b5a] to-[#1a5276] shadow-md shadow-[#003b5a]/10 transition-all duration-700 ease-out"
-                  style={{ height: currentMonthIncome > 0 ? '80%' : '4px' }}
+                  style={{ height: `${Math.max((currentMonthIncome / maxIncome) * 80, 4)}%` }}
                 />
                 <span className="text-[11px] font-bold text-[#003b5a] mt-2.5">Este Mes</span>
               </div>
@@ -179,7 +180,7 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
                 </div>
                 <div
                   className="w-full rounded-t bg-slate-200 hover:bg-slate-300 transition-all duration-700 ease-out"
-                  style={{ height: avgMonthlyIncome > 0 ? `${Math.min((avgMonthlyIncome / (currentMonthIncome || 1)) * 80, 80)}%` : '4px' }}
+                  style={{ height: `${Math.max((avgMonthlyIncome / maxIncome) * 80, 4)}%` }}
                 />
                 <span className="text-[11px] font-semibold text-slate-400 mt-2.5">Promedio</span>
               </div>
@@ -222,7 +223,6 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Cliente</th>
                   <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Vehículo</th>
                   <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Servicio</th>
                   <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Estado</th>
@@ -232,21 +232,14 @@ export default function DashboardView({ clients, mechanics: _mechanics, orders, 
               <tbody className="divide-y divide-slate-100">
                 {filteredOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-10 text-center text-slate-400 text-sm">
+                    <td colSpan={4} className="px-6 py-10 text-center text-slate-400 text-sm">
                       No se encontraron órdenes de servicio.
                     </td>
                   </tr>
                 ) : (
                   filteredOrders.map((order) => {
-                    const initials = order.clientInitials || order.clientName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
                     return (
                       <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4 flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-800 font-bold text-xs flex items-center justify-center shrink-0">
-                            {initials}
-                          </div>
-                          <span className="font-medium text-slate-800 text-sm">{order.clientName}</span>
-                        </td>
                         <td className="px-6 py-4 font-normal text-slate-600 text-sm">{order.vehicle}</td>
                         <td className="px-6 py-4 font-normal text-slate-600 text-sm">{order.serviceName}</td>
                         <td className="px-6 py-4">

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Wrench, UserCog, BarChart3, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Wrench, UserCog, Settings, LogOut } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
@@ -15,7 +15,6 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, mobileOpen,
     { id: 'clients', name: 'Clientes', icon: Users },
     { id: 'services', name: 'Servicios', icon: Wrench },
     { id: 'mechanics', name: 'Mecánicos', icon: UserCog },
-    { id: 'reports', name: 'Reportes', icon: BarChart3 },
     { id: 'settings', name: 'Ajustes', icon: Settings },
   ];
 

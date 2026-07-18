@@ -107,7 +107,7 @@ export default function ServicesView({ orders, clients, addOrder, updateOrderSta
         <section className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:max-w-xs">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"><Search className="w-4 h-4 text-slate-400" /></span>
-            <input type="text" placeholder="Buscar servicio por auto, cliente o tipo..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+            <input type="text" placeholder="Buscar servicio por auto o tipo..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-slate-50 hover:bg-slate-100/60 focus:bg-white text-slate-800 text-xs rounded-lg pl-9 pr-4 py-2 transition-all outline-none border border-slate-200 focus:border-[#1a5276]" />
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
@@ -133,7 +133,6 @@ export default function ServicesView({ orders, clients, addOrder, updateOrderSta
               <thead>
                 <tr className="bg-slate-50/20 border-b border-slate-100">
                   <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Orden ID</th>
-                  <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Cliente / Propietario</th>
                   <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Auto Registrado</th>
                   <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Servicio Requerido</th>
                   <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Costo</th>
@@ -148,7 +147,6 @@ export default function ServicesView({ orders, clients, addOrder, updateOrderSta
                   filteredOrders.map((o) => (
                     <tr key={o.id} className="hover:bg-slate-50/20 transition-colors">
                       <td className="px-6 py-4 font-mono text-xs text-slate-400 font-semibold">#ORD-00{o.id}</td>
-                      <td className="px-6 py-4 font-bold text-slate-800 text-sm">{o.clientName}</td>
                       <td className="px-6 py-4 text-slate-600 text-sm">{o.vehicle}</td>
                       <td className="px-6 py-4 text-[#1a5276] font-medium text-sm">{o.serviceName}</td>
                       <td className="px-6 py-4 font-bold text-[#003b5a] text-sm">${o.total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</td>

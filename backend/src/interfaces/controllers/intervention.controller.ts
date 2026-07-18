@@ -108,7 +108,7 @@ export class InterventionController {
     // 1. Validar si el vehículo existe y obtener su último kilometraje
     const vehiculo = await this.prisma.client$.vehiculo.findUnique({
       where: { id: dto.vehiculoId },
-      select: { kilometrajeActual: true },
+      select: { ultimoKilometraje: true },
     });
 
     if (!vehiculo) {
@@ -116,9 +116,9 @@ export class InterventionController {
     }
 
     // 2. REQUERIMIENTO CRÍTICO: Validar que el kilometraje ingresado sea mayor al anterior
-    if (dto.kilometrajeOdometro <= vehiculo.kilometrajeActual) {
+    if (dto.kilometrajeOdometro <= vehiculo.ultimoKilometraje) {
       throw new BadRequestException(
-        `El kilometraje ingresado (${dto.kilometrajeOdometro} km) debe ser estrictamente mayor al último registro (${vehiculo.kilometrajeActual} km).`,
+        `El kilometraje ingresado (${dto.kilometrajeOdometro} km) debe ser estrictamente mayor al último registro (${vehiculo.ultimoKilometraje} km).`,
       );
     }
 
@@ -163,7 +163,7 @@ export class InterventionController {
         // Actualizar el kilometraje actual en el Vehículo
         await tx.vehiculo.update({
           where: { id: dto.vehiculoId },
-          data: { kilometrajeActual: dto.kilometrajeOdometro },
+          data: { ultimoKilometraje: dto.kilometrajeOdometro },
         });
 
         return createdIntervention;

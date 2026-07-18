@@ -74,4 +74,28 @@ export class MechanicDashboardController {
 
     return { clientes };
   }
+
+  @Get('clients')
+  @ApiOperation({ summary: 'Clientes activos del taller (para asociar vehículos)' })
+  async getClients(@Req() req: Request) {
+    const { userId } = (req as any).auth;
+
+    const mechanic = await this.prisma.client$.mechanic.findFirst({
+      where: { clerkId: userId },
+    });
+
+    if (!mechanic) return { clients: [] };
+
+    const clients = await this.prisma.client$.cliente.findMany({
+      where: { idMecanicoActivo: mechanic.id },
+      select: {
+        id: true,
+        nombre: true,
+        email: true,
+        telefono: true,
+      },
+    });
+
+    return { clients };
+  }
 }

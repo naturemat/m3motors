@@ -88,9 +88,17 @@ export default function MobileMechanicQRScanner() {
               <p className="text-xs font-bold text-[#1A5276] mb-1">Placa reconocida:</p>
               <p className="text-lg font-bold text-[#2C3E50] font-mono">{result.placa}</p>
               {result.vehicleExists ? (
-                <button onClick={goToVehicle} className="mt-3 w-full bg-[#1A5276] text-white py-2 rounded-lg text-xs font-bold">
-                  Ver historial del vehiculo
-                </button>
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={() => navigate(`/mobile/mechanic/vehicle/${result.vehicle.id}/intervene`)}
+                    className="flex-1 bg-[#27AE60] text-white py-2 rounded-lg text-xs font-bold"
+                  >
+                    Registrar Intervencion
+                  </button>
+                  <button onClick={goToVehicle} className="flex-1 bg-[#1A5276] text-white py-2 rounded-lg text-xs font-bold">
+                    Ver historial
+                  </button>
+                </div>
               ) : (
                 <p className="text-[10px] text-[#5D6D7E] mt-2">Vehiculo no registrado en el sistema.</p>
               )}

@@ -124,6 +124,15 @@ export default function MobileMechanicVehicleHistory() {
             </div>
           </div>
 
+          {/* Registrar Intervencion Button */}
+          <Link
+            to={`/mobile/mechanic/vehicle/${vehicle.id}/intervene`}
+            className="block bg-[#27AE60] text-white rounded-xl p-4 text-center active:scale-95 transition-transform"
+          >
+            <Wrench className="w-6 h-6 mx-auto mb-1" />
+            <p className="text-xs font-bold">Registrar Intervencion</p>
+          </Link>
+
           {/* Alerts */}
           {vehicle.alertas && vehicle.alertas.length > 0 && (
             <div className="bg-[#FEF9E7] rounded-xl p-4 border border-[#F39C12]/20">

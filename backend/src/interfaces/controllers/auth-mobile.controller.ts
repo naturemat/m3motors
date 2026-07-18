@@ -77,12 +77,6 @@ export class AuthMobileController {
         where: { workshopId: assignedWorkshopId, activo: true },
       });
 
-      if (!mechanic) {
-        throw new BadRequestException(
-          'No hay mecanicos disponibles en este taller',
-        );
-      }
-
       const client = await this.prisma.client$.cliente.create({
         data: {
           clerkId,
@@ -91,7 +85,7 @@ export class AuthMobileController {
           telefono,
           email,
           status: 'ACTIVATED',
-          idMecanicoActivo: mechanic.id,
+          ...(mechanic ? { idMecanicoActivo: mechanic.id } : {}),
         },
       });
 

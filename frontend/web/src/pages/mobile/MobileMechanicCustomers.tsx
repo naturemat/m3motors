@@ -99,6 +99,10 @@ export default function MobileMechanicCustomers() {
         <Link to="/mobile/mechanic/scanner" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Escanear</span>
         </Link>
+        <Link to="/mobile/mechanic/register-vehicle" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+          <Car className="w-5 h-5" />
+          <span className="text-[9px] font-bold">Vehiculo</span>
+        </Link>
         <Link to="/mobile/mechanic/customers" className="flex flex-col items-center gap-1 text-[#1A5276]">
           <span className="text-[9px] font-bold">Clientes</span>
         </Link>

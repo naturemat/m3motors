@@ -18,6 +18,7 @@ import MobileClientDashboard from './pages/mobile/MobileClientDashboard'
 import MobileClientHistory from './pages/mobile/MobileClientHistory'
 import MobileClientQR from './pages/mobile/MobileClientQR'
 import MobileClientProfile from './pages/mobile/MobileClientProfile'
+import MobileClientNotifications from './pages/mobile/MobileClientNotifications'
 import MobileMechanicDashboard from './pages/mobile/MobileMechanicDashboard'
 import MobileMechanicQRScanner from './pages/mobile/MobileMechanicQRScanner'
 import MobileMechanicVehicleHistory from './pages/mobile/MobileMechanicVehicleHistory'
@@ -218,6 +219,9 @@ export default function App() {
           } />
           <Route path="/mobile/client/profile" element={
             <ProtectedRoute allowedRoles={['client']}><MobileClientProfile /></ProtectedRoute>
+          } />
+          <Route path="/mobile/client/notifications" element={
+            <ProtectedRoute allowedRoles={['client']}><MobileClientNotifications /></ProtectedRoute>
           } />
 
           {/* Mobile — Mechanic routes */}

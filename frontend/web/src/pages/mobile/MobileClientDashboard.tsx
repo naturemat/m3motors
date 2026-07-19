@@ -9,6 +9,7 @@ import {
   Car,
   AlertTriangle,
   LogOut,
+  Bell,
 } from 'lucide-react'
 
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
@@ -204,6 +205,10 @@ export default function MobileClientDashboard() {
         <Link to="/mobile/client/history" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <History className="w-5 h-5" />
           <span className="text-[9px] font-bold">Historial</span>
+        </Link>
+        <Link to="/mobile/client/notifications" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+          <Bell className="w-5 h-5" />
+          <span className="text-[9px] font-bold">Alertas</span>
         </Link>
         <Link to="/mobile/client/qr" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <QrCode className="w-5 h-5" />

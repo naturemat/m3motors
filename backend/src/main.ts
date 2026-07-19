@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import express from 'express';
 import { AppModule } from './app.module';
 import { HttpLoggerMiddleware } from './shared/infrastructure/logging/http-logger.middleware';
 
@@ -50,7 +51,7 @@ async function bootstrap() {
   );
 
   // Aumentar límite del body parser para fotos OCR (base64)
-  app.use(require('express').json({ limit: '50mb' }));
+  app.use(express.json({ limit: '50mb' }));
 
   // Configurar Swagger
   const config = new DocumentBuilder()

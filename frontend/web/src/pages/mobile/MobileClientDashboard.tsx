@@ -7,14 +7,10 @@ import {
   QrCode,
   User,
   Car,
-  AlertTriangle,
   LogOut,
   Bell,
   Wrench,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Gauge,
+  CheckCircle,
 } from 'lucide-react'
 
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'

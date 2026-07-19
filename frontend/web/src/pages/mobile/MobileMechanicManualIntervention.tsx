@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   User,
   Car,
-  CheckCircle,
   ChevronRight,
 } from 'lucide-react'
 

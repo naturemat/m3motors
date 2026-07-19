@@ -113,7 +113,7 @@ export default function MobileMechanicCreateIntervention() {
       })
       setKilometraje(String((v.ultimoKilometraje ?? 0) + 100))
       setServices(servicesRes.data.services ?? [])
-      setParts(partsRes.data ?? [])
+      setParts(partsRes.data?.parts ?? (Array.isArray(partsRes.data) ? partsRes.data : []))
       } catch (err: any) {
         setError(err?.response?.data?.error ?? 'Error al cargar datos')
       } finally {

@@ -176,6 +176,18 @@ export class AdminController {
 
     const services = await this.prisma.client$.serviceCatalog.findMany({
       where: { workshopId: workshop.id },
+      include: {
+        intervenciones: {
+          include: {
+            vehiculo: {
+              include: { cliente: true },
+            },
+            mecanico: true,
+          },
+          orderBy: { fecha: 'desc' },
+          take: 1,
+        },
+      },
     });
     return { services };
   }

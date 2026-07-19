@@ -2,9 +2,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+// import { Cron, CronExpression } from '@nestjs/schedule'; // Deshabilitado para evitar cron en Docker
 import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.service';
 import { GenerarPrediccion } from '../../application/use-cases/GenerarPrediccion';
 
@@ -17,11 +18,11 @@ export class EvaluacionDiariaHandler {
     private readonly generarPrediccion: GenerarPrediccion,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_6AM)
+  // @Cron(CronExpression.EVERY_DAY_AT_6AM) // Deshabilitado - usar endpoint manual
   async ejecutar(): Promise<void> {
     this.logger.log('=== Iniciando evaluación diaria de componentes ===');
 
-    const vehiculos = await this.prisma.client$.vehiculo.findMany({
+    const vehiculos = await this.prisma.client$.vehicle.findMany({
       where: {
         status: 'ACTIVE',
         tasaDesgasteKmSem: { gt: 0 },
@@ -62,7 +63,10 @@ export class EvaluacionDiariaHandler {
 
   private async evaluarVehiculo(vehiculo: any): Promise<void> {
     const ultimaIntervencion = vehiculo.intervenciones[0];
-    if (!ultimaIntervencion) return;
+    if (!ultimaIntervencion) {
+      this.logger.warn(`Vehículo ${vehiculo.placa} (${vehiculo.id}): sin intervenciones FINALIZADAS — saltando`);
+      return;
+    }
 
     const kmPorSemana = vehiculo.tasaDesgasteKmSem;
     const kmActual = this.calcularKmEstimado(
@@ -77,7 +81,12 @@ export class EvaluacionDiariaHandler {
       limiteKilometraje: d.limiteKilometraje,
     }));
 
-    if (componentes.length === 0) return;
+    if (componentes.length === 0) {
+      this.logger.warn(`Vehículo ${vehiculo.placa} (${vehiculo.id}): sin detalles de componentes en última intervención — saltando`);
+      return;
+    }
+
+    this.logger.log(`Vehículo ${vehiculo.placa} (${vehiculo.id}): kmEst=${kmActual}, componentes=${componentes.map(c => c.nombre).join(', ')}`);
 
     await this.generarPrediccion.execute({
       vehicleId: String(vehiculo.id),

@@ -5,8 +5,10 @@ import { ClientDashboardController } from './interfaces/controllers/client-dashb
 import { ObtenerKPIsTaller } from './application/use-cases/ObtenerKPIsTaller';
 import { ObtenerKPIsMecanico } from './application/use-cases/ObtenerKPIsMecanico';
 import { ObtenerKPIsCliente } from './application/use-cases/ObtenerKPIsCliente';
+import { PrediccionAnalisisModule } from '../prediccion-analisis/prediccion-analisis.module';
 
 @Module({
+  imports: [PrediccionAnalisisModule],
   controllers: [
     AdminController,
     MechanicDashboardController,

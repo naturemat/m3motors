@@ -1,5 +1,5 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-react'
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { Capacitor } from '@capacitor/core'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
@@ -18,11 +18,16 @@ import MobileClientDashboard from './pages/mobile/MobileClientDashboard'
 import MobileClientHistory from './pages/mobile/MobileClientHistory'
 import MobileClientQR from './pages/mobile/MobileClientQR'
 import MobileClientProfile from './pages/mobile/MobileClientProfile'
+import MobileClientNotifications from './pages/mobile/MobileClientNotifications'
 import MobileMechanicDashboard from './pages/mobile/MobileMechanicDashboard'
 import MobileMechanicQRScanner from './pages/mobile/MobileMechanicQRScanner'
 import MobileMechanicVehicleHistory from './pages/mobile/MobileMechanicVehicleHistory'
 import MobileMechanicCustomers from './pages/mobile/MobileMechanicCustomers'
 import MobileMechanicInterventions from './pages/mobile/MobileMechanicInterventions'
+import MobileMechanicRegisterVehicle from './pages/mobile/MobileMechanicRegisterVehicle'
+import MobileMechanicCreateIntervention from './pages/mobile/MobileMechanicCreateIntervention'
+import MobileMechanicManualIntervention from './pages/mobile/MobileMechanicManualIntervention'
+import MobileMechanicServices from './pages/mobile/MobileMechanicServices'
 import MobileLogin from './pages/mobile/MobileLogin'
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -45,6 +50,21 @@ const clerkAppearance = {
     headerTitle: 'text-[#2C3E50]',
     headerSubtitle: 'text-[#5D6D7E]',
   },
+}
+
+function ClerkProviderWithRouter({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate()
+  return (
+    <ClerkProvider
+      publishableKey={clerkPubKey}
+      afterSignOutUrl="/"
+      appearance={clerkAppearance}
+      routerPush={(to) => navigate(to)}
+      routerReplace={(to) => navigate(to, { replace: true })}
+    >
+      {children}
+    </ClerkProvider>
+  )
 }
 
 type UserRole = 'admin' | 'mechanic' | 'client'
@@ -173,15 +193,8 @@ function MobileRoleRedirect() {
 
 export default function App() {
   return (
-    <ClerkProvider
-      publishableKey={clerkPubKey}
-      afterSignOutUrl="/"
-      appearance={clerkAppearance}
-      taskUrls={{
-        'choose-organization': '/dashboard',
-      }}
-    >
-      <HashRouter>
+    <HashRouter>
+      <ClerkProviderWithRouter>
         <Routes>
           {/* Public — Mobile gets its own landing and login */}
           <Route path="/" element={isNative ? <MobileLanding /> : <Landing />} />
@@ -207,6 +220,9 @@ export default function App() {
           <Route path="/mobile/client/profile" element={
             <ProtectedRoute allowedRoles={['client']}><MobileClientProfile /></ProtectedRoute>
           } />
+          <Route path="/mobile/client/notifications" element={
+            <ProtectedRoute allowedRoles={['client']}><MobileClientNotifications /></ProtectedRoute>
+          } />
 
           {/* Mobile — Mechanic routes */}
           <Route path="/mobile/mechanic" element={
@@ -218,11 +234,23 @@ export default function App() {
           <Route path="/mobile/mechanic/vehicle/:id" element={
             <ProtectedRoute allowedRoles={['mechanic']}><MobileMechanicVehicleHistory /></ProtectedRoute>
           } />
+          <Route path="/mobile/mechanic/vehicle/:id/intervene" element={
+            <ProtectedRoute allowedRoles={['mechanic']}><MobileMechanicCreateIntervention /></ProtectedRoute>
+          } />
           <Route path="/mobile/mechanic/customers" element={
             <ProtectedRoute allowedRoles={['mechanic']}><MobileMechanicCustomers /></ProtectedRoute>
           } />
           <Route path="/mobile/mechanic/interventions" element={
             <ProtectedRoute allowedRoles={['mechanic']}><MobileMechanicInterventions /></ProtectedRoute>
+          } />
+          <Route path="/mobile/mechanic/register-vehicle" element={
+            <ProtectedRoute allowedRoles={['mechanic']}><MobileMechanicRegisterVehicle /></ProtectedRoute>
+          } />
+          <Route path="/mobile/mechanic/manual-intervention" element={
+            <ProtectedRoute allowedRoles={['mechanic']}><MobileMechanicManualIntervention /></ProtectedRoute>
+          } />
+          <Route path="/mobile/mechanic/services" element={
+            <ProtectedRoute allowedRoles={['mechanic']}><MobileMechanicServices /></ProtectedRoute>
           } />
 
           {/* Web — Clerk-based dashboards */}
@@ -235,7 +263,7 @@ export default function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </HashRouter>
-    </ClerkProvider>
+      </ClerkProviderWithRouter>
+    </HashRouter>
   )
 }

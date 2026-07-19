@@ -1,27 +1,30 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, Logger } from '@nestjs/common';
 import { Request } from 'express';
-import { ClerkService } from '../clerk/clerk.service';
+import { MobileJwtService } from './jwt.service';
 
 @Injectable()
 export class UnifiedAuthGuard implements CanActivate {
-  constructor(private readonly clerkService: ClerkService) {}
+  private readonly logger = new Logger(UnifiedAuthGuard.name);
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  constructor(private readonly jwtService: MobileJwtService) {}
+
+  canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers.authorization;
 
     if (!authHeader?.startsWith('Bearer ')) {
+      this.logger.warn('Auth failed: No Bearer token');
       throw new UnauthorizedException('Token de autenticación requerido');
     }
 
     const token = authHeader.split(' ')[1];
 
-    // Mobile token format: mobile:::userId:::m3motors
+    // Mobile token legacy format: mobile:::userId:::m3motors (backward compat)
     if (token.startsWith('mobile:::')) {
       const parts = token.split(':::');
       if (parts.length >= 2) {
+        this.logger.log(`[Auth] Legacy mobile token → userId=${parts[1]}`);
         (request as any).auth = {
           userId: parts[1],
           sessionId: 'mobile',
@@ -30,16 +33,24 @@ export class UnifiedAuthGuard implements CanActivate {
       }
     }
 
-    // Clerk token - verify it
+    // JWT token (new mobile auth)
     try {
-      const payload = await this.clerkService.verifyToken(token);
+      const payload = this.jwtService.verifyToken(token);
+      if (process.env.LOG_LEVEL === 'debug') {
+        this.logger.log(`[Auth] JWT verified → sub=${payload.sub}, role=${payload.role}, workshopId=${payload.workshopId}`);
+      }
       (request as any).auth = {
-        userId: payload.sub as string,
-        sessionId: payload.sid as string,
+        userId: payload.sub,
+        sessionId: 'jwt',
+        role: payload.role,
+        workshopId: payload.workshopId,
       };
       return true;
     } catch {
-      throw new UnauthorizedException('Token inválido o expirado');
+      // Not a valid JWT - might be a Clerk token, fall through
     }
+
+    this.logger.warn('Auth failed: Invalid token');
+    throw new UnauthorizedException('Token inválido o expirado');
   }
 }

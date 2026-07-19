@@ -60,7 +60,7 @@ export class IntervencionRegistradaHandler {
         `(método: ${tasa.getMetodo()}, confianza: ${(tasa.getNivelConfianza() * 100).toFixed(0)}%)`,
     );
 
-    await this.prisma.client$.vehiculo.update({
+    await this.prisma.client$.vehicle.update({
       where: { id: vehicleId },
       data: {
         ultimoKilometraje:

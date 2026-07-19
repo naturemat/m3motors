@@ -36,7 +36,24 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
       database: url.pathname.replace('/', ''),
       ssl: { rejectUnauthorized: false },
     });
-    this.client = new PrismaClient({ adapter });
+
+    const isDebug = process.env.LOG_LEVEL === 'debug';
+    const logConfig = isDebug
+      ? [{ level: 'query' as const, emit: 'event' as const }]
+      : [];
+
+    this.client = new PrismaClient({ adapter, log: logConfig });
+
+    // Enable Prisma query logging in debug mode
+    if (isDebug) {
+      this.client.$on('query', (e: any) => {
+        this.logger.debug(`[Prisma] ${e.query}`);
+        this.logger.debug(`[Prisma] Params: ${e.params}`);
+        this.logger.debug(`[Prisma] Duration: ${e.duration}ms`);
+      });
+      this.logger.log('Prisma query logging ACTIVADO (LOG_LEVEL=debug)');
+    }
+
     this.logger.log('PrismaClient inicializado correctamente');
   }
 

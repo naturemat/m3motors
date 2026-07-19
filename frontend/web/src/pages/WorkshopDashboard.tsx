@@ -9,7 +9,6 @@ import DashboardView from '../components/DashboardView';
 import ClientsView from '../components/ClientsView';
 import MechanicsView from '../components/MechanicsView';
 import ServicesView from '../components/ServicesView';
-import ReportsView from '../components/ReportsView';
 import SettingsView from '../components/SettingsView';
 
 import { Menu } from 'lucide-react';
@@ -41,10 +40,10 @@ export default function WorkshopDashboard() {
       setLoading(true);
       const headers = await authHeaders();
 
-      const [mechanicsRes, customersRes, servicesRes, kpisRes] = await Promise.all([
+      const [mechanicsRes, customersRes, ordersRes, kpisRes] = await Promise.all([
         axios.get(`${apiUrl}/admin/mechanics`, { headers }),
         axios.get(`${apiUrl}/admin/customers`, { headers }),
-        axios.get(`${apiUrl}/admin/services`, { headers }),
+        axios.get(`${apiUrl}/admin/orders`, { headers }),
         axios.get(`${apiUrl}/admin/kpis`, { headers }),
       ]);
 
@@ -91,21 +90,21 @@ export default function WorkshopDashboard() {
         })),
       );
 
-      const rawServices: any[] = servicesRes.data.services ?? [];
+      const rawOrders: any[] = ordersRes.data.orders ?? [];
       setOrders(
-        rawServices.map((s) => {
-          const lastIntervention = s.intervenciones?.[0];
-          const cliente = lastIntervention?.vehiculo?.cliente;
-          const vehiculo = lastIntervention?.vehiculo;
+        rawOrders.map((o) => {
+          const cliente = o.vehiculo?.cliente;
+          const vehiculo = o.vehiculo;
+          const servicio = o.serviceCatalog;
           return {
-            id: String(s.id),
+            id: String(o.id),
             clientName: cliente?.nombre ?? '',
             clientInitials: cliente?.nombre ? cliente.nombre.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() : '',
             vehicle: vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.placa})` : '',
-            serviceName: s.nombre,
-            status: s.activo ? 'COMPLETADO' as const : 'PENDIENTE' as const,
-            total: Number(s.precioReferencia) || 0,
-            date: '',
+            serviceName: servicio?.nombre ?? o.diagnostico ?? 'Servicio',
+            status: o.estado === 'COMPLETADO' ? 'COMPLETADO' as const : o.estado === 'EN_PROGRESO' ? 'EN PROGRESO' as const : 'PENDIENTE' as const,
+            total: Number(o.manoDeObra) || 0,
+            date: o.fecha ?? '',
           };
         }),
       );
@@ -253,8 +252,6 @@ export default function WorkshopDashboard() {
             updateOrderStatus={handleUpdateOrderStatus}
           />
         );
-      case 'reports':
-        return <ReportsView kpis={kpis} mechanics={mechanics} orders={orders} />;
       case 'settings':
         return <SettingsView onResetData={handleResetData} />;
       default:

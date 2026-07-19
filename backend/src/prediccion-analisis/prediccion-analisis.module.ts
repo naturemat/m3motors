@@ -18,6 +18,6 @@ import { PrediccionLLMService } from './infrastructure/PrediccionLLMService';
       useClass: PrediccionLLMService,
     },
   ],
-  exports: [GenerarPrediccion, CalculoDesgasteService],
+  exports: [GenerarPrediccion, CalculoDesgasteService, EvaluacionDiariaHandler],
 })
 export class PrediccionAnalisisModule {}

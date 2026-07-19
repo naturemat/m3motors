@@ -13,6 +13,7 @@ import {
   HttpCode,
   BadRequestException,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -27,6 +28,11 @@ import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service
 import { SupabaseStorageService } from '../../shared/infrastructure/storage/supabase-storage.service';
 import { CreateInterventionDTO } from '../../application/dto/CreateInterventionDTO';
 import { NotificationService } from '../../notification/notification.service';
+import {
+  IDomainEventPublisher,
+  IDOMAIN_EVENT_PUBLISHER,
+} from '../../shared/domain/ports/events/IDomainEventPublisher';
+import { IntervencionRegistradaEvent } from '../../registro-seguimiento/domain/events/IntervencionRegistradaEvent';
 
 @ApiTags('Interventions')
 @ApiBearerAuth()
@@ -39,6 +45,8 @@ export class InterventionController {
     private readonly prisma: PrismaService,
     private readonly storageService: SupabaseStorageService,
     private readonly notificationService: NotificationService,
+    @Inject(IDOMAIN_EVENT_PUBLISHER)
+    private readonly eventPublisher: IDomainEventPublisher,
   ) {}
 
   @Get()
@@ -106,9 +114,9 @@ export class InterventionController {
     }
 
     // 1. Validar si el vehículo existe y obtener su último kilometraje
-    const vehiculo = await this.prisma.client$.vehiculo.findUnique({
+    const vehiculo = await this.prisma.client$.vehicle.findUnique({
       where: { id: dto.vehiculoId },
-      select: { kilometrajeActual: true },
+      select: { ultimoKilometraje: true },
     });
 
     if (!vehiculo) {
@@ -116,9 +124,9 @@ export class InterventionController {
     }
 
     // 2. REQUERIMIENTO CRÍTICO: Validar que el kilometraje ingresado sea mayor al anterior
-    if (dto.kilometrajeOdometro <= vehiculo.kilometrajeActual) {
+    if (dto.kilometrajeOdometro <= vehiculo.ultimoKilometraje) {
       throw new BadRequestException(
-        `El kilometraje ingresado (${dto.kilometrajeOdometro} km) debe ser estrictamente mayor al último registro (${vehiculo.kilometrajeActual} km).`,
+        `El kilometraje ingresado (${dto.kilometrajeOdometro} km) debe ser estrictamente mayor al último registro (${vehiculo.ultimoKilometraje} km).`,
       );
     }
 
@@ -161,14 +169,50 @@ export class InterventionController {
         });
 
         // Actualizar el kilometraje actual en el Vehículo
-        await tx.vehiculo.update({
+        await tx.vehicle.update({
           where: { id: dto.vehiculoId },
-          data: { kilometrajeActual: dto.kilometrajeOdometro },
+          data: { ultimoKilometraje: dto.kilometrajeOdometro },
         });
 
         return createdIntervention;
       },
     );
+
+    // 3.5. Publicar evento para predicción de desgaste
+    try {
+      const vehiculoData = await this.prisma.client$.vehicle.findUnique({
+        where: { id: dto.vehiculoId },
+        select: { placa: true, clienteId: true },
+      });
+
+      const evento = new IntervencionRegistradaEvent({
+        intervencionId: String(intervention.id),
+        vehicleId: String(dto.vehiculoId),
+        placa: vehiculoData?.placa ?? '',
+        mecanicoId: String(mechanic.id),
+        workshopId: String(mechanic.workshopId),
+        diagnostico: {
+          fallaDetectada: dto.diagnostico ?? '',
+          observacionesMecanico: dto.observaciones ?? '',
+          nivelSeveridad: (dto.severidad as any) ?? 'BAJA',
+        },
+        componentesSustituidos: (dto.detalles ?? []).map((d) => ({
+          componenteId: String(d.componenteReemplazado),
+          nombre: d.componenteReemplazado,
+          kilometrajeInstalacion: dto.kilometrajeOdometro,
+          limiteKilometrajeFabricante: d.limiteKilometraje,
+        })),
+        manoDeObra: dto.manoDeObra ?? 0,
+      });
+
+      await this.eventPublisher.publish(
+        IntervencionRegistradaEvent.EVENT_NAME,
+        evento.toPayload(),
+      );
+      this.logger.log(`Evento intervencion.registrada publicado para vehículo ${dto.vehiculoId}`);
+    } catch (eventError) {
+      this.logger.error(`Error publicando evento de predicción: ${String(eventError)}`);
+    }
 
     // 4. Subir fotos a Supabase Storage si existen
     if (dto.fotos && dto.fotos.length > 0) {
@@ -198,33 +242,18 @@ export class InterventionController {
       });
 
       await Promise.allSettled(photoPromises);
-
-      // Fetch intervention with photos
-      const interventionWithPhotos =
-        await this.prisma.client$.intervention.findUnique({
-          where: { id: intervention.id },
-          include: {
-            detalles: { include: { partsCatalog: true } },
-            fotos: true,
-          },
-        });
-
-      return {
-        mensaje: 'Servicio registrado exitosamente',
-        intervention: interventionWithPhotos,
-      };
     }
 
-    // 4. Enviar notificacion al cliente
+    // 5. Enviar notificacion al cliente (siempre, con o sin fotos)
     try {
-      const vehiculo = await this.prisma.client$.vehicle.findUnique({
+      const vehiculoInfo = await this.prisma.client$.vehicle.findUnique({
         where: { id: dto.vehiculoId },
         select: { clienteId: true },
       });
 
-      if (vehiculo?.clienteId) {
+      if (vehiculoInfo?.clienteId) {
         const cliente = await this.prisma.client$.cliente.findUnique({
-          where: { id: vehiculo.clienteId },
+          where: { id: vehiculoInfo.clienteId },
           select: { id: true, email: true, nombre: true },
         });
 
@@ -247,9 +276,19 @@ export class InterventionController {
       this.logger.error(`Error enviando notificacion: ${String(notifError)}`);
     }
 
+    // Fetch intervention with photos for response
+    const interventionWithPhotos =
+      await this.prisma.client$.intervention.findUnique({
+        where: { id: intervention.id },
+        include: {
+          detalles: { include: { partsCatalog: true } },
+          fotos: true,
+        },
+      });
+
     return {
       mensaje: 'Servicio registrado exitosamente',
-      intervention,
+      intervention: interventionWithPhotos,
     };
   }
 }

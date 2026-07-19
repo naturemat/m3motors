@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Search, Camera } from 'lucide-react'
+import { ArrowLeft, Search, Camera, Car } from 'lucide-react'
 import axios from 'axios'
 
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
@@ -88,9 +88,17 @@ export default function MobileMechanicQRScanner() {
               <p className="text-xs font-bold text-[#1A5276] mb-1">Placa reconocida:</p>
               <p className="text-lg font-bold text-[#2C3E50] font-mono">{result.placa}</p>
               {result.vehicleExists ? (
-                <button onClick={goToVehicle} className="mt-3 w-full bg-[#1A5276] text-white py-2 rounded-lg text-xs font-bold">
-                  Ver historial del vehiculo
-                </button>
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={() => navigate(`/mobile/mechanic/vehicle/${result.vehicle.id}/intervene`)}
+                    className="flex-1 bg-[#27AE60] text-white py-2 rounded-lg text-xs font-bold"
+                  >
+                    Registrar Intervencion
+                  </button>
+                  <button onClick={goToVehicle} className="flex-1 bg-[#1A5276] text-white py-2 rounded-lg text-xs font-bold">
+                    Ver historial
+                  </button>
+                </div>
               ) : (
                 <p className="text-[10px] text-[#5D6D7E] mt-2">Vehiculo no registrado en el sistema.</p>
               )}
@@ -125,16 +133,22 @@ export default function MobileMechanicQRScanner() {
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E2E8F0] flex justify-around items-center h-16 z-40">
         <Link to="/mobile/mechanic" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
-          <span className="text-[9px] font-bold">Dashboard</span>
+          <span className="text-[9px] font-bold">Inicio</span>
         </Link>
         <Link to="/mobile/mechanic/scanner" className="flex flex-col items-center gap-1 text-[#1A5276]">
           <span className="text-[9px] font-bold">Escanear</span>
         </Link>
-        <Link to="/mobile/mechanic" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+        <Link to="/mobile/mechanic/register-vehicle" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+          <span className="text-[9px] font-bold">Vehiculo</span>
+        </Link>
+        <Link to="/mobile/mechanic/manual-intervention" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+          <span className="text-[9px] font-bold">Revision</span>
+        </Link>
+        <Link to="/mobile/mechanic/customers" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Clientes</span>
         </Link>
-        <Link to="/mobile/mechanic" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
-          <span className="text-[9px] font-bold">Ajustes</span>
+        <Link to="/mobile/mechanic/services" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+          <span className="text-[9px] font-bold">Servicios</span>
         </Link>
       </nav>
     </div>

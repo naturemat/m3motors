@@ -92,7 +92,11 @@ export class VehicleController {
         fotos: true,
         intervenciones: {
           orderBy: { fecha: 'desc' },
-          include: { detalles: true },
+          include: {
+            detalles: { include: { partsCatalog: true } },
+            fotos: true,
+            mecanico: { select: { nombre: true } },
+          },
         },
         alertas: {
           orderBy: { createdAt: 'desc' },

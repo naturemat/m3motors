@@ -7,14 +7,18 @@ const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
 interface Vehiculo {
   id: number
+  vehicleId?: string
   placa: string
   marca: string
   modelo: string
   anio: number
-  ultimoKilometraje: number
+  ultimoKilometraje?: number
+  kilometrajeActual?: number
   qr?: { codigo: string }
   intervenciones?: any[]
   alertas?: any[]
+  estadoGeneral?: string
+  mensajeEstado?: string
 }
 
 export default function MobileMechanicVehicleHistory() {
@@ -31,10 +35,20 @@ export default function MobileMechanicVehicleHistory() {
       const headers = { Authorization: `Bearer ${mobileUser.token}` }
 
       if (qrCode) {
-        // Search by QR code
         const res = await axios.get(`${apiUrl}/vehicles/qr/${qrCode}`, { headers })
         if (res.data && !res.data.error) {
-          setVehicle(res.data)
+          const d = res.data
+          setVehicle({
+            id: Number(d.vehicleId) || 0,
+            placa: d.placa ?? '',
+            marca: d.marca ?? '',
+            modelo: d.modelo ?? '',
+            anio: d.anio ?? 0,
+            ultimoKilometraje: d.kilometrajeActual ?? 0,
+            intervenciones: d.intervenciones ?? [],
+            estadoGeneral: d.estadoGeneral ?? 'OPTIMO',
+            mensajeEstado: d.mensajeEstado ?? '',
+          })
         } else {
           setError(res.data.error ?? 'Codigo QR no valido')
         }

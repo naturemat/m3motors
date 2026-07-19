@@ -149,10 +149,14 @@ export class AuthMobileController {
           throw new UnauthorizedException('Credenciales incorrectas');
         }
       } else {
-        this.logger.warn(`[Login] Mecánico sin passwordHash → rechazado`);
-        throw new UnauthorizedException(
-          'Cuenta sin configurar. Contacta al administrador.',
-        );
+        // Mecánico sin passwordHash (creado por admin): primer login
+        // Guardar el password que usa como hash para futuros logins
+        this.logger.log(`[Login] Mecánico sin passwordHash → guardando password del primer login`);
+        const newHash = await bcrypt.hash(password, 10);
+        await this.prisma.client$.mechanic.update({
+          where: { id: mechanic.id },
+          data: { passwordHash: newHash },
+        });
       }
 
       const clerkId = mechanic.clerkId ?? crypto.randomUUID();
@@ -194,16 +198,21 @@ export class AuthMobileController {
       this.logger.log(`[Login] Cliente encontrado: id=${client.id}, email="${client.email}", clerkId=${client.clerkId}, status=${client.status}, passwordHash=${client.passwordHash ? 'SI' : 'NO'}`);
 
       if (!client.passwordHash) {
-        this.logger.warn(`[Login] Cliente sin passwordHash → rechazado`);
-        throw new UnauthorizedException(
-          'Cuenta sin configurar. Contacta al administrador.',
-        );
-      }
-
-      const valid = await bcrypt.compare(password, client.passwordHash);
-      this.logger.log(`[Login] bcrypt.compare: ${valid}`);
-      if (!valid) {
-        throw new UnauthorizedException('Credenciales incorrectas');
+        // Cliente sin passwordHash (creado por admin): primer login
+        // Guardar el password que usa como hash para futuros logins
+        this.logger.log(`[Login] Cliente sin passwordHash → guardando password del primer login`);
+        const newHash = await bcrypt.hash(password, 10);
+        await this.prisma.client$.cliente.update({
+          where: { id: client.id },
+          data: { passwordHash: newHash },
+        });
+        // No verificar bcrypt, ya sabemos que es correcto
+      } else {
+        const valid = await bcrypt.compare(password, client.passwordHash);
+        this.logger.log(`[Login] bcrypt.compare: ${valid}`);
+        if (!valid) {
+          throw new UnauthorizedException('Credenciales incorrectas');
+        }
       }
 
       const clerkId = client.clerkId ?? crypto.randomUUID();

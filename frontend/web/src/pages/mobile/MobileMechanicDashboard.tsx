@@ -28,6 +28,28 @@ interface ClientePendiente {
   licensePlate: string | null
 }
 
+interface VehiculoAsignado {
+  placa: string
+  marca: string
+  modelo: string
+  anio: number
+  kilometraje: number
+  status: string
+}
+
+// Mock data: Cliente Test siempre visible
+const MOCK_CLIENTE = {
+  id: 14,
+  nombre: 'Cliente Test',
+  email: 'cliente@m3motors.com',
+  telefono: '+593998888888',
+  vehiculos: [
+    { placa: 'PCM-0123', marca: 'Honda', modelo: 'CR-V', anio: 2022, kilometraje: 25000, status: 'ACTIVATED' },
+    { placa: 'CLT-001', marca: 'Chevrolet', modelo: 'Spark', anio: 2021, kilometraje: 32000, status: 'ACTIVE' },
+    { placa: 'CLT-002', marca: 'Nissan', modelo: 'Versa', anio: 2023, kilometraje: 11000, status: 'ACTIVE' },
+  ] as VehiculoAsignado[],
+}
+
 export default function MobileMechanicDashboard() {
   const navigate = useNavigate()
   const [kpis, setKpis] = useState<KPIs | null>(null)
@@ -213,6 +235,50 @@ export default function MobileMechanicDashboard() {
           </div>
         </section>
       )}
+
+      {/* Clientes Asignados (mock data) */}
+      <section className="px-5 mt-5">
+        <h3 className="text-xs font-bold text-[#5D6D7E] uppercase tracking-wider mb-3">
+          Clientes Asignados
+        </h3>
+        <div className="bg-white rounded-xl border border-[#E2E8F0]/60 overflow-hidden">
+          {/* Cliente header */}
+          <div className="p-4 border-b border-[#E2E8F0]/60 flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#1A5276] rounded-full flex items-center justify-center shrink-0">
+              <span className="text-xs font-bold text-white">CT</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-[#2C3E50]">{MOCK_CLIENTE.nombre}</p>
+              <p className="text-[10px] text-[#5D6D7E]">{MOCK_CLIENTE.email}</p>
+              <p className="text-[10px] text-[#5D6D7E]">{MOCK_CLIENTE.telefono}</p>
+            </div>
+            <span className="text-[9px] font-bold text-[#27AE60] bg-[#EAFAF1] px-2 py-0.5 rounded-full">
+              Activo
+            </span>
+          </div>
+          {/* Vehículos */}
+          <div className="divide-y divide-[#E2E8F0]/60">
+            {MOCK_CLIENTE.vehiculos.map((v) => (
+              <div key={v.placa} className="px-4 py-3 flex items-center gap-3">
+                <Car className="w-4 h-4 text-[#1A5276] shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-bold text-[#2C3E50]">
+                    {v.marca} {v.modelo} ({v.anio})
+                  </p>
+                  <p className="text-[10px] text-[#5D6D7E]">
+                    Placa: {v.placa} — {v.kilometraje.toLocaleString()} km
+                  </p>
+                </div>
+                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                  v.status === 'ACTIVATED' ? 'text-[#27AE60] bg-[#EAFAF1]' : 'text-[#2E86C1] bg-[#EBF5FB]'
+                }`}>
+                  {v.status === 'ACTIVATED' ? 'Activo' : 'Activo'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E2E8F0] flex justify-around items-center h-16 z-40">

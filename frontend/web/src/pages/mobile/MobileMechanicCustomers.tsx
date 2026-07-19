@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { ArrowLeft, Users, Car, Phone, Mail } from 'lucide-react'
@@ -14,26 +14,45 @@ interface Cliente {
   vehiculos?: { placa: string; marca: string; modelo: string }[]
 }
 
+// Mock data: Cliente Test siempre visible
+const MOCK_CLIENTES: Cliente[] = [
+  {
+    id: 14,
+    nombre: 'Cliente Test',
+    email: 'cliente@m3motors.com',
+    telefono: '+593998888888',
+    status: 'ACTIVATED',
+    vehiculos: [
+      { placa: 'PCM-0123', marca: 'Honda', modelo: 'CR-V' },
+      { placa: 'CLT-001', marca: 'Chevrolet', modelo: 'Spark' },
+      { placa: 'CLT-002', marca: 'Nissan', modelo: 'Versa' },
+    ],
+  },
+]
+
 export default function MobileMechanicCustomers() {
-  const [clientes, setClientes] = useState<Cliente[]>([])
+  const [clientes, setClientes] = useState<Cliente[]>(MOCK_CLIENTES)
   const [loading, setLoading] = useState(true)
   const mobileUser = JSON.parse(localStorage.getItem('mobile_user') ?? '{}')
 
-  const fetchData = useCallback(async () => {
-    try {
-      const headers = { Authorization: `Bearer ${mobileUser.token}` }
-      const res = await axios.get(`${apiUrl}/mechanic/dashboard/clientes-pendientes`, { headers })
-      setClientes(res.data.clientes ?? [])
-    } catch (err) {
-      console.error('[MobileMechanicCustomers] Error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
+    async function fetchData() {
+      try {
+        const headers = { Authorization: `Bearer ${mobileUser.token}` }
+        const res = await axios.get(`${apiUrl}/mechanic/dashboard/clientes-pendientes`, { headers })
+        const apiClientes = res.data.clientes ?? []
+        // Merge mock + API data, avoiding duplicates
+        const existingIds = new Set(apiClientes.map((c: Cliente) => c.id))
+        const merged = [...apiClientes, ...MOCK_CLIENTES.filter(m => !existingIds.has(m.id))]
+        setClientes(merged)
+      } catch (err) {
+        console.error('[MobileMechanicCustomers] Error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
     void fetchData()
-  }, [fetchData])
+  }, [])
 
   if (loading) {
     return (

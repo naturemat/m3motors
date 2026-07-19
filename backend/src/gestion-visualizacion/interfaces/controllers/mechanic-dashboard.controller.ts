@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return */
 import { Controller, Get, Post, UseGuards, Req, HttpCode, Logger } from '@nestjs/common';
 import {
   ApiTags,
@@ -89,14 +89,27 @@ export class MechanicDashboardController {
       return { clientes: [] };
     }
 
+    // Get all mechanics in this workshop to find all clients
+    const workshopMechanics = await this.prisma.client$.mechanic.findMany({
+      where: { workshopId: mechanic.workshopId },
+      select: { id: true },
+    });
+    const mechanicIds = workshopMechanics.map((m: any) => m.id);
+
+    // Return ALL clients in the workshop
     const clientes = await this.prisma.client$.cliente.findMany({
-      where: { idMecanicoActivo: mechanic.id },
+      where: {
+        idMecanicoActivo: { in: mechanicIds },
+      },
       select: {
         id: true,
         nombre: true,
         email: true,
         telefono: true,
         status: true,
+        vehiculos: {
+          select: { placa: true, marca: true, modelo: true },
+        },
       },
     });
 
@@ -115,8 +128,15 @@ export class MechanicDashboardController {
 
     if (!mechanic) return { clients: [] };
 
+    // Get all mechanics in this workshop
+    const workshopMechanics = await this.prisma.client$.mechanic.findMany({
+      where: { workshopId: mechanic.workshopId },
+      select: { id: true },
+    });
+    const mechanicIds = workshopMechanics.map((m: any) => m.id);
+
     const clients = await this.prisma.client$.cliente.findMany({
-      where: { idMecanicoActivo: mechanic.id },
+      where: { idMecanicoActivo: { in: mechanicIds } },
       select: {
         id: true,
         nombre: true,

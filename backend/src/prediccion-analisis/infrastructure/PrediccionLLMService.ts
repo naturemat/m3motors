@@ -72,7 +72,10 @@ Para cada componente, calcula:
 2. Semanas estimadas restantes (basado en el kilometraje actual)
 3. Meses estimados restantes
 4. Severidad: BAJA (<80%), MEDIA (80-94%), CRITICA (≥95% o vencido)
-5. Recomendación específica para Ecuador (disponibilidad de repuestos, talleres recomendados)
+5. Recomendación clara y amigable para el cliente
+6. "razon": Explica en lenguaje sencillo por qué necesita atención (ej: "Tu Toyota Corolla 2020 tiene el filtro de aceite casi agotado. Te queda poco antes de que debas cambiarlo.")
+
+IMPORTANTE: El campo "razon" debe ser un mensaje CORTO y AMIGABLE que el cliente entienda. No uses tecnicismos. Ejemplo: "Las pastillas de freno de tu carro están muy gastadas. Es momento de reemplazarlas para tu seguridad."
 
 Responde SOLO con un JSON válido:
 {
@@ -83,8 +86,8 @@ Responde SOLO con un JSON válido:
       "semanasEstimadas": 7,
       "mesesEstimados": 2,
       "severidad": "MEDIA",
-      "recomendacion": "Programar cambio en las próximas 2 semanas",
-      "razon": "El componente está al 83% de su vida útil"
+      "recomendacion": "Programa el cambio en las próximas 2 semanas en tu taller de confianza",
+      "razon": "Tu Toyota Corolla tiene el filtro de aceite al 83%. Pronto necesitarás un cambio."
     }
   ]
 }

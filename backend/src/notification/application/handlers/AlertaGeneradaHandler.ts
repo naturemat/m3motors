@@ -4,9 +4,7 @@ import { EnviarNotificacion } from '../use-cases/EnviarNotificacion';
 import { CanalEnvio } from '../../domain/value-objects/CanalEnvio';
 import { TipoNotificacion } from '../../domain/value-objects/TipoNotificacion';
 import { AlertaGeneradaPayload } from '../../domain/events/AlertaGeneradaEvent';
-import { IClienteRepository } from '../../../registro-seguimiento/domain/ports/repositories/IClienteRepository';
-import { ClienteId } from '../../../registro-seguimiento/domain/value-objects/ClienteId';
-import { ICLIENTE_REPOSITORY } from '../../../shared/domain/ports/tokens';
+import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.service';
 
 @Injectable()
 export class AlertaGeneradaHandler {
@@ -14,8 +12,7 @@ export class AlertaGeneradaHandler {
 
   constructor(
     private readonly enviarNotificacion: EnviarNotificacion,
-    @Inject(ICLIENTE_REPOSITORY)
-    private readonly clienteRepository: IClienteRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   @OnEvent('alerta.generada')
@@ -24,45 +21,89 @@ export class AlertaGeneradaHandler {
       `Procesando alerta generada para vehiculo ${payload.vehicleId}`,
     );
 
-    const cliente = await this.clienteRepository.findById(
-      new ClienteId(payload.clienteId),
-    );
+    const vehicleId = parseInt(payload.vehicleId);
 
-    if (!cliente) {
-      this.logger.warn(
-        `Cliente ${payload.clienteId} no encontrado para alerta`,
-      );
-      return;
+    // 1. Guardar alerta en DB
+    try {
+      const ultimaIntervencion = await this.prisma.client$.intervention.findFirst({
+        where: { vehiculoId: vehicleId, estado: 'FINALIZADO' },
+        orderBy: { fecha: 'desc' },
+        select: { id: true },
+      });
+
+      if (!ultimaIntervencion) {
+        this.logger.warn(`No se encontro intervencion para vehiculo ${vehicleId}, guardando alerta sin FK intervencion`);
+      }
+
+      const fechaEstimada = new Date();
+      fechaEstimada.setDate(fechaEstimada.getDate() + payload.semanasEstimadasRestantes * 7);
+
+      const kilometrajeProyectado = payload.kilometrajeActual + (payload.kilometrajeLimite - payload.kilometrajeActual);
+
+      await this.prisma.client$.alertaPredictiva.create({
+        data: {
+          vehiculoId: vehicleId,
+          intervencionId: ultimaIntervencion?.id ?? 1,
+          componenteAfectado: payload.componenteAfectado,
+          kilometrajeActual: payload.kilometrajeActual,
+          kilometrajeLimite: payload.kilometrajeLimite,
+          semanasEstimadas: payload.semanasEstimadasRestantes,
+          mesesEstimados: payload.mesesEstimadosRestantes,
+          mensajePrediccion: payload.mensajePrediccion,
+          severidad: payload.nivelSeveridad,
+          recomendacion: payload.recomendacion,
+          estadoAlerta: 'pendiente',
+          fechaEstimada,
+          kilometrajeProyectado,
+        },
+      });
+
+      this.logger.log(`Alerta guardada en DB: ${payload.componenteAfectado} [${payload.nivelSeveridad}] para vehiculo ${vehicleId}`);
+    } catch (error) {
+      this.logger.error(`Error guardando alerta en DB: ${String(error)}`);
     }
 
-    const email = cliente.getEmail();
-    if (!email) {
-      this.logger.warn(`Cliente ${payload.clienteId} sin email para alerta`);
-      return;
+    // 2. Enviar notificacion (email)
+    try {
+      const cliente = await this.prisma.client$.cliente.findUnique({
+        where: { id: parseInt(payload.clienteId) },
+      });
+
+      if (!cliente) {
+        this.logger.warn(`Cliente ${payload.clienteId} no encontrado para notificacion`);
+        return;
+      }
+
+      if (!cliente.email) {
+        this.logger.warn(`Cliente ${payload.clienteId} sin email para notificacion`);
+        return;
+      }
+
+      const asunto = `Alerta de mantenimiento: ${payload.componenteAfectado}`;
+      const contenido = this.construirContenidoAlerta(payload);
+
+      await this.enviarNotificacion.execute({
+        clienteId: payload.clienteId,
+        vehicleId: payload.vehicleId,
+        tipo: TipoNotificacion.ALERTA_MANTENIMIENTO,
+        canal: CanalEnvio.EMAIL,
+        asunto,
+        contenido,
+        email: cliente.email,
+        metadata: {
+          placa: payload.placa,
+          componenteAfectado: payload.componenteAfectado,
+          kilometrajeActual: payload.kilometrajeActual,
+          kilometrajeLimite: payload.kilometrajeLimite,
+          semanasEstimadasRestantes: payload.semanasEstimadasRestantes,
+          mesesEstimadosRestantes: payload.mesesEstimadosRestantes,
+          nivelSeveridad: payload.nivelSeveridad,
+          recomendacion: payload.recomendacion,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Error enviando notificacion: ${String(error)}`);
     }
-
-    const asunto = `Alerta de mantenimiento: ${payload.componenteAfectado}`;
-    const contenido = this.construirContenidoAlerta(payload);
-
-    await this.enviarNotificacion.execute({
-      clienteId: payload.clienteId,
-      vehicleId: payload.vehicleId,
-      tipo: TipoNotificacion.ALERTA_MANTENIMIENTO,
-      canal: CanalEnvio.EMAIL,
-      asunto,
-      contenido,
-      email,
-      metadata: {
-        placa: payload.placa,
-        componenteAfectado: payload.componenteAfectado,
-        kilometrajeActual: payload.kilometrajeActual,
-        kilometrajeLimite: payload.kilometrajeLimite,
-        semanasEstimadasRestantes: payload.semanasEstimadasRestantes,
-        mesesEstimadosRestantes: payload.mesesEstimadosRestantes,
-        nivelSeveridad: payload.nivelSeveridad,
-        recomendacion: payload.recomendacion,
-      },
-    });
   }
 
   private construirContenidoAlerta(payload: AlertaGeneradaPayload): string {

@@ -49,6 +49,9 @@ async function bootstrap() {
     }),
   );
 
+  // Aumentar límite del body parser para fotos OCR (base64)
+  app.use(require('express').json({ limit: '50mb' }));
+
   // Configurar Swagger
   const config = new DocumentBuilder()
     .setTitle('M3Motors API')

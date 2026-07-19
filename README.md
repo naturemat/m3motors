@@ -503,10 +503,7 @@ En producción (`LOG_LEVEL=info`) todo está desactivado.
 
 | Archivo | Contenido |
 |---------|-----------|
-| `AGENTS.md` | Guía completa para agentes de IA |
 | `ONBOARDING.md` | Guía de onboarding para nuevos desarrolladores |
-| `DIAGNOSTICO_MOBILE.md` | Diagnóstico del flujo mobile (auditoría completa) |
-
 ---
 
 ## Licencia

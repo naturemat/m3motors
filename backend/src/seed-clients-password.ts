@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -33,7 +33,9 @@ async function main() {
       data: { passwordHash: hash },
     });
 
-    console.log(`  ${client.nombre} (${client.email}) -> password: ${tempPassword}`);
+    console.log(
+      `  ${client.nombre} (${client.email}) -> password: ${tempPassword}`,
+    );
   }
 
   console.log('\nListo!');

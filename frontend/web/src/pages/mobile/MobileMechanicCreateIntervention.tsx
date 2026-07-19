@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
 import {
@@ -92,14 +92,15 @@ export default function MobileMechanicCreateIntervention() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [result, setResult] = useState<any>(null)
 
-  const fetchData = useCallback(async () => {
+  useEffect(() => {
     if (!id) return
-    try {
-      const [vehicleRes, servicesRes, partsRes] = await Promise.all([
-        axios.get(`${apiUrl}/vehicles/${id}`, { headers }),
-        axios.get(`${apiUrl}/mechanic/dashboard/services`, { headers }).catch(() => ({ data: { services: [] } })),
-        axios.get(`${apiUrl}/parts-catalog`, { headers }).catch(() => ({ data: [] })),
-      ])
+    async function fetchData() {
+      try {
+        const [vehicleRes, servicesRes, partsRes] = await Promise.all([
+          axios.get(`${apiUrl}/vehicles/${id}`, { headers }),
+          axios.get(`${apiUrl}/mechanic/dashboard/services`, { headers }).catch(() => ({ data: { services: [] } })),
+          axios.get(`${apiUrl}/parts-catalog`, { headers }).catch(() => ({ data: [] })),
+        ])
       const v = vehicleRes.data
       setVehicle({
         id: v.id,
@@ -113,16 +114,14 @@ export default function MobileMechanicCreateIntervention() {
       setKilometraje(String((v.ultimoKilometraje ?? 0) + 100))
       setServices(servicesRes.data.services ?? [])
       setParts(partsRes.data ?? [])
-    } catch (err: any) {
-      setError(err?.response?.data?.error ?? 'Error al cargar datos')
-    } finally {
-      setLoading(false)
+      } catch (err: any) {
+        setError(err?.response?.data?.error ?? 'Error al cargar datos')
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [id])
-
-  useEffect(() => {
     void fetchData()
-  }, [fetchData])
+  }, [id])
 
   const handleServiceSelect = (service: ServiceItem) => {
     setServiceCatalogId(service.id)

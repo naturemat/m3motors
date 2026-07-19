@@ -18,6 +18,7 @@ export class Vehiculo {
   private estadoActivacion: EstadoActivacion;
   private fechaActivacion: Date | null;
   private activadoPor: string | null;
+  private tipoMotor: string;
 
   constructor(
     private readonly id: string,
@@ -25,9 +26,12 @@ export class Vehiculo {
     private readonly marca: string,
     private readonly modelo: string,
     private readonly anio: number,
-    private readonly tipoMotor: string,
+    tipoMotor: string,
     private readonly clienteId: string,
   ) {
+    const tiposPermitidos = ['GASOLINA', 'DIESEL', 'ELECTRICO', 'HIBRIDO'];
+    const normalized = tipoMotor?.toUpperCase();
+    this.tipoMotor = tiposPermitidos.includes(normalized) ? normalized : 'GASOLINA';
     this.validarDatosBasicos();
     this.historialEvolutivo = [];
     this.registrosKilometraje = [];
@@ -210,13 +214,6 @@ export class Vehiculo {
     const anioActual = new Date().getFullYear();
     if (this.anio < 1886 || this.anio > anioActual + 1) {
       throw new Error('Año de vehículo inválido');
-    }
-    const tiposPermitidos = ['GASOLINA', 'DIESEL', 'ELECTRICO', 'HIBRIDO'];
-    const tipoMotorUpper = this.tipoMotor?.toUpperCase();
-    if (!tiposPermitidos.includes(tipoMotorUpper)) {
-      throw new Error(
-        `Tipo de motor inválido. Valores: ${tiposPermitidos.join(', ')}`,
-      );
     }
   }
 

@@ -22,7 +22,9 @@ export class ResendEmailService implements IEmailService {
     );
 
     if (!apiKey) {
-      this.logger.warn('RESEND_API_KEY no configurado — el envio de emails estara deshabilitado');
+      this.logger.warn(
+        'RESEND_API_KEY no configurado — el envio de emails estara deshabilitado',
+      );
       this.resend = null as any;
       return;
     }

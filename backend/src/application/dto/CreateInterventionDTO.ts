@@ -102,7 +102,10 @@ export class CreateInterventionDTO {
   @IsNumber()
   vehiculoId!: number;
 
-  @ApiPropertyOptional({ example: 1, description: 'ID del mecánico (se obtiene del JWT)' })
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'ID del mecánico (se obtiene del JWT)',
+  })
   @IsOptional()
   @IsNumber()
   mecanicoId?: number;

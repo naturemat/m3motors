@@ -29,7 +29,10 @@ import { UploadPhotoDTO } from '../../application/dto/UploadPhotoDTO';
 import { ObtenerHistorialVehiculo } from '../../registro-seguimiento/application/use-cases/ObtenerHistorialVehiculo';
 import { QRServiceImpl } from '../../registro-seguimiento/infrastructure/external-services/QRServiceImpl';
 import { SupabaseStorageService } from '../../shared/infrastructure/storage/supabase-storage.service';
-import { ISERVICIO_GENERACION_QR, IOCR_SERVICE } from '../../shared/domain/ports/tokens';
+import {
+  ISERVICIO_GENERACION_QR,
+  IOCR_SERVICE,
+} from '../../shared/domain/ports/tokens';
 
 @ApiTags('Vehicles')
 @ApiBearerAuth()
@@ -185,7 +188,9 @@ export class VehicleController {
 
   @Post(':id/photo')
   @HttpCode(201)
-  @ApiOperation({ summary: 'Subir foto del vehículo (OCR reconoce placa automaticamente)' })
+  @ApiOperation({
+    summary: 'Subir foto del vehículo (OCR reconoce placa automaticamente)',
+  })
   @ApiResponse({ status: 201, description: 'Foto subida y procesada' })
   async uploadPhoto(
     @Param('id', ParseIntPipe) id: number,
@@ -278,7 +283,9 @@ export class VehicleController {
   }
 
   @Get(':id/prediction')
-  @ApiOperation({ summary: 'Predecir proximo mantenimiento basado en kilometraje' })
+  @ApiOperation({
+    summary: 'Predecir proximo mantenimiento basado en kilometraje',
+  })
   @ApiResponse({ status: 200, description: 'Prediccion de mantenimiento' })
   async getPrediction(@Param('id', ParseIntPipe) id: number) {
     const vehicle = await this.prisma.client$.vehicle.findUnique({
@@ -299,7 +306,12 @@ export class VehicleController {
     const kmActual = vehicle.ultimoKilometraje;
     const tasaDesgaste = vehicle.tasaDesgasteKmSem;
 
-    const predicciones: { servicio: string; kmEstimado: number; semanasEstimadas: number; prioridad: string }[] = [];
+    const predicciones: {
+      servicio: string;
+      kmEstimado: number;
+      semanasEstimadas: number;
+      prioridad: string;
+    }[] = [];
 
     const serviciosBase = [
       { servicio: 'Cambio de aceite', kmIntervalo: 5000 },
@@ -309,8 +321,10 @@ export class VehicleController {
     ];
 
     for (const s of serviciosBase) {
-      const ultimaIntervencion = vehicle.intervenciones.find(
-        (i) => i.diagnostico?.toLowerCase().includes(s.servicio.toLowerCase().split(' ')[0]),
+      const ultimaIntervencion = vehicle.intervenciones.find((i) =>
+        i.diagnostico
+          ?.toLowerCase()
+          .includes(s.servicio.toLowerCase().split(' ')[0]),
       );
 
       const kmDesdeUltima = ultimaIntervencion
@@ -318,18 +332,33 @@ export class VehicleController {
         : kmActual;
 
       const kmRestante = s.kmIntervalo - kmDesdeUltima;
-      const semanasEstimadas = tasaDesgaste > 0 ? Math.max(0, Math.round(kmRestante / tasaDesgaste)) : 0;
+      const semanasEstimadas =
+        tasaDesgaste > 0
+          ? Math.max(0, Math.round(kmRestante / tasaDesgaste))
+          : 0;
 
       predicciones.push({
         servicio: s.servicio,
         kmEstimado: Math.max(0, kmRestante),
         semanasEstimadas,
-        prioridad: kmRestante <= 500 ? 'CRITICA' : kmRestante <= 2000 ? 'ALTA' : kmRestante <= 5000 ? 'MEDIA' : 'BAJA',
+        prioridad:
+          kmRestante <= 500
+            ? 'CRITICA'
+            : kmRestante <= 2000
+              ? 'ALTA'
+              : kmRestante <= 5000
+                ? 'MEDIA'
+                : 'BAJA',
       });
     }
 
     return {
-      vehiculo: { id, placa: vehicle.placa, marca: vehicle.marca, modelo: vehicle.modelo },
+      vehiculo: {
+        id,
+        placa: vehicle.placa,
+        marca: vehicle.marca,
+        modelo: vehicle.modelo,
+      },
       kmActual,
       tasaDesgasteSemanal: tasaDesgaste,
       predicciones,

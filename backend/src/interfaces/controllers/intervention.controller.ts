@@ -209,9 +209,13 @@ export class InterventionController {
         IntervencionRegistradaEvent.EVENT_NAME,
         evento.toPayload(),
       );
-      this.logger.log(`Evento intervencion.registrada publicado para vehículo ${dto.vehiculoId}`);
+      this.logger.log(
+        `Evento intervencion.registrada publicado para vehículo ${dto.vehiculoId}`,
+      );
     } catch (eventError) {
-      this.logger.error(`Error publicando evento de predicción: ${String(eventError)}`);
+      this.logger.error(
+        `Error publicando evento de predicción: ${String(eventError)}`,
+      );
     }
 
     // 4. Subir fotos a Supabase Storage si existen
@@ -266,7 +270,10 @@ export class InterventionController {
               canal: 'email' as any,
               asunto: 'Servicio registrado en tu vehiculo',
               contenido: `Se ha registrado un servicio de tipo ${intervention.tipoIntervencion} en tu vehiculo. Diagnostico: ${intervention.diagnostico ?? 'Sin diagnostico'}`,
-              metadata: { intervencionId: intervention.id, vehiculoId: dto.vehiculoId },
+              metadata: {
+                intervencionId: intervention.id,
+                vehiculoId: dto.vehiculoId,
+              },
             },
             cliente.email,
           );

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EnviarNotificacion } from '../use-cases/EnviarNotificacion';
@@ -26,20 +26,27 @@ export class AlertaGeneradaHandler {
 
     // 1. Guardar alerta en DB
     try {
-      const ultimaIntervencion = await this.prisma.client$.intervention.findFirst({
-        where: { vehiculoId: vehicleId, estado: 'FINALIZADO' },
-        orderBy: { fecha: 'desc' },
-        select: { id: true },
-      });
+      const ultimaIntervencion =
+        await this.prisma.client$.intervention.findFirst({
+          where: { vehiculoId: vehicleId, estado: 'FINALIZADO' },
+          orderBy: { fecha: 'desc' },
+          select: { id: true },
+        });
 
       if (!ultimaIntervencion) {
-        this.logger.warn(`No se encontro intervencion para vehiculo ${vehicleId}, guardando alerta sin FK intervencion`);
+        this.logger.warn(
+          `No se encontro intervencion para vehiculo ${vehicleId}, guardando alerta sin FK intervencion`,
+        );
       }
 
       const fechaEstimada = new Date();
-      fechaEstimada.setDate(fechaEstimada.getDate() + payload.semanasEstimadasRestantes * 7);
+      fechaEstimada.setDate(
+        fechaEstimada.getDate() + payload.semanasEstimadasRestantes * 7,
+      );
 
-      const kilometrajeProyectado = payload.kilometrajeActual + (payload.kilometrajeLimite - payload.kilometrajeActual);
+      const kilometrajeProyectado =
+        payload.kilometrajeActual +
+        (payload.kilometrajeLimite - payload.kilometrajeActual);
 
       await this.prisma.client$.alertaPredictiva.create({
         data: {
@@ -59,7 +66,9 @@ export class AlertaGeneradaHandler {
         },
       });
 
-      this.logger.log(`Alerta guardada en DB: ${payload.componenteAfectado} [${payload.nivelSeveridad}] para vehiculo ${vehicleId}`);
+      this.logger.log(
+        `Alerta guardada en DB: ${payload.componenteAfectado} [${payload.nivelSeveridad}] para vehiculo ${vehicleId}`,
+      );
     } catch (error) {
       this.logger.error(`Error guardando alerta en DB: ${String(error)}`);
     }
@@ -71,12 +80,16 @@ export class AlertaGeneradaHandler {
       });
 
       if (!cliente) {
-        this.logger.warn(`Cliente ${payload.clienteId} no encontrado para notificacion`);
+        this.logger.warn(
+          `Cliente ${payload.clienteId} no encontrado para notificacion`,
+        );
         return;
       }
 
       if (!cliente.email) {
-        this.logger.warn(`Cliente ${payload.clienteId} sin email para notificacion`);
+        this.logger.warn(
+          `Cliente ${payload.clienteId} sin email para notificacion`,
+        );
         return;
       }
 

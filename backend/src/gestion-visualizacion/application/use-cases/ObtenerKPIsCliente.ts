@@ -12,14 +12,20 @@ export class ObtenerKPIsCliente {
   async ejecutar(clerkId: string): Promise<KPIsCliente> {
     const isDebug = process.env.LOG_LEVEL === 'debug';
 
-    if (isDebug) this.logger.log(`[KPI-Cliente] Buscando cliente con clerkId="${clerkId}"`);
+    if (isDebug)
+      this.logger.log(
+        `[KPI-Cliente] Buscando cliente con clerkId="${clerkId}"`,
+      );
 
     const cliente = await this.prisma.client$.cliente.findFirst({
       where: { clerkId },
     });
 
     if (!cliente) {
-      if (isDebug) this.logger.warn(`[KPI-Cliente] Cliente NO encontrado → retornando zeros`);
+      if (isDebug)
+        this.logger.warn(
+          `[KPI-Cliente] Cliente NO encontrado → retornando zeros`,
+        );
       return {
         totalVehiculos: 0,
         totalIntervenciones: 0,
@@ -30,7 +36,10 @@ export class ObtenerKPIsCliente {
       };
     }
 
-    if (isDebug) this.logger.log(`[KPI-Cliente] Cliente encontrado: id=${cliente.id}, email="${cliente.email}"`);
+    if (isDebug)
+      this.logger.log(
+        `[KPI-Cliente] Cliente encontrado: id=${cliente.id}, email="${cliente.email}"`,
+      );
 
     const vehiculos = await this.prisma.client$.vehicle.findMany({
       where: { clienteId: cliente.id },
@@ -41,12 +50,19 @@ export class ObtenerKPIsCliente {
           include: { mecanico: true },
         },
         alertas: {
-          where: { estadoAlerta: { in: ['ACTIVA', 'PENDIENTE', 'activa', 'pendiente'] } },
+          where: {
+            estadoAlerta: {
+              in: ['ACTIVA', 'PENDIENTE', 'activa', 'pendiente'],
+            },
+          },
         },
       },
     });
 
-    if (isDebug) this.logger.log(`[KPI-Cliente] Vehículos encontrados: ${vehiculos.length}`);
+    if (isDebug)
+      this.logger.log(
+        `[KPI-Cliente] Vehículos encontrados: ${vehiculos.length}`,
+      );
 
     const totalIntervenciones = await this.prisma.client$.intervention.count({
       where: { vehiculo: { clienteId: cliente.id } },
@@ -65,7 +81,8 @@ export class ObtenerKPIsCliente {
     let proximoMantenimiento: string | null = null;
     for (const v of vehiculos) {
       for (const alerta of v.alertas) {
-        const isActiva = alerta.estadoAlerta === 'ACTIVA' || alerta.estadoAlerta === 'activa';
+        const isActiva =
+          alerta.estadoAlerta === 'ACTIVA' || alerta.estadoAlerta === 'activa';
         if (
           isActiva &&
           (!proximoMantenimiento ||
@@ -89,10 +106,14 @@ export class ObtenerKPIsCliente {
 
     if (isDebug) {
       this.logger.log(`[KPI-Cliente] totalVehiculos: ${totalVehiculos}`);
-      this.logger.log(`[KPI-Cliente] totalIntervenciones: ${totalIntervenciones}`);
+      this.logger.log(
+        `[KPI-Cliente] totalIntervenciones: ${totalIntervenciones}`,
+      );
       this.logger.log(`[KPI-Cliente] kilometrajeActual: ${kilometrajeActual}`);
       this.logger.log(`[KPI-Cliente] alertasActivas: ${alertasActivas}`);
-      this.logger.log(`[KPI-Cliente] historialReciente: ${historialReciente.length} items`);
+      this.logger.log(
+        `[KPI-Cliente] historialReciente: ${historialReciente.length} items`,
+      );
     }
 
     return {

@@ -12,7 +12,10 @@ export class UploadPhotoDTO {
   @IsNotEmpty()
   mimeType!: string;
 
-  @ApiPropertyOptional({ example: 'VEHICLE', description: 'Tipo de foto: VEHICLE, INTERVENTION, ACTIVATION' })
+  @ApiPropertyOptional({
+    example: 'VEHICLE',
+    description: 'Tipo de foto: VEHICLE, INTERVENTION, ACTIVATION',
+  })
   @IsOptional()
   @IsString()
   tipo?: string;

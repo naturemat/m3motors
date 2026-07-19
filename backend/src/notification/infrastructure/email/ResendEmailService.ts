@@ -21,13 +21,20 @@ export class ResendEmailService implements IEmailService {
     );
 
     if (!apiKey) {
-      this.logger.warn('RESEND_API_KEY no configurado');
+      this.logger.warn('RESEND_API_KEY no configurado — el envio de emails estara deshabilitado');
+      this.resend = null as any;
+      return;
     }
 
     this.resend = new Resend(apiKey);
   }
 
   async sendEmail(params: SendEmailParams): Promise<SendEmailResponse> {
+    if (!this.resend) {
+      this.logger.warn('Email no enviado — RESEND_API_KEY no configurado');
+      return { success: false, error: 'RESEND_API_KEY no configurado' };
+    }
+
     try {
       const { data, error } = await this.resend.emails.send({
         from: this.fromEmail,

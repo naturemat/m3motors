@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
-import { Controller, Get, Post, UseGuards, Req, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards, Req, HttpCode, Logger } from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -17,6 +17,8 @@ import { EvaluacionDiariaHandler } from '../../../prediccion-analisis/infrastruc
 @Controller('mechanic/dashboard')
 @UseGuards(UnifiedAuthGuard)
 export class MechanicDashboardController {
+  private readonly logger = new Logger(MechanicDashboardController.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly obtenerKPIs: ObtenerKPIsMecanico,

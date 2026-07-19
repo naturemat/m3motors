@@ -212,7 +212,8 @@ export class Vehiculo {
       throw new Error('Año de vehículo inválido');
     }
     const tiposPermitidos = ['GASOLINA', 'DIESEL', 'ELECTRICO', 'HIBRIDO'];
-    if (!tiposPermitidos.includes(this.tipoMotor)) {
+    const tipoMotorUpper = this.tipoMotor?.toUpperCase();
+    if (!tiposPermitidos.includes(tipoMotorUpper)) {
       throw new Error(
         `Tipo de motor inválido. Valores: ${tiposPermitidos.join(', ')}`,
       );

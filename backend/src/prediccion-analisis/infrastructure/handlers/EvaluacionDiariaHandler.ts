@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import { Injectable, Logger } from '@nestjs/common';
 // import { Cron, CronExpression } from '@nestjs/schedule'; // Deshabilitado para evitar cron en Docker

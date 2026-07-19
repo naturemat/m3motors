@@ -281,10 +281,6 @@ export default function MobileMechanicDashboard() {
           <Users className="w-5 h-5" />
           <span className="text-[9px] font-bold">Clientes</span>
         </Link>
-        <Link to="/mobile/mechanic/services" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
-          <Wrench className="w-5 h-5" />
-          <span className="text-[9px] font-bold">Servicios</span>
-        </Link>
       </nav>
     </div>
   )

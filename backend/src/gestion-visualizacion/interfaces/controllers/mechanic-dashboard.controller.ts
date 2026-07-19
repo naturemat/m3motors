@@ -121,12 +121,16 @@ export class MechanicDashboardController {
   @ApiOperation({ summary: 'Clientes activos del taller (para asociar vehículos)' })
   async getClients(@Req() req: Request) {
     const { userId } = (req as any).auth;
+    this.logger.log(`[MechanicClients] userId=${userId}`);
 
     const mechanic = await this.prisma.client$.mechanic.findFirst({
       where: { clerkId: userId },
     });
 
-    if (!mechanic) return { clients: [] };
+    if (!mechanic) {
+      this.logger.warn(`[MechanicClients] Mecánico no encontrado`);
+      return { clients: [] };
+    }
 
     // Get all mechanics in this workshop
     const workshopMechanics = await this.prisma.client$.mechanic.findMany({
@@ -134,6 +138,7 @@ export class MechanicDashboardController {
       select: { id: true },
     });
     const mechanicIds = workshopMechanics.map((m: any) => m.id);
+    this.logger.log(`[MechanicClients] Workshop mechanics: ${mechanicIds.length} → IDs: [${mechanicIds.join(', ')}]`);
 
     const clients = await this.prisma.client$.cliente.findMany({
       where: { idMecanicoActivo: { in: mechanicIds } },
@@ -145,6 +150,11 @@ export class MechanicDashboardController {
       },
     });
 
+    this.logger.log(`[MechanicClients] Clients found: ${clients.length}`);
+    clients.forEach(c => {
+      this.logger.log(`  → id=${c.id}, nombre="${c.nombre}", email="${c.email}"`);
+    });
+
     return { clients };
   }
 
@@ -152,12 +162,16 @@ export class MechanicDashboardController {
   @ApiOperation({ summary: 'Catálogo de servicios del taller (para crear intervenciones)' })
   async getServices(@Req() req: Request) {
     const { userId } = (req as any).auth;
+    this.logger.log(`[MechanicServices] userId=${userId}`);
 
     const mechanic = await this.prisma.client$.mechanic.findFirst({
       where: { clerkId: userId },
     });
 
-    if (!mechanic) return { services: [] };
+    if (!mechanic) {
+      this.logger.warn(`[MechanicServices] Mecánico no encontrado`);
+      return { services: [] };
+    }
 
     const services = await this.prisma.client$.serviceCatalog.findMany({
       where: { workshopId: mechanic.workshopId, activo: true },
@@ -168,6 +182,11 @@ export class MechanicDashboardController {
         categoria: true,
         precioReferencia: true,
       },
+    });
+
+    this.logger.log(`[MechanicServices] Services found: ${services.length}`);
+    services.forEach(s => {
+      this.logger.log(`  → id=${s.id}, nombre="${s.nombre}", precio=${s.precioReferencia}`);
     });
 
     return { services };

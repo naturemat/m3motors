@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+// import { Cron, CronExpression } from '@nestjs/schedule'; // Deshabilitado para evitar cron en Docker
 import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.service';
 import { GenerarPrediccion } from '../../application/use-cases/GenerarPrediccion';
 
@@ -17,7 +17,7 @@ export class EvaluacionDiariaHandler {
     private readonly generarPrediccion: GenerarPrediccion,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_6AM)
+  // @Cron(CronExpression.EVERY_DAY_AT_6AM) // Deshabilitado - usar endpoint manual
   async ejecutar(): Promise<void> {
     this.logger.log('=== Iniciando evaluación diaria de componentes ===');
 

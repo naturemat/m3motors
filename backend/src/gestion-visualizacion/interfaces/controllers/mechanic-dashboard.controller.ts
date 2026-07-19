@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
-import { Controller, Get, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards, Req, HttpCode } from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -10,6 +10,7 @@ import { Request } from 'express';
 import { UnifiedAuthGuard } from '../../../shared/infrastructure/auth/unified-auth.guard';
 import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.service';
 import { ObtenerKPIsMecanico } from '../../application/use-cases/ObtenerKPIsMecanico';
+import { EvaluacionDiariaHandler } from '../../../prediccion-analisis/infrastructure/handlers/EvaluacionDiariaHandler';
 
 @ApiTags('Mechanic Dashboard')
 @ApiBearerAuth()
@@ -19,6 +20,7 @@ export class MechanicDashboardController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly obtenerKPIs: ObtenerKPIsMecanico,
+    private readonly evaluacionHandler: EvaluacionDiariaHandler,
   ) {}
 
   @Get('kpis')
@@ -126,5 +128,15 @@ export class MechanicDashboardController {
     });
 
     return { services };
+  }
+
+  @Post('run-prediction')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Ejecutar predicción manual (reemplaza cron)' })
+  @ApiResponse({ status: 200, description: 'Predicción ejecutada' })
+  async runPrediction() {
+    this.logger.log('Ejecutando predicción manual...');
+    await this.evaluacionHandler.ejecutar();
+    return { mensaje: 'Predicción ejecutada exitosamente' };
   }
 }

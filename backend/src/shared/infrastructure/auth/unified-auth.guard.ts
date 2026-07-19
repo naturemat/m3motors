@@ -1,9 +1,11 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, Logger } from '@nestjs/common';
 import { Request } from 'express';
 import { MobileJwtService } from './jwt.service';
 
 @Injectable()
 export class UnifiedAuthGuard implements CanActivate {
+  private readonly logger = new Logger(UnifiedAuthGuard.name);
+
   constructor(private readonly jwtService: MobileJwtService) {}
 
   canActivate(context: ExecutionContext): boolean {
@@ -11,6 +13,7 @@ export class UnifiedAuthGuard implements CanActivate {
     const authHeader = request.headers.authorization;
 
     if (!authHeader?.startsWith('Bearer ')) {
+      this.logger.warn('Auth failed: No Bearer token');
       throw new UnauthorizedException('Token de autenticación requerido');
     }
 
@@ -20,6 +23,7 @@ export class UnifiedAuthGuard implements CanActivate {
     if (token.startsWith('mobile:::')) {
       const parts = token.split(':::');
       if (parts.length >= 2) {
+        this.logger.log(`[Auth] Legacy mobile token → userId=${parts[1]}`);
         (request as any).auth = {
           userId: parts[1],
           sessionId: 'mobile',
@@ -31,6 +35,9 @@ export class UnifiedAuthGuard implements CanActivate {
     // JWT token (new mobile auth)
     try {
       const payload = this.jwtService.verifyToken(token);
+      if (process.env.LOG_LEVEL === 'debug') {
+        this.logger.log(`[Auth] JWT verified → sub=${payload.sub}, role=${payload.role}, workshopId=${payload.workshopId}`);
+      }
       (request as any).auth = {
         userId: payload.sub,
         sessionId: 'jwt',
@@ -42,18 +49,7 @@ export class UnifiedAuthGuard implements CanActivate {
       // Not a valid JWT - might be a Clerk token, fall through
     }
 
-    // Clerk token fallback - if ClerkService is available, try to verify
-    // This is kept for backward compatibility with web admin routes
-    try {
-      // Dynamic import to avoid circular dependency issues
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { ClerkService } = require('../clerk/clerk.service');
-      // If we get here, we can't verify Clerk tokens in this guard
-      // Clerk-guarded routes use ClerkAuthGuard directly
-    } catch {
-      // Ignore
-    }
-
+    this.logger.warn('Auth failed: Invalid token');
     throw new UnauthorizedException('Token inválido o expirado');
   }
 }

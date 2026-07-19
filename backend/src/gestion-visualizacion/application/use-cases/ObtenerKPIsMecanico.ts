@@ -1,18 +1,25 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.service';
 import { KPIsMecanico } from '../../domain/entities/KPIsTaller';
 
 @Injectable()
 export class ObtenerKPIsMecanico {
+  private readonly logger = new Logger(ObtenerKPIsMecanico.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async ejecutar(clerkId: string): Promise<KPIsMecanico> {
+    const isDebug = process.env.LOG_LEVEL === 'debug';
+
+    if (isDebug) this.logger.log(`[KPI-Mec] Buscando mecánico con clerkId="${clerkId}"`);
+
     const mechanic = await this.prisma.client$.mechanic.findFirst({
       where: { clerkId },
     });
 
     if (!mechanic) {
+      if (isDebug) this.logger.warn(`[KPI-Mec] Mecánico NO encontrado → retornando zeros`);
       return {
         totalIntervenciones: 0,
         intervencionesMes: 0,
@@ -22,6 +29,8 @@ export class ObtenerKPIsMecanico {
         alertasAsignadas: 0,
       };
     }
+
+    if (isDebug) this.logger.log(`[KPI-Mec] Mecánico encontrado: id=${mechanic.id}, workshopId=${mechanic.workshopId}`);
 
     const now = new Date();
     const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -66,6 +75,15 @@ export class ObtenerKPIsMecanico {
         },
       }),
     ]);
+
+    if (isDebug) {
+      this.logger.log(`[KPI-Mec] intervention.count(total): ${totalIntervenciones}`);
+      this.logger.log(`[KPI-Mec] intervention.count(mes): ${intervencionesMes}`);
+      this.logger.log(`[KPI-Mec] vehicle.distinct: ${vehiculosAtendidos}`);
+      this.logger.log(`[KPI-Mec] cliente.distinct: ${clientesAtendidos}`);
+      this.logger.log(`[KPI-Mec] intervention.aggregate(manoDeObra): ${Number(ingresosGenerados._sum.manoDeObra ?? 0)}`);
+      this.logger.log(`[KPI-Mec] alertaPredictiva.count: ${alertasAsignadas}`);
+    }
 
     return {
       totalIntervenciones,

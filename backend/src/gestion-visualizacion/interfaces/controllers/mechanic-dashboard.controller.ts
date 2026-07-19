@@ -30,19 +30,28 @@ export class MechanicDashboardController {
   @ApiResponse({ status: 200, description: 'Métricas del mecánico' })
   async getKpis(@Req() req: Request) {
     const { userId } = (req as any).auth;
-    return this.obtenerKPIs.ejecutar(userId);
+    this.logger.log(`[MechanicKPIs] userId=${userId}`);
+    const result = await this.obtenerKPIs.ejecutar(userId);
+    this.logger.log(`[MechanicKPIs] Result: ${JSON.stringify(result)}`);
+    return result;
   }
 
   @Get('vehiculos')
   @ApiOperation({ summary: 'Vehículos asignados al mecánico' })
   async getVehiculos(@Req() req: Request) {
     const { userId } = (req as any).auth;
+    this.logger.log(`[MechanicVehiculos] userId=${userId}`);
 
     const mechanic = await this.prisma.client$.mechanic.findFirst({
       where: { clerkId: userId },
     });
 
-    if (!mechanic) return { vehiculos: [] };
+    if (!mechanic) {
+      this.logger.warn(`[MechanicVehiculos] Mecánico no encontrado para userId=${userId}`);
+      return { vehiculos: [] };
+    }
+
+    this.logger.log(`[MechanicVehiculos] Mecánico encontrado: id=${mechanic.id}, workshopId=${mechanic.workshopId}`);
 
     const vehiculos = await this.prisma.client$.vehicle.findMany({
       where: { idMecanicoActivo: mechanic.id },
@@ -55,6 +64,13 @@ export class MechanicDashboardController {
       },
     });
 
+    this.logger.log(`[MechanicVehiculos] Vehículos encontrados: ${vehiculos.length}`);
+    if (vehiculos.length > 0) {
+      vehiculos.forEach(v => {
+        this.logger.log(`  → id=${v.id}, placa=${v.placa}, marca=${v.marca}, modelo=${v.modelo}, status=${v.status}, cliente=${v.cliente?.nombre ?? 'N/A'}`);
+      });
+    }
+
     return { vehiculos };
   }
 
@@ -62,12 +78,16 @@ export class MechanicDashboardController {
   @ApiOperation({ summary: 'Clientes del taller' })
   async getClientesPendientes(@Req() req: Request) {
     const { userId } = (req as any).auth;
+    this.logger.log(`[MechanicClientes] userId=${userId}`);
 
     const mechanic = await this.prisma.client$.mechanic.findFirst({
       where: { clerkId: userId },
     });
 
-    if (!mechanic) return { clientes: [] };
+    if (!mechanic) {
+      this.logger.warn(`[MechanicClientes] Mecánico no encontrado`);
+      return { clientes: [] };
+    }
 
     const clientes = await this.prisma.client$.cliente.findMany({
       where: { idMecanicoActivo: mechanic.id },
@@ -80,6 +100,7 @@ export class MechanicDashboardController {
       },
     });
 
+    this.logger.log(`[MechanicClientes] Clientes encontrados: ${clientes.length}`);
     return { clientes };
   }
 

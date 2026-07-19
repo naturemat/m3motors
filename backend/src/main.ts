@@ -3,9 +3,16 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { HttpLoggerMiddleware } from './shared/infrastructure/logging/http-logger.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // HTTP Request/Response logging (only in debug mode)
+  if (process.env.LOG_LEVEL === 'debug') {
+    app.use(new HttpLoggerMiddleware().use.bind(new HttpLoggerMiddleware()));
+    console.log('[Debug] HTTP request/response logging ACTIVADO');
+  }
 
   // Configurar CORS — permite localhost (cualquier puerto) + producción
   const allowedOrigins = (process.env.CORS_ORIGIN ?? '')

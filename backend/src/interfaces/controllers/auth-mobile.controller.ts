@@ -125,27 +125,31 @@ export class AuthMobileController {
   @ApiResponse({ status: 401, description: 'Credenciales incorrectas' })
   async loginMobile(@Body() body: { email: string; password: string }) {
     const { email, password } = body;
+    const emailClean = email?.trim().toLowerCase();
 
     if (!email || !password) {
       throw new UnauthorizedException('Email y password son requeridos');
     }
 
+    this.logger.log(`[Login] Email recibido: "${email}" → limpiado: "${emailClean}"`);
+
     // Buscar en mecanico por email
     const mechanic = await this.prisma.client$.mechanic.findFirst({
-      where: { email },
+      where: { email: emailClean },
     });
 
     if (mechanic) {
+      this.logger.log(`[Login] Mecánico encontrado: id=${mechanic.id}, email="${mechanic.email}", clerkId=${mechanic.clerkId}, activo=${mechanic.activo}, passwordHash=${mechanic.passwordHash ? 'SI' : 'NO'}`);
+
       // Si tiene passwordHash, verificar con bcrypt
       if (mechanic.passwordHash) {
         const valid = await bcrypt.compare(password, mechanic.passwordHash);
+        this.logger.log(`[Login] bcrypt.compare: ${valid}`);
         if (!valid) {
           throw new UnauthorizedException('Credenciales incorrectas');
         }
       } else {
-        // Backward compat: mecanicos creados por Clerk sin password local
-        // Permitir login sin password verificar (temporal, se eliminara)
-        // Por ahora, si no tiene password, no puede loguear
+        this.logger.warn(`[Login] Mecánico sin passwordHash → rechazado`);
         throw new UnauthorizedException(
           'Cuenta sin configurar. Contacta al administrador.',
         );
@@ -157,6 +161,7 @@ export class AuthMobileController {
           where: { id: mechanic.id },
           data: { clerkId },
         });
+        this.logger.log(`[Login] Mecánico actualizado con nuevo clerkId: ${clerkId}`);
       }
 
       const token = this.jwtService.signToken({
@@ -165,6 +170,8 @@ export class AuthMobileController {
         workshopId: mechanic.workshopId,
         name: mechanic.nombre,
       });
+
+      this.logger.log(`[Login] JWT generado: sub=${clerkId}, role=mechanic, workshopId=${mechanic.workshopId}`);
 
       return {
         success: true,
@@ -176,19 +183,25 @@ export class AuthMobileController {
       };
     }
 
+    this.logger.log(`[Login] No se encontró mecánico con email "${emailClean}", buscando en clientes...`);
+
     // Buscar en cliente por email
     const client = await this.prisma.client$.cliente.findFirst({
-      where: { email },
+      where: { email: emailClean },
     });
 
     if (client) {
+      this.logger.log(`[Login] Cliente encontrado: id=${client.id}, email="${client.email}", clerkId=${client.clerkId}, status=${client.status}, passwordHash=${client.passwordHash ? 'SI' : 'NO'}`);
+
       if (!client.passwordHash) {
+        this.logger.warn(`[Login] Cliente sin passwordHash → rechazado`);
         throw new UnauthorizedException(
           'Cuenta sin configurar. Contacta al administrador.',
         );
       }
 
       const valid = await bcrypt.compare(password, client.passwordHash);
+      this.logger.log(`[Login] bcrypt.compare: ${valid}`);
       if (!valid) {
         throw new UnauthorizedException('Credenciales incorrectas');
       }
@@ -199,6 +212,7 @@ export class AuthMobileController {
           where: { id: client.id },
           data: { clerkId },
         });
+        this.logger.log(`[Login] Cliente actualizado con nuevo clerkId: ${clerkId}`);
       }
 
       const token = this.jwtService.signToken({
@@ -206,6 +220,8 @@ export class AuthMobileController {
         role: 'client',
         name: client.nombre,
       });
+
+      this.logger.log(`[Login] JWT generado: sub=${clerkId}, role=client`);
 
       return {
         success: true,
@@ -216,6 +232,7 @@ export class AuthMobileController {
       };
     }
 
+    this.logger.warn(`[Login] Usuario no encontrado: "${emailClean}"`);
     throw new UnauthorizedException('Usuario no encontrado en el sistema');
   }
 }

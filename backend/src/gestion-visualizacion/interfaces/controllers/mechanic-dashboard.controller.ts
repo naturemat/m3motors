@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return */
-import { Controller, Get, Post, UseGuards, Req, HttpCode, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  Req,
+  HttpCode,
+  Logger,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -47,11 +55,15 @@ export class MechanicDashboardController {
     });
 
     if (!mechanic) {
-      this.logger.warn(`[MechanicVehiculos] Mecánico no encontrado para userId=${userId}`);
+      this.logger.warn(
+        `[MechanicVehiculos] Mecánico no encontrado para userId=${userId}`,
+      );
       return { vehiculos: [] };
     }
 
-    this.logger.log(`[MechanicVehiculos] Mecánico encontrado: id=${mechanic.id}, workshopId=${mechanic.workshopId}`);
+    this.logger.log(
+      `[MechanicVehiculos] Mecánico encontrado: id=${mechanic.id}, workshopId=${mechanic.workshopId}`,
+    );
 
     const vehiculos = await this.prisma.client$.vehicle.findMany({
       where: { idMecanicoActivo: mechanic.id },
@@ -59,15 +71,23 @@ export class MechanicDashboardController {
         cliente: true,
         qr: true,
         alertas: {
-          where: { estadoAlerta: { in: ['ACTIVA', 'PENDIENTE', 'activa', 'pendiente'] } },
+          where: {
+            estadoAlerta: {
+              in: ['ACTIVA', 'PENDIENTE', 'activa', 'pendiente'],
+            },
+          },
         },
       },
     });
 
-    this.logger.log(`[MechanicVehiculos] Vehículos encontrados: ${vehiculos.length}`);
+    this.logger.log(
+      `[MechanicVehiculos] Vehículos encontrados: ${vehiculos.length}`,
+    );
     if (vehiculos.length > 0) {
-      vehiculos.forEach(v => {
-        this.logger.log(`  → id=${v.id}, placa=${v.placa}, marca=${v.marca}, modelo=${v.modelo}, status=${v.status}, cliente=${v.cliente?.nombre ?? 'N/A'}`);
+      vehiculos.forEach((v) => {
+        this.logger.log(
+          `  → id=${v.id}, placa=${v.placa}, marca=${v.marca}, modelo=${v.modelo}, status=${v.status}, cliente=${v.cliente?.nombre ?? 'N/A'}`,
+        );
       });
     }
 
@@ -113,12 +133,16 @@ export class MechanicDashboardController {
       },
     });
 
-    this.logger.log(`[MechanicClientes] Clientes encontrados: ${clientes.length}`);
+    this.logger.log(
+      `[MechanicClientes] Clientes encontrados: ${clientes.length}`,
+    );
     return { clientes };
   }
 
   @Get('clients')
-  @ApiOperation({ summary: 'Clientes activos del taller (para asociar vehículos)' })
+  @ApiOperation({
+    summary: 'Clientes activos del taller (para asociar vehículos)',
+  })
   async getClients(@Req() req: Request) {
     const { userId } = (req as any).auth;
     this.logger.log(`[MechanicClients] userId=${userId}`);
@@ -138,7 +162,9 @@ export class MechanicDashboardController {
       select: { id: true },
     });
     const mechanicIds = workshopMechanics.map((m: any) => m.id);
-    this.logger.log(`[MechanicClients] Workshop mechanics: ${mechanicIds.length} → IDs: [${mechanicIds.join(', ')}]`);
+    this.logger.log(
+      `[MechanicClients] Workshop mechanics: ${mechanicIds.length} → IDs: [${mechanicIds.join(', ')}]`,
+    );
 
     const clients = await this.prisma.client$.cliente.findMany({
       where: { idMecanicoActivo: { in: mechanicIds } },
@@ -151,15 +177,19 @@ export class MechanicDashboardController {
     });
 
     this.logger.log(`[MechanicClients] Clients found: ${clients.length}`);
-    clients.forEach(c => {
-      this.logger.log(`  → id=${c.id}, nombre="${c.nombre}", email="${c.email}"`);
+    clients.forEach((c) => {
+      this.logger.log(
+        `  → id=${c.id}, nombre="${c.nombre}", email="${c.email}"`,
+      );
     });
 
     return { clients };
   }
 
   @Get('services')
-  @ApiOperation({ summary: 'Catálogo de servicios del taller (para crear intervenciones)' })
+  @ApiOperation({
+    summary: 'Catálogo de servicios del taller (para crear intervenciones)',
+  })
   async getServices(@Req() req: Request) {
     const { userId } = (req as any).auth;
     this.logger.log(`[MechanicServices] userId=${userId}`);
@@ -185,8 +215,10 @@ export class MechanicDashboardController {
     });
 
     this.logger.log(`[MechanicServices] Services found: ${services.length}`);
-    services.forEach(s => {
-      this.logger.log(`  → id=${s.id}, nombre="${s.nombre}", precio=${s.precioReferencia}`);
+    services.forEach((s) => {
+      this.logger.log(
+        `  → id=${s.id}, nombre="${s.nombre}", precio=${s.precioReferencia}`,
+      );
     });
 
     return { services };

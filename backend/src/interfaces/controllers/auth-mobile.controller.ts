@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import {
   Controller,
   Post,
@@ -50,7 +50,9 @@ export class AuthMobileController {
     }
 
     if (password.length < 6) {
-      throw new BadRequestException('El password debe tener al menos 6 caracteres');
+      throw new BadRequestException(
+        'El password debe tener al menos 6 caracteres',
+      );
     }
 
     try {
@@ -97,7 +99,9 @@ export class AuthMobileController {
         name: client.nombre,
       });
 
-      this.logger.log(`Register success: email=${email}, clientId=${client.id}`);
+      this.logger.log(
+        `Register success: email=${email}, clientId=${client.id}`,
+      );
 
       return {
         success: true,
@@ -112,7 +116,10 @@ export class AuthMobileController {
       };
     } catch (error) {
       this.logger.error(`Register error: ${String(error)}`);
-      if (error instanceof BadRequestException || error instanceof ConflictException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ConflictException
+      ) {
         throw error;
       }
       throw new BadRequestException(`Error al registrar: ${String(error)}`);
@@ -132,7 +139,9 @@ export class AuthMobileController {
       throw new UnauthorizedException('Email y password son requeridos');
     }
 
-    this.logger.log(`[Login] Email recibido: "${email}" → limpiado: "${emailClean}"`);
+    this.logger.log(
+      `[Login] Email recibido: "${email}" → limpiado: "${emailClean}"`,
+    );
 
     // Buscar en mecanico por email
     const mechanic = await this.prisma.client$.mechanic.findFirst({
@@ -140,7 +149,9 @@ export class AuthMobileController {
     });
 
     if (mechanic) {
-      this.logger.log(`[Login] Mecánico encontrado: id=${mechanic.id}, email="${mechanic.email}", clerkId=${mechanic.clerkId}, activo=${mechanic.activo}, passwordHash=${mechanic.passwordHash ? 'SI' : 'NO'}`);
+      this.logger.log(
+        `[Login] Mecánico encontrado: id=${mechanic.id}, email="${mechanic.email}", clerkId=${mechanic.clerkId}, activo=${mechanic.activo}, passwordHash=${mechanic.passwordHash ? 'SI' : 'NO'}`,
+      );
 
       // Si tiene passwordHash, verificar con bcrypt
       if (mechanic.passwordHash) {
@@ -152,7 +163,9 @@ export class AuthMobileController {
       } else {
         // Mecánico sin passwordHash (creado por admin): primer login
         // Guardar el password que usa como hash para futuros logins
-        this.logger.log(`[Login] Mecánico sin passwordHash → guardando password del primer login`);
+        this.logger.log(
+          `[Login] Mecánico sin passwordHash → guardando password del primer login`,
+        );
         const newHash = await bcrypt.hash(password, 10);
         await this.prisma.client$.mechanic.update({
           where: { id: mechanic.id },
@@ -166,7 +179,9 @@ export class AuthMobileController {
           where: { id: mechanic.id },
           data: { clerkId },
         });
-        this.logger.log(`[Login] Mecánico actualizado con nuevo clerkId: ${clerkId}`);
+        this.logger.log(
+          `[Login] Mecánico actualizado con nuevo clerkId: ${clerkId}`,
+        );
       }
 
       const token = this.jwtService.signToken({
@@ -176,7 +191,9 @@ export class AuthMobileController {
         name: mechanic.nombre,
       });
 
-      this.logger.log(`[Login] JWT generado: sub=${clerkId}, role=mechanic, workshopId=${mechanic.workshopId}`);
+      this.logger.log(
+        `[Login] JWT generado: sub=${clerkId}, role=mechanic, workshopId=${mechanic.workshopId}`,
+      );
 
       return {
         success: true,
@@ -188,7 +205,9 @@ export class AuthMobileController {
       };
     }
 
-    this.logger.log(`[Login] No se encontró mecánico con email "${emailClean}", buscando en clientes...`);
+    this.logger.log(
+      `[Login] No se encontró mecánico con email "${emailClean}", buscando en clientes...`,
+    );
 
     // Buscar en cliente por email
     const client = await this.prisma.client$.cliente.findFirst({
@@ -196,12 +215,16 @@ export class AuthMobileController {
     });
 
     if (client) {
-      this.logger.log(`[Login] Cliente encontrado: id=${client.id}, email="${client.email}", clerkId=${client.clerkId}, status=${client.status}, passwordHash=${client.passwordHash ? 'SI' : 'NO'}`);
+      this.logger.log(
+        `[Login] Cliente encontrado: id=${client.id}, email="${client.email}", clerkId=${client.clerkId}, status=${client.status}, passwordHash=${client.passwordHash ? 'SI' : 'NO'}`,
+      );
 
       if (!client.passwordHash) {
         // Cliente sin passwordHash (creado por admin): primer login
         // Guardar el password que usa como hash para futuros logins
-        this.logger.log(`[Login] Cliente sin passwordHash → guardando password del primer login`);
+        this.logger.log(
+          `[Login] Cliente sin passwordHash → guardando password del primer login`,
+        );
         const newHash = await bcrypt.hash(password, 10);
         await this.prisma.client$.cliente.update({
           where: { id: client.id },
@@ -222,7 +245,9 @@ export class AuthMobileController {
           where: { id: client.id },
           data: { clerkId },
         });
-        this.logger.log(`[Login] Cliente actualizado con nuevo clerkId: ${clerkId}`);
+        this.logger.log(
+          `[Login] Cliente actualizado con nuevo clerkId: ${clerkId}`,
+        );
       }
 
       const token = this.jwtService.signToken({

@@ -21,7 +21,9 @@ export class HttpLoggerMiddleware implements NestMiddleware {
 
     // Log auth header (first 30 chars only)
     const authHeader = req.headers.authorization;
-    const authPreview = authHeader ? authHeader.substring(0, 30) + '...' : 'none';
+    const authPreview = authHeader
+      ? authHeader.substring(0, 30) + '...'
+      : 'none';
 
     this.logger.log(`→ ${method} ${originalUrl}`);
     this.logger.log(`  Body: ${JSON.stringify(body)}`);
@@ -32,7 +34,9 @@ export class HttpLoggerMiddleware implements NestMiddleware {
       const duration = Date.now() - start;
       const status = res.statusCode;
       const emoji = status >= 400 ? '❌' : '✅';
-      this.logger.log(`${emoji} ${method} ${originalUrl} → ${status} (${duration}ms)`);
+      this.logger.log(
+        `${emoji} ${method} ${originalUrl} → ${status} (${duration}ms)`,
+      );
     });
 
     next();

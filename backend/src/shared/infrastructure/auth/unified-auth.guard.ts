@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+  Logger,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { MobileJwtService } from './jwt.service';
 
@@ -37,7 +43,9 @@ export class UnifiedAuthGuard implements CanActivate {
     try {
       const payload = this.jwtService.verifyToken(token);
       if (process.env.LOG_LEVEL === 'debug') {
-        this.logger.log(`[Auth] JWT verified → sub=${payload.sub}, role=${payload.role}, workshopId=${payload.workshopId}`);
+        this.logger.log(
+          `[Auth] JWT verified → sub=${payload.sub}, role=${payload.role}, workshopId=${payload.workshopId}`,
+        );
       }
       (request as any).auth = {
         userId: payload.sub,

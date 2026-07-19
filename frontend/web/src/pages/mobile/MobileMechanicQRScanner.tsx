@@ -48,7 +48,8 @@ export default function MobileMechanicQRScanner() {
 
   const goToVehicle = () => {
     if (result?.vehicleExists && result.vehicle) {
-      navigate(`/mobile/mechanic/vehicle/${result.vehicle.id}`)
+      const vid = result.vehicle.id ?? result.vehicle.vehicleId
+      navigate(`/mobile/mechanic/vehicle/${vid}`)
     }
   }
 
@@ -90,7 +91,10 @@ export default function MobileMechanicQRScanner() {
               {result.vehicleExists ? (
                 <div className="flex gap-2 mt-3">
                   <button
-                    onClick={() => navigate(`/mobile/mechanic/vehicle/${result.vehicle.id}/intervene`)}
+                    onClick={() => {
+                      const vid = result.vehicle.id ?? result.vehicle.vehicleId
+                      navigate(`/mobile/mechanic/vehicle/${vid}/intervene`)
+                    }}
                     className="flex-1 bg-[#27AE60] text-white py-2 rounded-lg text-xs font-bold"
                   >
                     Registrar Intervencion

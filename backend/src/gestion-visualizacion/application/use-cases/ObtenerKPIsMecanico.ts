@@ -12,14 +12,16 @@ export class ObtenerKPIsMecanico {
   async ejecutar(clerkId: string): Promise<KPIsMecanico> {
     const isDebug = process.env.LOG_LEVEL === 'debug';
 
-    if (isDebug) this.logger.log(`[KPI-Mec] Buscando mecánico con clerkId="${clerkId}"`);
+    if (isDebug)
+      this.logger.log(`[KPI-Mec] Buscando mecánico con clerkId="${clerkId}"`);
 
     const mechanic = await this.prisma.client$.mechanic.findFirst({
       where: { clerkId },
     });
 
     if (!mechanic) {
-      if (isDebug) this.logger.warn(`[KPI-Mec] Mecánico NO encontrado → retornando zeros`);
+      if (isDebug)
+        this.logger.warn(`[KPI-Mec] Mecánico NO encontrado → retornando zeros`);
       return {
         totalIntervenciones: 0,
         intervencionesMes: 0,
@@ -30,7 +32,10 @@ export class ObtenerKPIsMecanico {
       };
     }
 
-    if (isDebug) this.logger.log(`[KPI-Mec] Mecánico encontrado: id=${mechanic.id}, workshopId=${mechanic.workshopId}`);
+    if (isDebug)
+      this.logger.log(
+        `[KPI-Mec] Mecánico encontrado: id=${mechanic.id}, workshopId=${mechanic.workshopId}`,
+      );
 
     const now = new Date();
     const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -77,11 +82,17 @@ export class ObtenerKPIsMecanico {
     ]);
 
     if (isDebug) {
-      this.logger.log(`[KPI-Mec] intervention.count(total): ${totalIntervenciones}`);
-      this.logger.log(`[KPI-Mec] intervention.count(mes): ${intervencionesMes}`);
+      this.logger.log(
+        `[KPI-Mec] intervention.count(total): ${totalIntervenciones}`,
+      );
+      this.logger.log(
+        `[KPI-Mec] intervention.count(mes): ${intervencionesMes}`,
+      );
       this.logger.log(`[KPI-Mec] vehicle.distinct: ${vehiculosAtendidos}`);
       this.logger.log(`[KPI-Mec] cliente.distinct: ${clientesAtendidos}`);
-      this.logger.log(`[KPI-Mec] intervention.aggregate(manoDeObra): ${Number(ingresosGenerados._sum.manoDeObra ?? 0)}`);
+      this.logger.log(
+        `[KPI-Mec] intervention.aggregate(manoDeObra): ${Number(ingresosGenerados._sum.manoDeObra ?? 0)}`,
+      );
       this.logger.log(`[KPI-Mec] alertaPredictiva.count: ${alertasAsignadas}`);
     }
 

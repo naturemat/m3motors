@@ -205,7 +205,9 @@ export class AdminController {
     const passwordHash = await bcrypt.hash(tempPassword, 10);
 
     // Generate email if not provided
-    const mechanicEmail = dto.email ?? `${dto.nombre.toLowerCase().replace(/\s/g, '.')}@m3motors.local`;
+    const mechanicEmail =
+      dto.email ??
+      `${dto.nombre.toLowerCase().replace(/\s/g, '.')}@m3motors.local`;
 
     let clerkUserId: string | null = null;
 

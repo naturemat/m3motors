@@ -25,7 +25,10 @@ export class CreateVehicleDTO {
   @IsString()
   tipoMotor?: string;
 
-  @ApiPropertyOptional({ example: 1, description: 'ID del cliente propietario' })
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'ID del cliente propietario',
+  })
   @IsOptional()
   @IsNumber()
   clienteId?: number;

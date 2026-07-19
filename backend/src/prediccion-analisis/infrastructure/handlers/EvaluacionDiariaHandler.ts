@@ -64,7 +64,9 @@ export class EvaluacionDiariaHandler {
   private async evaluarVehiculo(vehiculo: any): Promise<void> {
     const ultimaIntervencion = vehiculo.intervenciones[0];
     if (!ultimaIntervencion) {
-      this.logger.warn(`Vehículo ${vehiculo.placa} (${vehiculo.id}): sin intervenciones FINALIZADAS — saltando`);
+      this.logger.warn(
+        `Vehículo ${vehiculo.placa} (${vehiculo.id}): sin intervenciones FINALIZADAS — saltando`,
+      );
       return;
     }
 
@@ -82,11 +84,15 @@ export class EvaluacionDiariaHandler {
     }));
 
     if (componentes.length === 0) {
-      this.logger.warn(`Vehículo ${vehiculo.placa} (${vehiculo.id}): sin detalles de componentes en última intervención — saltando`);
+      this.logger.warn(
+        `Vehículo ${vehiculo.placa} (${vehiculo.id}): sin detalles de componentes en última intervención — saltando`,
+      );
       return;
     }
 
-    this.logger.log(`Vehículo ${vehiculo.placa} (${vehiculo.id}): kmEst=${kmActual}, componentes=${componentes.map(c => c.nombre).join(', ')}`);
+    this.logger.log(
+      `Vehículo ${vehiculo.placa} (${vehiculo.id}): kmEst=${kmActual}, componentes=${componentes.map((c) => c.nombre).join(', ')}`,
+    );
 
     await this.generarPrediccion.execute({
       vehicleId: String(vehiculo.id),

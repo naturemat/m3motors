@@ -45,11 +45,15 @@ export class ClientDashboardController {
     });
 
     if (!cliente) {
-      this.logger.warn(`[ClientVehiculos] Cliente no encontrado para userId=${userId}`);
+      this.logger.warn(
+        `[ClientVehiculos] Cliente no encontrado para userId=${userId}`,
+      );
       return { vehiculos: [] };
     }
 
-    this.logger.log(`[ClientVehiculos] Cliente encontrado: id=${cliente.id}, email="${cliente.email}", status=${cliente.status}`);
+    this.logger.log(
+      `[ClientVehiculos] Cliente encontrado: id=${cliente.id}, email="${cliente.email}", status=${cliente.status}`,
+    );
 
     const vehiculos = await this.prisma.client$.vehicle.findMany({
       where: { clienteId: cliente.id },
@@ -61,14 +65,22 @@ export class ClientDashboardController {
           include: { mecanico: true },
         },
         alertas: {
-          where: { estadoAlerta: { in: ['ACTIVA', 'PENDIENTE', 'activa', 'pendiente'] } },
+          where: {
+            estadoAlerta: {
+              in: ['ACTIVA', 'PENDIENTE', 'activa', 'pendiente'],
+            },
+          },
         },
       },
     });
 
-    this.logger.log(`[ClientVehiculos] Vehículos encontrados: ${vehiculos.length}`);
-    vehiculos.forEach(v => {
-      this.logger.log(`  → id=${v.id}, placa=${v.placa}, marca=${v.marca}, modelo=${v.modelo}, status=${v.status}, intervenciones=${v.intervenciones.length}`);
+    this.logger.log(
+      `[ClientVehiculos] Vehículos encontrados: ${vehiculos.length}`,
+    );
+    vehiculos.forEach((v) => {
+      this.logger.log(
+        `  → id=${v.id}, placa=${v.placa}, marca=${v.marca}, modelo=${v.modelo}, status=${v.status}, intervenciones=${v.intervenciones.length}`,
+      );
     });
 
     return { vehiculos };
@@ -95,7 +107,9 @@ export class ClientDashboardController {
     });
 
     const vehicleIds = vehiculos.map((v) => v.id);
-    this.logger.log(`[ClientHistorial] Vehículos del cliente: ${vehicleIds.length} → IDs: [${vehicleIds.join(', ')}]`);
+    this.logger.log(
+      `[ClientHistorial] Vehículos del cliente: ${vehicleIds.length} → IDs: [${vehicleIds.join(', ')}]`,
+    );
 
     const historial = await this.prisma.client$.intervention.findMany({
       where: { vehiculoId: { in: vehicleIds } },
@@ -107,9 +121,13 @@ export class ClientDashboardController {
       },
     });
 
-    this.logger.log(`[ClientHistorial] Intervenciones encontradas: ${historial.length}`);
-    historial.forEach(i => {
-      this.logger.log(`  → id=${i.id}, fecha=${i.fecha?.toISOString()}, estado=${i.estado}, vehiculo=${i.vehiculo?.placa ?? 'N/A'}, mecanico=${i.mecanico?.nombre ?? 'N/A'}`);
+    this.logger.log(
+      `[ClientHistorial] Intervenciones encontradas: ${historial.length}`,
+    );
+    historial.forEach((i) => {
+      this.logger.log(
+        `  → id=${i.id}, fecha=${i.fecha?.toISOString()}, estado=${i.estado}, vehiculo=${i.vehiculo?.placa ?? 'N/A'}, mecanico=${i.mecanico?.nombre ?? 'N/A'}`,
+      );
     });
 
     return { historial };

@@ -22,8 +22,8 @@ export default function MobileMechanicCustomers() {
   const fetchData = useCallback(async () => {
     try {
       const headers = { Authorization: `Bearer ${mobileUser.token}` }
-      const res = await axios.get(`${apiUrl}/admin/customers`, { headers })
-      setClientes(res.data.activeClients ?? [])
+      const res = await axios.get(`${apiUrl}/mechanic/dashboard/clientes-pendientes`, { headers })
+      setClientes(res.data.clientes ?? [])
     } catch (err) {
       console.error('[MobileMechanicCustomers] Error:', err)
     } finally {
@@ -103,10 +103,13 @@ export default function MobileMechanicCustomers() {
           <Car className="w-5 h-5" />
           <span className="text-[9px] font-bold">Vehiculo</span>
         </Link>
+        <Link to="/mobile/mechanic/manual-intervention" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+          <span className="text-[9px] font-bold">Revision</span>
+        </Link>
         <Link to="/mobile/mechanic/customers" className="flex flex-col items-center gap-1 text-[#1A5276]">
           <span className="text-[9px] font-bold">Clientes</span>
         </Link>
-        <Link to="/mobile/mechanic/interventions" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+        <Link to="/mobile/mechanic/services" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Servicios</span>
         </Link>
       </nav>

@@ -19,6 +19,7 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import crypto from 'crypto';
+import * as bcrypt from 'bcryptjs';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -199,14 +200,18 @@ export class AdminController {
     const workshop = await this.findWorkshopForAdmin(userId);
     if (!workshop) return { error: 'Taller no encontrado' };
 
-    // Generate temp password for the mechanic
+    // Generate temp password and hash it
     const tempPassword = this.generateTempPassword();
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+    // Generate email if not provided
+    const mechanicEmail = dto.email ?? `${dto.nombre.toLowerCase().replace(/\s/g, '.')}@m3motors.local`;
+
     let clerkUserId: string | null = null;
 
     try {
-      // Create Clerk user for the mechanic
       const clerkUser = await this.clerkService.createUser({
-        email: `${dto.nombre.toLowerCase().replace(/\s/g, '.')}@m3motors.local`,
+        email: mechanicEmail,
         password: tempPassword,
         firstName: dto.nombre,
         publicMetadata: { role: 'mechanic' },
@@ -214,7 +219,6 @@ export class AdminController {
 
       clerkUserId = clerkUser.id;
 
-      // Add to workshop organization
       if (workshop.clerkOrgId) {
         await this.clerkService.addMemberToOrganization(
           workshop.clerkOrgId,
@@ -230,8 +234,9 @@ export class AdminController {
       data: {
         workshopId: workshop.id,
         clerkId: clerkUserId ?? crypto.randomUUID(),
+        passwordHash,
         nombre: dto.nombre,
-        email: dto.email ?? null,
+        email: mechanicEmail,
         especialidad: dto.especialidad ?? null,
         rating: dto.rating ?? 0,
         activo: true,
@@ -241,10 +246,8 @@ export class AdminController {
 
     return {
       mechanic,
-      tempPassword: clerkUserId ? tempPassword : undefined,
-      message: clerkUserId
-        ? 'Mecánico creado. Use la contraseña temporal para iniciar sesión.'
-        : 'Mecánico creado (sin cuenta Clerk)',
+      tempPassword,
+      message: `Mecánico creado. Email: ${mechanicEmail} | Contraseña temporal: ${tempPassword}`,
     };
   }
 

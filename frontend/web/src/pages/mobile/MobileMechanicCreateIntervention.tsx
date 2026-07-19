@@ -9,7 +9,8 @@ import {
   AlertTriangle,
   Plus,
   Trash2,
-  Loader2,
+  Search,
+  X,
 } from 'lucide-react'
 
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
@@ -24,17 +25,37 @@ interface VehicleInfo {
   tipoMotor?: string
 }
 
+interface ServiceItem {
+  id: number
+  nombre: string
+  descripcion: string | null
+  categoria: string
+  precioReferencia: number | null
+}
+
+interface PartItem {
+  id: number
+  categoria: string
+  subcategoria: string
+  nombre: string
+  vidaUtilKm: number
+  marcasComunes: string | null
+}
+
 interface DetalleItem {
   componenteReemplazado: string
   tipoServicio: string
   limiteKilometraje: number
-  marcaRepuesto?: string
+  marcaRepuesto: string
+  calidadRepuesto: string
+  partsCatalogId: number | null
 }
 
 interface FotoItem {
   base64: string
   mimeType: string
-  tipo: 'ANTES' | 'DURANTE' | 'DESPUES'
+  tipo: 'ANTES' | 'DURANTE' | 'DESPUES' | 'DETALLE'
+  preview?: string
 }
 
 type Step = 'form' | 'success'
@@ -50,6 +71,7 @@ export default function MobileMechanicCreateIntervention() {
   const [error, setError] = useState<string | null>(null)
 
   const [tipoIntervencion, setTipoIntervencion] = useState('PREVENTIVO')
+  const [serviceCatalogId, setServiceCatalogId] = useState<number | null>(null)
   const [diagnostico, setDiagnostico] = useState('')
   const [severidad, setSeveridad] = useState('MEDIA')
   const [manoDeObra, setManoDeObra] = useState('')
@@ -59,16 +81,25 @@ export default function MobileMechanicCreateIntervention() {
   const [detalles, setDetalles] = useState<DetalleItem[]>([])
   const [fotos, setFotos] = useState<FotoItem[]>([])
 
+  const [services, setServices] = useState<ServiceItem[]>([])
+  const [parts, setParts] = useState<PartItem[]>([])
+  const [partsSearch, setPartsSearch] = useState('')
+  const [showPartsPicker, setShowPartsPicker] = useState<number | null>(null)
+
   const [step, setStep] = useState<Step>('form')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [result, setResult] = useState<any>(null)
 
-  const fetchVehicle = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     if (!id) return
     try {
-      const res = await axios.get(`${apiUrl}/vehicles/${id}`, { headers })
-      const v = res.data
+      const [vehicleRes, servicesRes, partsRes] = await Promise.all([
+        axios.get(`${apiUrl}/vehicles/${id}`, { headers }),
+        axios.get(`${apiUrl}/mechanic/dashboard/services`, { headers }).catch(() => ({ data: { services: [] } })),
+        axios.get(`${apiUrl}/parts-catalog`, { headers }).catch(() => ({ data: [] })),
+      ])
+      const v = vehicleRes.data
       setVehicle({
         id: v.id,
         placa: v.placa,
@@ -79,44 +110,56 @@ export default function MobileMechanicCreateIntervention() {
         tipoMotor: v.tipoMotor,
       })
       setKilometraje(String((v.ultimoKilometraje ?? 0) + 100))
+      setServices(servicesRes.data.services ?? [])
+      setParts(partsRes.data ?? [])
     } catch (err: any) {
-      setError(err?.response?.data?.error ?? 'Error al cargar vehiculo')
+      setError(err?.response?.data?.error ?? 'Error al cargar datos')
     } finally {
       setLoading(false)
     }
   }, [id])
 
   useEffect(() => {
-    void fetchVehicle()
-  }, [fetchVehicle])
+    void fetchData()
+  }, [fetchData])
 
-  const addDetalle = () => {
+  const handleServiceSelect = (service: ServiceItem) => {
+    setServiceCatalogId(service.id)
+    if (service.nombre) setDiagnostico(service.nombre)
+    if (service.precioReferencia) setManoDeObra(String(service.precioReferencia))
+  }
+
+  const addDetalle = (part?: PartItem) => {
     setDetalles([...detalles, {
-      componenteReemplazado: '',
+      componenteReemplazado: part?.nombre ?? '',
       tipoServicio: 'REEMPLAZO',
-      limiteKilometraje: 0,
-      marcaRepuesto: '',
+      limiteKilometraje: part?.vidaUtilKm ?? 0,
+      marcaRepuesto: part?.marcasComunes?.split(',')[0]?.trim() ?? '',
+      calidadRepuesto: 'ORIGINAL',
+      partsCatalogId: part?.id ?? null,
     }])
+    setShowPartsPicker(null)
+    setPartsSearch('')
   }
 
   const removeDetalle = (idx: number) => {
     setDetalles(detalles.filter((_, i) => i !== idx))
   }
 
-  const updateDetalle = (idx: number, field: keyof DetalleItem, value: string | number) => {
+  const updateDetalle = (idx: number, field: keyof DetalleItem, value: string | number | null) => {
     const updated = [...detalles]
     ;(updated[idx] as any)[field] = value
     setDetalles(updated)
   }
 
-  const handleFoto = (e: React.ChangeEvent<HTMLInputElement>, tipo: 'ANTES' | 'DURANTE' | 'DESPUES') => {
+  const handleFoto = (e: React.ChangeEvent<HTMLInputElement>, tipo: FotoItem['tipo']) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     const reader = new FileReader()
     reader.onload = () => {
       const base64 = (reader.result as string).replace(/^data:image\/\w+;base64,/, '')
-      setFotos([...fotos, { base64, mimeType: file.type, tipo }])
+      setFotos([...fotos, { base64, mimeType: file.type, tipo, preview: reader.result as string }])
     }
     reader.readAsDataURL(file)
   }
@@ -140,6 +183,7 @@ export default function MobileMechanicCreateIntervention() {
         tipoIntervencion,
         observaciones: observaciones || undefined,
         manoDeObra: manoDeObra ? parseFloat(manoDeObra) : undefined,
+        serviceCatalogId: serviceCatalogId ?? undefined,
       }
 
       if (detalles.length > 0) {
@@ -149,11 +193,17 @@ export default function MobileMechanicCreateIntervention() {
           limiteKilometraje: d.limiteKilometraje,
           tipoServicio: d.tipoServicio,
           marcaRepuesto: d.marcaRepuesto || undefined,
+          calidadRepuesto: d.calidadRepuesto || undefined,
+          partsCatalogId: d.partsCatalogId ?? undefined,
         }))
       }
 
       if (fotos.length > 0) {
-        dto.fotos = fotos
+        dto.fotos = fotos.map(f => ({
+          base64: f.base64,
+          mimeType: f.mimeType,
+          tipo: f.tipo,
+        }))
       }
 
       const res = await axios.post(`${apiUrl}/interventions`, dto, { headers })
@@ -161,18 +211,26 @@ export default function MobileMechanicCreateIntervention() {
       setStep('success')
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? 'Error al registrar intervencion'
-      setSubmitError(msg)
+      setSubmitError(Array.isArray(msg) ? msg.join(', ') : msg)
     } finally {
       setSubmitting(false)
     }
   }
 
+  const filteredParts = partsSearch
+    ? parts.filter(p =>
+        p.nombre.toLowerCase().includes(partsSearch.toLowerCase()) ||
+        p.categoria.toLowerCase().includes(partsSearch.toLowerCase()) ||
+        p.subcategoria.toLowerCase().includes(partsSearch.toLowerCase())
+      )
+    : parts.slice(0, 20)
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F4F6F7] flex items-center justify-center">
         <div className="text-center">
-          <img src="/Logo_M3Motors.png" alt="M3Motors" className="w-10 h-10 mx-auto mb-3 animate-pulse" />
-          <p className="text-[#5D6D7E] text-xs">Cargando vehiculo...</p>
+          <Loader2 className="w-8 h-8 text-[#1A5276] mx-auto mb-3 animate-spin" />
+          <p className="text-[#5D6D7E] text-xs">Cargando datos...</p>
         </div>
       </div>
     )
@@ -184,9 +242,7 @@ export default function MobileMechanicCreateIntervention() {
         <div className="text-center">
           <AlertTriangle className="w-10 h-10 text-[#E74C3C] mx-auto mb-3" />
           <p className="text-sm text-[#2C3E50] font-bold mb-2">{error}</p>
-          <button onClick={() => navigate(-1)} className="text-xs text-[#1A5276] font-bold">
-            Volver
-          </button>
+          <button onClick={() => navigate(-1)} className="text-xs text-[#1A5276] font-bold">Volver</button>
         </div>
       </div>
     )
@@ -194,17 +250,11 @@ export default function MobileMechanicCreateIntervention() {
 
   return (
     <div className="min-h-screen bg-[#F4F6F7] pb-20">
-      {/* Header */}
       <header className="bg-[#1A5276] text-white px-5 pt-10 pb-4 flex items-center gap-3">
-        <button
-          onClick={() => navigate(-1)}
-          className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center"
-        >
+        <button onClick={() => navigate(-1)} className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
           <ArrowLeft className="w-4 h-4" />
         </button>
-        <h1 className="text-base font-bold">
-          {step === 'form' ? 'Registrar Intervencion' : 'Intervencion Registrada'}
-        </h1>
+        <h1 className="text-base font-bold">{step === 'form' ? 'Registrar Intervencion' : 'Intervencion Registrada'}</h1>
       </header>
 
       {step === 'form' && (
@@ -234,17 +284,36 @@ export default function MobileMechanicCreateIntervention() {
             </div>
           )}
 
+          {/* ServiceCatalog Picker */}
+          {services.length > 0 && (
+            <div className="bg-white rounded-xl p-4 border border-[#E2E8F0]/60 space-y-2">
+              <h3 className="text-xs font-bold text-[#5D6D7E] uppercase tracking-wider">Servicio del catalogo</h3>
+              <div className="flex flex-wrap gap-2">
+                {services.map(s => (
+                  <button
+                    key={s.id}
+                    onClick={() => handleServiceSelect(s)}
+                    className={`text-[10px] font-bold px-3 py-1.5 rounded-full border transition-all ${
+                      serviceCatalogId === s.id
+                        ? 'bg-[#1A5276] text-white border-[#1A5276]'
+                        : 'bg-[#F4F6F7] text-[#5D6D7E] border-[#E2E8F0]'
+                    }`}
+                  >
+                    {s.nombre}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Datos de la intervencion */}
           <div className="bg-white rounded-xl p-4 border border-[#E2E8F0]/60 space-y-3">
             <h3 className="text-xs font-bold text-[#5D6D7E] uppercase tracking-wider">Datos de la intervencion</h3>
 
             <div>
               <label className="block text-[10px] font-bold text-[#5D6D7E] uppercase tracking-wider mb-1">Tipo de intervencion</label>
-              <select
-                value={tipoIntervencion}
-                onChange={(e) => setTipoIntervencion(e.target.value)}
-                className="w-full bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#2C3E50] focus:outline-none focus:border-[#1A5276]"
-              >
+              <select value={tipoIntervencion} onChange={(e) => setTipoIntervencion(e.target.value)}
+                className="w-full bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#2C3E50] focus:outline-none focus:border-[#1A5276]">
                 <option value="PREVENTIVO">Preventivo</option>
                 <option value="CORRECTIVO">Correctivo</option>
                 <option value="PREDICTIVO">Predictivo</option>
@@ -254,35 +323,24 @@ export default function MobileMechanicCreateIntervention() {
 
             <div>
               <label className="block text-[10px] font-bold text-[#5D6D7E] uppercase tracking-wider mb-1">Kilometraje actual</label>
-              <input
-                type="number"
-                value={kilometraje}
-                onChange={(e) => setKilometraje(e.target.value)}
+              <input type="number" value={kilometraje} onChange={(e) => setKilometraje(e.target.value)}
                 placeholder="Ej: 46000"
-                className="w-full bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#2C3E50] focus:outline-none focus:border-[#1A5276]"
-              />
+                className="w-full bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#2C3E50] focus:outline-none focus:border-[#1A5276]" />
               <p className="text-[9px] text-[#5D6D7E] mt-1">Debe ser mayor a {vehicle?.ultimoKilometraje.toLocaleString()} km</p>
             </div>
 
             <div>
               <label className="block text-[10px] font-bold text-[#5D6D7E] uppercase tracking-wider mb-1">Diagnostico *</label>
-              <textarea
-                value={diagnostico}
-                onChange={(e) => setDiagnostico(e.target.value)}
-                placeholder="Describe el diagnostico del vehiculo..."
-                rows={3}
-                className="w-full bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#2C3E50] focus:outline-none focus:border-[#1A5276] resize-none"
-              />
+              <textarea value={diagnostico} onChange={(e) => setDiagnostico(e.target.value)}
+                placeholder="Describe el diagnostico del vehiculo..." rows={3}
+                className="w-full bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#2C3E50] focus:outline-none focus:border-[#1A5276] resize-none" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-[10px] font-bold text-[#5D6D7E] uppercase tracking-wider mb-1">Severidad</label>
-                <select
-                  value={severidad}
-                  onChange={(e) => setSeveridad(e.target.value)}
-                  className="w-full bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#2C3E50] focus:outline-none focus:border-[#1A5276]"
-                >
+                <select value={severidad} onChange={(e) => setSeveridad(e.target.value)}
+                  className="w-full bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#2C3E50] focus:outline-none focus:border-[#1A5276]">
                   <option value="BAJA">Baja</option>
                   <option value="MEDIA">Media</option>
                   <option value="ALTA">Alta</option>
@@ -291,26 +349,17 @@ export default function MobileMechanicCreateIntervention() {
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-[#5D6D7E] uppercase tracking-wider mb-1">Mano de obra ($)</label>
-                <input
-                  type="number"
-                  value={manoDeObra}
-                  onChange={(e) => setManoDeObra(e.target.value)}
-                  placeholder="0.00"
-                  step="0.01"
-                  className="w-full bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#2C3E50] focus:outline-none focus:border-[#1A5276]"
-                />
+                <input type="number" value={manoDeObra} onChange={(e) => setManoDeObra(e.target.value)}
+                  placeholder="0.00" step="0.01"
+                  className="w-full bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#2C3E50] focus:outline-none focus:border-[#1A5276]" />
               </div>
             </div>
 
             <div>
               <label className="block text-[10px] font-bold text-[#5D6D7E] uppercase tracking-wider mb-1">Observaciones</label>
-              <textarea
-                value={observaciones}
-                onChange={(e) => setObservaciones(e.target.value)}
-                placeholder="Notas adicionales..."
-                rows={2}
-                className="w-full bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#2C3E50] focus:outline-none focus:border-[#1A5276] resize-none"
-              />
+              <textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)}
+                placeholder="Notas adicionales..." rows={2}
+                className="w-full bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#2C3E50] focus:outline-none focus:border-[#1A5276] resize-none" />
             </div>
           </div>
 
@@ -318,10 +367,46 @@ export default function MobileMechanicCreateIntervention() {
           <div className="bg-white rounded-xl p-4 border border-[#E2E8F0]/60 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-[#5D6D7E] uppercase tracking-wider">Componentes reemplazados</h3>
-              <button onClick={addDetalle} className="flex items-center gap-1 text-[10px] font-bold text-[#1A5276]">
-                <Plus className="w-3 h-3" /> Agregar
-              </button>
+              <div className="flex gap-2">
+                {parts.length > 0 && (
+                  <button onClick={() => setShowPartsPicker(showPartsPicker === null ? -1 : null)}
+                    className="flex items-center gap-1 text-[10px] font-bold text-[#2E86C1]">
+                    <Search className="w-3 h-3" /> Catalogo
+                  </button>
+                )}
+                <button onClick={() => addDetalle()} className="flex items-center gap-1 text-[10px] font-bold text-[#1A5276]">
+                  <Plus className="w-3 h-3" /> Manual
+                </button>
+              </div>
             </div>
+
+            {/* Parts Catalog Picker */}
+            {showPartsPicker !== null && (
+              <div className="bg-[#F4F6F7] rounded-xl p-3 space-y-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[#5D6D7E]" />
+                  <input type="text" value={partsSearch} onChange={(e) => setPartsSearch(e.target.value)}
+                    placeholder="Buscar pieza..."
+                    className="w-full bg-white border border-[#E2E8F0] rounded-lg pl-8 pr-3 py-2 text-xs text-[#2C3E50] focus:outline-none focus:border-[#1A5276]" />
+                </div>
+                <div className="max-h-40 overflow-y-auto space-y-1">
+                  {filteredParts.map(p => (
+                    <button key={p.id} onClick={() => addDetalle(p)}
+                      className="w-full text-left bg-white rounded-lg p-2 border border-[#E2E8F0]/60 hover:border-[#1A5276] transition-colors">
+                      <p className="text-[10px] font-bold text-[#2C3E50]">{p.nombre}</p>
+                      <p className="text-[9px] text-[#5D6D7E]">{p.categoria} / {p.subcategoria} - {p.vidaUtilKm.toLocaleString()} km</p>
+                    </button>
+                  ))}
+                  {filteredParts.length === 0 && (
+                    <p className="text-[10px] text-[#5D6D7E] text-center py-2">No se encontraron piezas</p>
+                  )}
+                </div>
+                <button onClick={() => { setShowPartsPicker(null); setPartsSearch('') }}
+                  className="w-full text-[10px] font-bold text-[#5D6D7E] py-1">
+                  Cerrar
+                </button>
+              </div>
+            )}
 
             {detalles.length === 0 && (
               <p className="text-[10px] text-[#5D6D7E]">Sin componentes registrados</p>
@@ -335,40 +420,38 @@ export default function MobileMechanicCreateIntervention() {
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
-                <input
-                  type="text"
-                  value={d.componenteReemplazado}
+                <input type="text" value={d.componenteReemplazado}
                   onChange={(e) => updateDetalle(idx, 'componenteReemplazado', e.target.value)}
                   placeholder="Nombre del componente"
-                  className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs text-[#2C3E50] focus:outline-none focus:border-[#1A5276]"
-                />
+                  className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs text-[#2C3E50] focus:outline-none focus:border-[#1A5276]" />
                 <div className="grid grid-cols-2 gap-2">
-                  <select
-                    value={d.tipoServicio}
+                  <select value={d.tipoServicio}
                     onChange={(e) => updateDetalle(idx, 'tipoServicio', e.target.value)}
-                    className="bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs text-[#2C3E50] focus:outline-none focus:border-[#1A5276]"
-                  >
+                    className="bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs text-[#2C3E50] focus:outline-none focus:border-[#1A5276]">
                     <option value="REEMPLAZO">Reemplazo</option>
                     <option value="REPARACION">Reparacion</option>
                     <option value="LUBRICACION">Lubricacion</option>
                     <option value="AJUSTE">Ajuste</option>
                     <option value="LIMPIEZA">Limpieza</option>
                   </select>
-                  <input
-                    type="number"
-                    value={d.limiteKilometraje || ''}
+                  <select value={d.calidadRepuesto}
+                    onChange={(e) => updateDetalle(idx, 'calidadRepuesto', e.target.value)}
+                    className="bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs text-[#2C3E50] focus:outline-none focus:border-[#1A5276]">
+                    <option value="ORIGINAL">Original</option>
+                    <option value="ALTERNATIVO">Alternativo</option>
+                    <option value="REACONDICIONADO">Reacondicionado</option>
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <input type="number" value={d.limiteKilometraje || ''}
                     onChange={(e) => updateDetalle(idx, 'limiteKilometraje', parseInt(e.target.value) || 0)}
                     placeholder="Limite km"
-                    className="bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs text-[#2C3E50] focus:outline-none focus:border-[#1A5276]"
-                  />
+                    className="bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs text-[#2C3E50] focus:outline-none focus:border-[#1A5276]" />
+                  <input type="text" value={d.marcaRepuesto}
+                    onChange={(e) => updateDetalle(idx, 'marcaRepuesto', e.target.value)}
+                    placeholder="Marca repuesto"
+                    className="bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs text-[#2C3E50] focus:outline-none focus:border-[#1A5276]" />
                 </div>
-                <input
-                  type="text"
-                  value={d.marcaRepuesto ?? ''}
-                  onChange={(e) => updateDetalle(idx, 'marcaRepuesto', e.target.value)}
-                  placeholder="Marca del repuesto (opcional)"
-                  className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs text-[#2C3E50] focus:outline-none focus:border-[#1A5276]"
-                />
               </div>
             ))}
           </div>
@@ -377,20 +460,15 @@ export default function MobileMechanicCreateIntervention() {
           <div className="bg-white rounded-xl p-4 border border-[#E2E8F0]/60 space-y-3">
             <h3 className="text-xs font-bold text-[#5D6D7E] uppercase tracking-wider">Fotos</h3>
 
-            <div className="grid grid-cols-3 gap-2">
-              {(['ANTES', 'DURANTE', 'DESPUES'] as const).map((tipo) => (
+            <div className="grid grid-cols-4 gap-2">
+              {(['ANTES', 'DURANTE', 'DESPUES', 'DETALLE'] as const).map((tipo) => (
                 <label key={tipo} className="block">
-                  <div className="bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl p-3 text-center cursor-pointer active:scale-95 transition-transform">
-                    <Camera className="w-5 h-5 text-[#5D6D7E] mx-auto mb-1" />
-                    <span className="text-[9px] font-bold text-[#5D6D7E]">{tipo}</span>
+                  <div className="bg-[#F4F6F7] border border-[#E2E8F0] rounded-xl p-2 text-center cursor-pointer active:scale-95 transition-transform">
+                    <Camera className="w-4 h-4 text-[#5D6D7E] mx-auto mb-0.5" />
+                    <span className="text-[8px] font-bold text-[#5D6D7E]">{tipo}</span>
                   </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={(e) => handleFoto(e, tipo)}
-                    className="hidden"
-                  />
+                  <input type="file" accept="image/*" capture="environment"
+                    onChange={(e) => handleFoto(e, tipo)} className="hidden" />
                 </label>
               ))}
             </div>
@@ -399,10 +477,17 @@ export default function MobileMechanicCreateIntervention() {
               <div className="flex gap-2 flex-wrap">
                 {fotos.map((f, idx) => (
                   <div key={idx} className="relative">
-                    <div className="bg-[#EBF5FB] rounded-lg px-2 py-1 flex items-center gap-1">
-                      <span className="text-[9px] font-bold text-[#1A5276]">{f.tipo}</span>
-                      <button onClick={() => removeFoto(idx)} className="text-[#E74C3C]">
-                        <Trash2 className="w-3 h-3" />
+                    {f.preview ? (
+                      <img src={f.preview} alt={f.tipo} className="w-16 h-16 object-cover rounded-lg border border-[#E2E8F0]" />
+                    ) : (
+                      <div className="w-16 h-16 bg-[#EBF5FB] rounded-lg flex items-center justify-center">
+                        <Camera className="w-4 h-4 text-[#1A5276]" />
+                      </div>
+                    )}
+                    <div className="absolute -top-1 -right-1 flex items-center gap-0.5">
+                      <span className="text-[7px] font-bold text-white bg-[#1A5276] px-1 rounded">{f.tipo}</span>
+                      <button onClick={() => removeFoto(idx)} className="w-4 h-4 bg-[#E74C3C] rounded-full flex items-center justify-center">
+                        <X className="w-2.5 h-2.5 text-white" />
                       </button>
                     </div>
                   </div>
@@ -417,16 +502,13 @@ export default function MobileMechanicCreateIntervention() {
             </div>
           )}
 
-          {/* Submit */}
-          <button
-            onClick={handleSubmit}
+          <button onClick={handleSubmit}
             disabled={submitting || !kilometraje || !diagnostico}
             className={`w-full py-3.5 rounded-xl text-sm font-bold transition-all ${
               submitting || !kilometraje || !diagnostico
                 ? 'bg-[#E2E8F0] text-[#5D6D7E]'
                 : 'bg-[#27AE60] text-white active:scale-95'
-            }`}
-          >
+            }`}>
             {submitting ? 'Registrando...' : 'Registrar Intervencion'}
           </button>
         </div>
@@ -439,29 +521,27 @@ export default function MobileMechanicCreateIntervention() {
               <CheckCircle className="w-8 h-8 text-[#27AE60]" />
             </div>
             <h2 className="text-lg font-bold text-[#2C3E50] mb-1">Intervencion Registrada</h2>
-            <p className="text-xs text-[#5D6D7E] mb-4">
-              El servicio ha sido registrado exitosamente.
-            </p>
+            <p className="text-xs text-[#5D6D7E] mb-2">El servicio ha sido registrado exitosamente.</p>
+            {result?.intervention?.fotos && result.intervention.fotos.length > 0 && (
+              <p className="text-[10px] text-[#27AE60] font-bold">{result.intervention.fotos.length} foto(s) subida(s)</p>
+            )}
+            {result?.intervention?.detalles && result.intervention.detalles.length > 0 && (
+              <p className="text-[10px] text-[#27AE60] font-bold">{result.intervention.detalles.length} componente(s) registrado(s)</p>
+            )}
           </div>
-
           <div className="flex gap-3">
-            <button
-              onClick={() => navigate('/mobile/mechanic')}
-              className="flex-1 bg-[#1A5276] text-white py-3 rounded-xl text-xs font-bold active:scale-95 transition-transform"
-            >
+            <button onClick={() => navigate('/mobile/mechanic')}
+              className="flex-1 bg-[#1A5276] text-white py-3 rounded-xl text-xs font-bold active:scale-95 transition-transform">
               Volver al inicio
             </button>
-            <button
-              onClick={() => navigate(`/mobile/mechanic/vehicle/${id}`)}
-              className="flex-1 bg-white border border-[#E2E8F0] text-[#2C3E50] py-3 rounded-xl text-xs font-bold active:scale-95 transition-transform"
-            >
+            <button onClick={() => navigate(`/mobile/mechanic/vehicle/${id}`)}
+              className="flex-1 bg-white border border-[#E2E8F0] text-[#2C3E50] py-3 rounded-xl text-xs font-bold active:scale-95 transition-transform">
               Ver historial
             </button>
           </div>
         </div>
       )}
 
-      {/* Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E2E8F0] flex justify-around items-center h-16 z-40">
         <button onClick={() => navigate('/mobile/mechanic')} className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Inicio</span>
@@ -471,6 +551,9 @@ export default function MobileMechanicCreateIntervention() {
         </button>
         <button onClick={() => navigate('/mobile/mechanic/register-vehicle')} className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Vehiculo</span>
+        </button>
+        <button onClick={() => navigate('/mobile/mechanic/manual-intervention')} className="flex flex-col items-center gap-1 text-[#1A5276]">
+          <span className="text-[9px] font-bold">Revision</span>
         </button>
         <button onClick={() => navigate('/mobile/mechanic/customers')} className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Clientes</span>

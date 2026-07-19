@@ -182,7 +182,48 @@ export default function MobileMechanicVehicleHistory() {
                     {intervencion.diagnostico && (
                       <p className="text-[10px] text-[#5D6D7E] mb-2">{intervencion.diagnostico}</p>
                     )}
-                    <div className="flex items-center gap-3 text-[10px] text-[#5D6D7E]">
+                    {intervencion.mecanico && (
+                      <p className="text-[10px] text-[#2E86C1] font-bold mb-1">
+                        Mecanico: {intervencion.mecanico.nombre}
+                      </p>
+                    )}
+                    {intervencion.manoDeObra && (
+                      <p className="text-[10px] text-[#27AE60] font-bold mb-1">
+                        Mano de obra: ${Number(intervencion.manoDeObra).toFixed(2)}
+                      </p>
+                    )}
+                    {intervencion.detalles && intervencion.detalles.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {intervencion.detalles.map((d: any, i: number) => (
+                          <div key={i} className="bg-[#F4F6F7] rounded-lg p-2 flex items-center gap-2">
+                            <span className="text-[9px] font-bold text-[#1A5276]">{d.tipoServicio}</span>
+                            <span className="text-[9px] text-[#2C3E50]">{d.componenteReemplazado}</span>
+                            {d.marcaRepuesto && (
+                              <span className="text-[9px] text-[#5D6D7E]">({d.marcaRepuesto})</span>
+                            )}
+                            {d.calidadRepuesto && (
+                              <span className={`text-[8px] font-bold px-1 rounded ${
+                                d.calidadRepuesto === 'ORIGINAL' ? 'bg-[#D5F5E3] text-[#27AE60]' : 'bg-[#FEF9E7] text-[#F39C12]'
+                              }`}>{d.calidadRepuesto}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {intervencion.fotos && intervencion.fotos.length > 0 && (
+                      <div className="mt-2 flex gap-2 overflow-x-auto">
+                        {intervencion.fotos.map((foto: any, i: number) => (
+                          <div key={i} className="relative shrink-0">
+                            <img src={foto.url} alt={foto.tipo}
+                              className="w-20 h-20 object-cover rounded-lg border border-[#E2E8F0]" />
+                            <span className="absolute bottom-0.5 left-0.5 text-[7px] font-bold text-white bg-[#1A5276] px-1 rounded">
+                              {foto.tipo}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3 text-[10px] text-[#5D6D7E] mt-2">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {new Date(intervencion.fecha).toLocaleDateString('es-ES')}
@@ -216,10 +257,13 @@ export default function MobileMechanicVehicleHistory() {
           <Car className="w-5 h-5" />
           <span className="text-[9px] font-bold">Vehiculo</span>
         </Link>
+        <Link to="/mobile/mechanic/manual-intervention" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+          <span className="text-[9px] font-bold">Revision</span>
+        </Link>
         <Link to="/mobile/mechanic/customers" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Clientes</span>
         </Link>
-        <Link to="/mobile/mechanic/interventions" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
+        <Link to="/mobile/mechanic/services" className="flex flex-col items-center gap-1 text-[#5D6D7E]">
           <span className="text-[9px] font-bold">Servicios</span>
         </Link>
       </nav>

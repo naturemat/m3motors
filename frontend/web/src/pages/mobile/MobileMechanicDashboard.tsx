@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
 import {
@@ -56,27 +56,26 @@ export default function MobileMechanicDashboard() {
   const [loading, setLoading] = useState(true)
   const mobileUser = JSON.parse(localStorage.getItem('mobile_user') ?? '{}')
 
-  const fetchData = useCallback(async () => {
-    try {
-      const headers = { Authorization: `Bearer ${mobileUser.token}` }
-
-      const [kpisRes, clientesRes] = await Promise.all([
-        axios.get(`${apiUrl}/mechanic/dashboard/kpis`, { headers }),
-        axios.get(`${apiUrl}/mechanic/dashboard/clientes-pendientes`, { headers }),
-      ])
-
-      if (kpisRes.data) setKpis(kpisRes.data)
-      setClientesPendientes(clientesRes.data.clientes ?? [])
-    } catch (err) {
-      console.error('[MobileMechanicDashboard] Error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
+    async function fetchData() {
+      try {
+        const headers = { Authorization: `Bearer ${mobileUser.token}` }
+
+        const [kpisRes, clientesRes] = await Promise.all([
+          axios.get(`${apiUrl}/mechanic/dashboard/kpis`, { headers }),
+          axios.get(`${apiUrl}/mechanic/dashboard/clientes-pendientes`, { headers }),
+        ])
+
+        if (kpisRes.data) setKpis(kpisRes.data)
+        setClientesPendientes(clientesRes.data.clientes ?? [])
+      } catch (err) {
+        console.error('[MobileMechanicDashboard] Error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
     void fetchData()
-  }, [fetchData])
+  }, [])
 
   const handleLogout = () => {
     localStorage.removeItem('mobile_user')

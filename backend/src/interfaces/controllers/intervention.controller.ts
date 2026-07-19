@@ -13,6 +13,7 @@ import {
   HttpCode,
   BadRequestException,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -27,6 +28,11 @@ import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service
 import { SupabaseStorageService } from '../../shared/infrastructure/storage/supabase-storage.service';
 import { CreateInterventionDTO } from '../../application/dto/CreateInterventionDTO';
 import { NotificationService } from '../../notification/notification.service';
+import {
+  IDomainEventPublisher,
+  IDOMAIN_EVENT_PUBLISHER,
+} from '../../shared/domain/ports/events/IDomainEventPublisher';
+import { IntervencionRegistradaEvent } from '../../registro-seguimiento/domain/events/IntervencionRegistradaEvent';
 
 @ApiTags('Interventions')
 @ApiBearerAuth()
@@ -39,6 +45,8 @@ export class InterventionController {
     private readonly prisma: PrismaService,
     private readonly storageService: SupabaseStorageService,
     private readonly notificationService: NotificationService,
+    @Inject(IDOMAIN_EVENT_PUBLISHER)
+    private readonly eventPublisher: IDomainEventPublisher,
   ) {}
 
   @Get()
@@ -169,6 +177,42 @@ export class InterventionController {
         return createdIntervention;
       },
     );
+
+    // 3.5. Publicar evento para predicción de desgaste
+    try {
+      const vehiculoData = await this.prisma.client$.vehicle.findUnique({
+        where: { id: dto.vehiculoId },
+        select: { placa: true, clienteId: true },
+      });
+
+      const evento = new IntervencionRegistradaEvent({
+        intervencionId: String(intervention.id),
+        vehicleId: String(dto.vehiculoId),
+        placa: vehiculoData?.placa ?? '',
+        mecanicoId: String(mechanic.id),
+        workshopId: String(mechanic.workshopId),
+        diagnostico: {
+          fallaDetectada: dto.diagnostico ?? '',
+          observacionesMecanico: dto.observaciones ?? '',
+          nivelSeveridad: (dto.severidad as any) ?? 'BAJA',
+        },
+        componentesSustituidos: (dto.detalles ?? []).map((d) => ({
+          componenteId: String(d.componenteReemplazado),
+          nombre: d.componenteReemplazado,
+          kilometrajeInstalacion: dto.kilometrajeOdometro,
+          limiteKilometrajeFabricante: d.limiteKilometraje,
+        })),
+        manoDeObra: dto.manoDeObra ?? 0,
+      });
+
+      await this.eventPublisher.publish(
+        IntervencionRegistradaEvent.EVENT_NAME,
+        evento.toPayload(),
+      );
+      this.logger.log(`Evento intervencion.registrada publicado para vehículo ${dto.vehiculoId}`);
+    } catch (eventError) {
+      this.logger.error(`Error publicando evento de predicción: ${String(eventError)}`);
+    }
 
     // 4. Subir fotos a Supabase Storage si existen
     if (dto.fotos && dto.fotos.length > 0) {

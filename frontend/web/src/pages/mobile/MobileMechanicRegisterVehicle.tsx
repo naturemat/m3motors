@@ -30,8 +30,8 @@ export default function MobileMechanicRegisterVehicle() {
 
   const [step, setStep] = useState<Step>('photo')
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
-  const [photoBase64, setPhotoBase64] = useState<string | null>(null)
-  const [mimeType, setMimeType] = useState('image/jpeg')
+  const [_photoBase64, setPhotoBase64] = useState<string | null>(null)
+  const [_mimeType, setMimeType] = useState('image/jpeg')
   const [recognizing, setRecognizing] = useState(false)
   const [ocrError, setOcrError] = useState<string | null>(null)
 

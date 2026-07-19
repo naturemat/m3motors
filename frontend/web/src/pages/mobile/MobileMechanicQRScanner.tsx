@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Search, Camera, Car } from 'lucide-react'
+import { ArrowLeft, Search, Camera } from 'lucide-react'
 import axios from 'axios'
 
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'

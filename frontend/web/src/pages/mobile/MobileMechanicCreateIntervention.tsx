@@ -11,6 +11,7 @@ import {
   Trash2,
   Search,
   X,
+  Loader2,
 } from 'lucide-react'
 
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'

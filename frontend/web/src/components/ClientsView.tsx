@@ -165,7 +165,6 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
                   <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Teléfono</th>
                   <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Placa</th>
                   <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Vehículo</th>
-                  <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Último Servicio</th>
                   <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider">Estado</th>
                   <th className="px-6 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Acciones</th>
                 </tr>
@@ -173,7 +172,7 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
               <tbody className="divide-y divide-slate-100">
                 {pagedClients.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-slate-400 text-sm">
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-400 text-sm">
                       No se encontraron clientes registrados que coincidan con la búsqueda.
                     </td>
                   </tr>
@@ -203,7 +202,6 @@ export default function ClientsView({ clients, addClient, deleteClient }: Client
                             {client.vehicleModel}
                           </span>
                         </td>
-                        <td className="px-6 py-4 font-normal text-slate-500 text-xs">{client.lastService}</td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                             client.status === 'Activo'

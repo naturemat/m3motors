@@ -8,7 +8,6 @@ import {
   LogOut,
   Car,
   QrCode,
-  Activity,
 } from 'lucide-react'
 
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
@@ -120,14 +119,6 @@ export default function MobileMechanicDashboard() {
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white rounded-xl p-4 shadow-sm border border-[#E2E8F0]/60">
             <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-4 h-4 text-[#1A5276]" />
-              <span className="text-[9px] text-[#5D6D7E] font-bold uppercase">Intervenciones</span>
-            </div>
-            <p className="text-xl font-bold text-[#2C3E50]">{kpis?.totalIntervenciones ?? 0}</p>
-          </div>
-
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-[#E2E8F0]/60">
-            <div className="flex items-center gap-2 mb-2">
               <Car className="w-4 h-4 text-[#27AE60]" />
               <span className="text-[9px] text-[#5D6D7E] font-bold uppercase">Vehiculos</span>
             </div>
@@ -188,17 +179,6 @@ export default function MobileMechanicDashboard() {
             <div>
               <p className="text-xs font-bold text-[#2C3E50]">Clientes</p>
               <p className="text-[10px] text-[#5D6D7E]">Ver listado</p>
-            </div>
-          </Link>
-
-          <Link
-            to="/mobile/mechanic/services"
-            className="bg-white rounded-xl p-4 flex items-center gap-3 border border-[#E2E8F0]/60 active:scale-95 transition-transform"
-          >
-            <Wrench className="w-6 h-6 text-[#F39C12]" />
-            <div>
-              <p className="text-xs font-bold text-[#2C3E50]">Servicios</p>
-              <p className="text-[10px] text-[#5D6D7E]">Historial</p>
             </div>
           </Link>
         </div>

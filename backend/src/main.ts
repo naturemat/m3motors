@@ -54,6 +54,7 @@ async function bootstrap() {
   app.use(express.json({ limit: '50mb' }));
 
   // Configurar Swagger
+  const swaggerPort = process.env.APP_PORT ?? 3000;
   const config = new DocumentBuilder()
     .setTitle('M3Motors API')
     .setDescription(
@@ -61,10 +62,20 @@ async function bootstrap() {
     )
     .setVersion('1.0')
     .addBearerAuth()
-    .addTag('Auth', 'Autenticación y perfil de usuario')
+    .addServer(`http://localhost:${swaggerPort}`, 'Local')
+    .addServer('https://api.m3motors.me', 'Producción')
+    .addTag('Auth Mobile', 'Login y registro de clientes/mecánicos (mobile)')
+    .addTag('Auth', 'Autenticación Clerk (web admin)')
+    .addTag('Admin', 'Gestión de taller (mecánicos, servicios, clientes, órdenes)')
     .addTag('Vehicles', 'Gestión de vehículos')
     .addTag('Interventions', 'Gestión de intervenciones mecánicas')
     .addTag('Alerts', 'Alertas predictivas de mantenimiento')
+    .addTag('Mechanic Dashboard', 'Dashboard del mecánico (KPIs, vehículos, clientes)')
+    .addTag('Client Dashboard', 'Dashboard del cliente (KPIs, vehículos, historial)')
+    .addTag('Activation', 'Activación de clientes pre-registrados')
+    .addTag('Public', 'Endpoints públicos (talleres, pre-registro)')
+    .addTag('Parts Catalog', 'Catálogo de repuestos')
+    .addTag('Notifications', 'Notificaciones push y email')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

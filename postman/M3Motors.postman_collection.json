@@ -1,0 +1,1000 @@
+{
+  "info": {
+    "name": "M3Motors API",
+    "description": "API completa de M3Motors — Gestión de talleres mecánicos y mantenimiento predictivo.\n\n## Autenticación\n\n**Mobile (JWT):** Login con `/auth/login-mobile` o registro con `/auth/register`. El token JWT se guarda en la variable `{{mobile_token}}`.\n\n**Web (Clerk):** Login desde el frontend web. El token Clerk se guarda en la variable `{{clerk_token}}`.\n\n## Variables de entorno\n\nUsar `M3Motors - Localhost` o `M3Motors - Producción`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "m3motors"
+  },
+  "variable": [],
+  "item": [
+    {
+      "name": "Auth Mobile",
+      "item": [
+        {
+          "name": "Login Mobile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mathias.machin@m3motors.me\",\n  \"password\": \"M3motors2026!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login-mobile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login-mobile"]
+            },
+            "description": "Login unificado para mecánicos y clientes. Si el usuario no tiene passwordHash, se guarda el password en el primer login."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"nombre\": \"Cliente Test\",\n  \"telefono\": \"0991234567\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Registro de cliente desde mobile. Retorna JWT."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth Web (Clerk)",
+      "item": [
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Obtiene el perfil del usuario autenticado con Clerk. Retorna role, workshopId, etc."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Workshop",
+      "item": [
+        {
+          "name": "Get KPIs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/kpis",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "kpis"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Workshop",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/workshop",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "workshop"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Workshop",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Taller M3\",\n  \"direccion\": \"Av. Principal 123\",\n  \"horarios\": \"08:00 - 18:00\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/workshop",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "workshop"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Mechanics",
+      "item": [
+        {
+          "name": "List Mechanics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/mechanics",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "mechanics"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Mechanic",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Nuevo Mecánico\",\n  \"email\": \"nuevo.mecanico@m3motors.me\",\n  \"especialidad\": \"Motor\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/mechanics",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "mechanics"]
+            },
+            "description": "Crea mecánico en Clerk + DB local. Retorna tempPassword para el primer login mobile."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Mechanic",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/mechanics/{{mechanicId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "mechanics", "{{mechanicId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Services",
+      "item": [
+        {
+          "name": "List Services",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "services"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cambio de aceite\",\n  \"descripcion\": \"Servicio de cambio de aceite y filtros\",\n  \"precioReferencia\": 45,\n  \"categoria\": \"Mantenimiento\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "services"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Customers",
+      "item": [
+        {
+          "name": "List Customers",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "customers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Nuevo Cliente\",\n  \"email\": \"cliente@test.com\",\n  \"telefono\": \"0991234567\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "customers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"1\",\n  \"workshopId\": \"4\",\n  \"marca\": \"Toyota\",\n  \"modelo\": \"Corolla\",\n  \"anio\": 2020,\n  \"tipoMotor\": \"Gasolina\",\n  \"fotos\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/customers/{{customerId}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "customers", "{{customerId}}", "activate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Customer",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/customers/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "customers", "{{customerId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin - Orders",
+      "item": [
+        {
+          "name": "List Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "orders"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientName\": \"Cliente Test\",\n  \"vehicle\": \"ABC-1234\",\n  \"serviceName\": \"Cambio de aceite\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "orders"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "List Vehicles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vehicle by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/{{vehicleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", "{{vehicleId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vehicle by QR",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/qr/{{qrCode}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", "qr", "{{qrCode}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Vehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placa\": \"ABC-1234\",\n  \"marca\": \"Toyota\",\n  \"modelo\": \"Corolla\",\n  \"anio\": 2020,\n  \"tipoMotor\": \"Gasolina\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Kilometer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kilometraje\": 155000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/{{vehicleId}}/update-km",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", "{{vehicleId}}", "update-km"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate QR",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/qr/generate/{{vehicleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", "qr", "generate", "{{vehicleId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get QR Image",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/{{vehicleId}}/qr-image",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", "{{vehicleId}}", "qr-image"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Prediction",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/{{vehicleId}}/prediction",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", "{{vehicleId}}", "prediction"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Interventions",
+      "item": [
+        {
+          "name": "List Interventions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/interventions?vehicleId={{vehicleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["interventions"],
+              "query": [
+                { "key": "vehicleId", "value": "{{vehicleId}}", "disabled": true },
+                { "key": "status", "value": "FINALIZADO", "disabled": true }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Intervention",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculoId\": {{vehicleId}},\n  \"kilometrajeOdometro\": 155000,\n  \"diagnostico\": \"Cambio de aceite y filtro\",\n  \"observaciones\": \"Mantenimiento preventivo\",\n  \"severidad\": \"MEDIA\",\n  \"manoDeObra\": 25.00,\n  \"tipoIntervencion\": \"PREVENTIVO\",\n  \"detalles\": [\n    {\n      \"componenteReemplazado\": \"Filtro de aceite\",\n      \"kilometrajeInstalacion\": 155000,\n      \"limiteKilometraje\": 165000,\n      \"tipoServicio\": \"Mantenimiento preventivo\",\n      \"marcaRepuesto\": \"Bosch\",\n      \"calidadRepuesto\": \"ORIGINAL\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/interventions",
+              "host": ["{{baseUrl}}"],
+              "path": ["interventions"]
+            },
+            "description": "Registrar intervención. El kilometraje debe ser mayor al último registrado."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Mechanic Dashboard",
+      "item": [
+        {
+          "name": "Get KPIs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mechanic/dashboard/kpis",
+              "host": ["{{baseUrl}}"],
+              "path": ["mechanic", "dashboard", "kpis"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vehicles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mechanic/dashboard/vehiculos",
+              "host": ["{{baseUrl}}"],
+              "path": ["mechanic", "dashboard", "vehiculos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Workshop Clients",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mechanic/dashboard/clientes-pendientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["mechanic", "dashboard", "clientes-pendientes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Clients",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mechanic/dashboard/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["mechanic", "dashboard", "clients"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Services Catalog",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mechanic/dashboard/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["mechanic", "dashboard", "services"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Run Prediction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mechanic/dashboard/run-prediction",
+              "host": ["{{baseUrl}}"],
+              "path": ["mechanic", "dashboard", "run-prediction"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Client Dashboard",
+      "item": [
+        {
+          "name": "Get KPIs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/client/dashboard/kpis",
+              "host": ["{{baseUrl}}"],
+              "path": ["client", "dashboard", "kpis"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vehicles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/client/dashboard/vehiculos",
+              "host": ["{{baseUrl}}"],
+              "path": ["client", "dashboard", "vehiculos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{mobile_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/client/dashboard/historial",
+              "host": ["{{baseUrl}}"],
+              "path": ["client", "dashboard", "historial"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Activation",
+      "item": [
+        {
+          "name": "Search Pre-Registered",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/activation/pre-registered?q=&status=ALL",
+              "host": ["{{baseUrl}}"],
+              "path": ["activation", "pre-registered"],
+              "query": [
+                { "key": "q", "value": "" },
+                { "key": "status", "value": "ALL" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"1\",\n  \"workshopId\": \"4\",\n  \"marca\": \"Toyota\",\n  \"modelo\": \"Corolla\",\n  \"anio\": 2020,\n  \"tipoMotor\": \"Gasolina\",\n  \"fotos\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/activation/activate-client",
+              "host": ["{{baseUrl}}"],
+              "path": ["activation", "activate-client"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "item": [
+        {
+          "name": "List Active Alerts",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/alerts",
+              "host": ["{{baseUrl}}"],
+              "path": ["alerts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Alert Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/alerts/{{alertId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["alerts", "{{alertId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm/Reject Alert",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estadoAlerta\": \"CONFIRMADA\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alerts/{{alertId}}/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["alerts", "{{alertId}}", "confirm"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Parts Catalog",
+      "item": [
+        {
+          "name": "List Parts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/parts-catalog",
+              "host": ["{{baseUrl}}"],
+              "path": ["parts-catalog"],
+              "query": [
+                { "key": "categoria", "value": "", "disabled": true },
+                { "key": "workshopId", "value": "", "disabled": true }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/parts-catalog/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["parts-catalog", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Part by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/parts-catalog/{{partId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["parts-catalog", "{{partId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Custom Part",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clerk_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workshopId\": {{workshopId}},\n  \"categoria\": \"Filtros\",\n  \"subcategoria\": \"Aceite\",\n  \"nombre\": \"Filtro de aceite personalizado\",\n  \"descripcion\": \"Filtro especial\",\n  \"precioReferencia\": 15.50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/parts-catalog",
+              "host": ["{{baseUrl}}"],
+              "path": ["parts-catalog"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Send Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"1\",\n  \"titulo\": \"Notificación test\",\n  \"mensaje\": \"Este es un test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "send"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notification",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Client Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/client/{{clienteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "client", "{{clienteId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Count Unread",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/client/{{clienteId}}/unread/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "client", "{{clienteId}}", "unread", "count"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark as Read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}", "read"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Device",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"1\",\n  \"externalId\": \"onesignal-device-id\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/register-device",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "register-device"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "stats"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retry Failed",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/notifications/retry",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "retry"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Get Workshop Info",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/public/workshop/{{workshopId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["public", "workshop", "{{workshopId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pre-Register Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cliente Pre-Registrado\",\n  \"telefono\": \"0991234567\",\n  \"email\": \"preregistro@test.com\",\n  \"licensePlate\": \"ABC-1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/public/workshop/{{workshopId}}/pre-register",
+              "host": ["{{baseUrl}}"],
+              "path": ["public", "workshop", "{{workshopId}}", "pre-register"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
